@@ -1,0 +1,17 @@
+## Interface: 80300
+## Title: Guild Bank Snapshots
+## Notes: Creates snapshots of guild bank logs.
+## Author: Nikketa-Hyjal-US
+## Version: @project-version@
+## SavedVariables: GuildBankSnapshotsDB
+## X-Curse-Project-ID: 82308
+## X-WoWI-ID: 22913
+
+Core.lua
+GUI.lua
+Filter.lua
+Snapshots.lua
+Manage.lua
+Settings.lua
+Help.lua
+Localization.lua
