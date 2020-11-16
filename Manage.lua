@@ -289,7 +289,7 @@ function f:CreateManageTab()
     local pendingExportTXT = tabFrame.ScrollContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     pendingExportTXT:SetText(L["Pending Snapshots"])
     pendingExportTXT:SetPoint("BOTTOMLEFT", pendingExportsScrollFrame, "TOPLEFT", 0, 5)
-    
+
     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     local removeAllSnapshotsBTN = CreateFrame("Button", addon .. "RemoveAllSnapshotsBTN", tabFrame.ScrollContent, "UIMenuButtonStretchTemplate")
@@ -313,7 +313,7 @@ function f:CreateManageTab()
     exportScrollFrame:SetPoint("TOPLEFT", pendingExportsScrollFrame, "TOPRIGHT", 40, 0)
 
     f.exportScrollFrame = exportScrollFrame
-    
+
     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     local exportEditbox = CreateFrame("EditBox", addon .. "ExportSnapshotsEditbox", tabFrame.ScrollContent)
@@ -326,15 +326,15 @@ function f:CreateManageTab()
     exportEditbox:SetAutoFocus(false)
     exportEditbox:SetTextInsets(10, 10, 10, 10)
     exportEditbox:GetRegions():SetNonSpaceWrap(false)
-    
+
     exportEditbox:SetScript("OnEscapePressed", function(self)
         self:ClearFocus()
     end)
-    
+
     exportEditbox:SetScript("OnEditFocusGained", function(self)
         self:HighlightText()
     end)
-    
+
     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     local resetExportsBTN = CreateFrame("Button", addon .. "ResetExportsBTN", tabFrame.ScrollContent, "UIMenuButtonStretchTemplate")
@@ -369,7 +369,7 @@ function f:Delete(self, type)
         table.wipe(db.guilds)
         f:UpdateFrame()
     end
-    
+
     f:LoadSnapshot()
 end
 
@@ -414,7 +414,7 @@ function f:ExportPending()
     end
 
     local exportText = table.concat(lines, "\n"):gsub("|%w%w%w%w%w%w%w%w%w", ""):gsub("|r", "")
-    exportText = "guildName,snapshotDate,tabName,transactionType,name,itemName,itemLevel,itemCount/moneyAmount,moveTabName1,moveTabName2,timeSince,transactionDate,line\n" .. exportText
+    exportText = "guildName,snapshotDate,tabName,transactionType,name,itemName,itemLevel,itemMoneyCount,moveTabName1,moveTabName2,timeSince,transactionDate,line\n" .. exportText
 
     f.exportEditbox:SetText(exportText)
     f.exportEditbox:SetFocus()
