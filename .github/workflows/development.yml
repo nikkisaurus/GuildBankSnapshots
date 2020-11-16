@@ -4,8 +4,7 @@ on:
   push:
     branches: [ development ]
     tags:
-      - "**-alpha**"
-      - "**-beta**"
+      - "**"
 
 jobs:
   release:
