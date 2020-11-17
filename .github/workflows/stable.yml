@@ -2,9 +2,9 @@ name: Package and release development builds
 
 on:
   push:
-    branches: [ stable ]
     tags:
-      - "**"
+      - '*.*.*'
+      - '!*.*.*-*'
 
 jobs:
   release:
