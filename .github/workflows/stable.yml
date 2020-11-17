@@ -1,4 +1,4 @@
-name: Package and release development builds
+name: Package and release stable builds
 
 on:
   push:
