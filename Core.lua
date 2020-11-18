@@ -15,7 +15,6 @@ end
 --*------------------------------------------------------------------------
 
 function addon:OnEnable()
-    self.tabqueue = {}
     self:RegisterEvent("GUILDBANKFRAME_CLOSED")
     self:RegisterEvent("GUILDBANKFRAME_OPENED")
 end

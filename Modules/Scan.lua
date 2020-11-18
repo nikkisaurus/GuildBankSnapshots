@@ -98,5 +98,5 @@ function addon:ValidateScan(db)
     if self.isScanning ~= "auto" or self.db.global.settings.autoScanAlert then
         self:Print(L["Scan finished."], not isValid and L["No changes detected."] or "")
     end
-    self.isScanning = false
+    self.isScanning = nil
 end
