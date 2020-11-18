@@ -1,7 +1,7 @@
 local addonName = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
-local AceSerializer =LibStub("AceSerializer-3.0")
+local AceSerializer = LibStub("AceSerializer-3.0")
 
 ------------------------------------------------------------
 
@@ -26,13 +26,67 @@ function addon:GetTransactionDate(scanTime, year, month, day, hour)
     return scanTime - sec
 end
 
+------------------------------------------------------------
+
+function addon:GetTransactionLine(transaction)
+    local _, transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = AceSerializer:Deserialize(transaction)
+
+    name = name or UNKNOWN
+    name = NORMAL_FONT_COLOR_CODE..name..FONT_COLOR_CODE_CLOSE
+
+    local msg
+    if transactionType == "deposit" then
+        msg = format(GUILDBANK_DEPOSIT_FORMAT, name, itemLink)
+        if count > 1 then
+            msg = msg..format(GUILDBANK_LOG_QUANTITY, count)
+        end
+    elseif transactionType == "withdraw" then
+        msg = format(GUILDBANK_WITHDRAW_FORMAT, name, itemLink)
+        if count > 1 then
+            msg = msg..format(GUILDBANK_LOG_QUANTITY, count)
+        end
+    elseif transactionType == "move" then
+		msg = format(GUILDBANK_MOVE_FORMAT, name, itemLink, count, GetGuildBankTabInfo(moveOrigin), GetGuildBankTabInfo(moveDestination))
+    end
+
+    msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(year, month, day, hour)))
+
+    return msg
+end
+
+--*------------------------------------------------------------------------
+
+local isScanning, bankIsOpen
+
+------------------------------------------------------------
+
+function addon:GUILDBANKFRAME_CLOSED()
+    if isScanning then
+        if isScanning ~= "auto" or self.db.global.settings.autoScanAlert then
+            self:Print(L["Scan failed."])
+        end
+        isScanning = nil
+    end
+    bankIsOpen = nil
+end
+
+------------------------------------------------------------
+
+function addon:GUILDBANKFRAME_OPENED()
+    bankIsOpen = true
+    self:UpdateGuildDatabase()
+    self:ScanGuildBank(true)
+end
+
 --*------------------------------------------------------------------------
 
 function addon:ScanGuildBank(isAutoScan)
+    if not bankIsOpen then self:Print(L.BankClosedError) return end
+
     if not isAutoScan or self.db.global.settings.autoScanAlert then
         self:Print(L["Scanning"].."...")
     end
-    self.isScanning = isAutoScan and "auto" or true
+    isScanning = isAutoScan and "auto" or true
 
     ------------------------------------------------------------
 
@@ -55,9 +109,9 @@ function addon:ScanGuildBank(isAutoScan)
 
             for index = 1, GetNumGuildBankTransactions(tab) do
                 local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = GetGuildBankTransaction(tab, index)
-                local itemID = GetItemInfoInstant(itemLink)
+                -- local itemID = GetItemInfoInstant(itemLink)
 
-                tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemID, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
+                tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemLink, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
             end
 
             ------------------------------------------------------------
@@ -78,15 +132,25 @@ end
 ------------------------------------------------------------
 
 function addon:ValidateScan(db)
-    if not self.isScanning then return end
+    if not bankIsOpen then self:Print(L.BankClosedError) return end
+    if not isScanning then return end
 
     local scans = self.db.global.guilds[self:GetGuildID()].scans
 
     local isValid
     for scanTime, scan in self.pairs(scans, function(a, b) return b < a end) do
         for tab, tabDB in pairs(scan) do
+            -- item was withdrawn
             for k, v in pairs(tabDB.items) do
                 if v ~= db[tab].items[k] then
+                    isValid = true
+                    break
+                end
+            end
+
+            -- item was deposited
+            for k, v in pairs(db[tab].items) do
+                if v ~= tabDB.items[k] then
                     isValid = true
                     break
                 end
@@ -101,8 +165,8 @@ function addon:ValidateScan(db)
         self.db.global.guilds[self:GetGuildID()].scans[time()] = db
     end
 
-    if self.isScanning ~= "auto" or self.db.global.settings.autoScanAlert then
+    if isScanning ~= "auto" or self.db.global.settings.autoScanAlert then
         self:Print(L["Scan finished."], not isValid and L["No changes detected."] or "")
     end
-    self.isScanning = nil
+    isScanning = nil
 end

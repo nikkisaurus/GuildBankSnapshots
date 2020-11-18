@@ -30,16 +30,43 @@ function addon:InitializeDatabase()
                 },
             },
 
+            ------------------------------------------------------------
+
+            commands = {
+                gbs = {
+                    enabled = true,
+                    func = "SlashCommandFunc",
+                },
+
+                scan = {
+                    enabled = true,
+                    func = "ScanGuildBank",
+                },
+
+                snap = {
+                    enabled = false,
+                    func = "ScanGuildBank",
+                },
+
+                snapshot = {
+                    enabled = true,
+                    func = "ScanGuildBank",
+                },
+            },
+
+            ------------------------------------------------------------
+
             settings = {
-                autoScanDelay = .2,
+                autoScanDelay = .5,
                 autoScanAlert = true,
                 reviewAutoScans = false,
                 reviewScans = true,
 
-                dateFormat = "%x (%X)",
+                -- dateFormat = "%x (%X)",
+                dateFormat = "%x (%I:%M %p)",
                 dateType = "default", -- "default", "approx"
 
-                guildFormat = "%g (%f) - %r",
+                guildFormat = "%g - %r (%f)",
                 defaultGuild = false, -- guildID
 
                 confirmDeletions = true,
