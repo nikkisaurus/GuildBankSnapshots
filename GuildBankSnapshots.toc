@@ -11,11 +11,12 @@
 Libs\LibStub\LibStub.lua
 Libs\LibAddonUtils\LibAddonUtils.xml
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceLocale-3.0\AceLocale-3.0.xml
 Libs\AceAddon-3.0\AceAddon-3.0.xml
 Libs\AceEvent-3.0\AceEvent-3.0.xml
 Libs\AceDB-3.0\AceDB-3.0.xml
 Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
-Libs\AceLocale-3.0\AceLocale-3.0.xml
+Libs\AceSerializer-3.0\AceSerializer-3.0.xml
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 
 # Locales
