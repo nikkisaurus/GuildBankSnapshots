@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 90002
 ## Title: Guild Bank Snapshots
 ## Notes: Creates snapshots of guild bank logs.
 ## Author: Nikketa-Hyjal-US
