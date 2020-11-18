@@ -31,6 +31,7 @@ function addon:InitializeDatabase()
             },
 
             settings = {
+                autoScanDelay = .2,
                 autoScanAlert = true,
                 reviewAutoScans = false,
                 reviewScans = true,

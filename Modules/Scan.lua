@@ -5,9 +5,12 @@ local AceSerializer =LibStub("AceSerializer-3.0")
 
 ------------------------------------------------------------
 
-local abs = math.abs
-local format = string.format
-local tinsert = table.insert
+local pairs, tinsert = pairs, table.insert
+
+local QueryGuildBankLog, QueryGuildBankTab = QueryGuildBankLog, QueryGuildBankTab
+local GetNumGuildBankTransactions, GetGuildBankTransaction = GetNumGuildBankTransactions, GetGuildBankTransaction
+local GetGuildBankItemLink, GetGuildBankItemInfo, GetItemInfoInstant = GetGuildBankItemLink, GetGuildBankItemInfo, GetItemInfoInstant
+
 
 --*------------------------------------------------------------------------
 
@@ -31,14 +34,17 @@ function addon:ScanGuildBank(isAutoScan)
     end
     self.isScanning = isAutoScan and "auto" or true
 
-    local numTabs = self.db.global.guilds[self:GetGuildID()].numTabs
+    ------------------------------------------------------------
 
+    local numTabs = self.db.global.guilds[self:GetGuildID()].numTabs
     for tab = 1, numTabs do
         QueryGuildBankTab(tab)
         QueryGuildBankLog(tab)
     end
 
-    C_Timer.After(.2, function()
+    ------------------------------------------------------------
+
+    C_Timer.After(self.db.global.settings.autoScanDelay, function()
         local db = {}
 
         for tab = 1, numTabs do
