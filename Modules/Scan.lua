@@ -25,9 +25,11 @@ end
 
 --*------------------------------------------------------------------------
 
-function addon:ScanGuildBank()
-    self:Print(L["Scanning"].."...")
-    self.isScanning = true
+function addon:ScanGuildBank(isAutoScan)
+    if not isAutoScan or self.db.global.settings.autoScanAlert then
+        self:Print(L["Scanning"].."...")
+    end
+    self.isScanning = isAutoScan and "auto" or true
 
     local numTabs = self.db.global.guilds[self:GetGuildID()].numTabs
 
@@ -93,6 +95,8 @@ function addon:ValidateScan(db)
         self.db.global.guilds[self:GetGuildID()].scans[time()] = db
     end
 
+    if self.isScanning ~= "auto" or self.db.global.settings.autoScanAlert then
+        self:Print(L["Scan finished."], not isValid and L["No changes detected."] or "")
+    end
     self.isScanning = false
-    self:Print(L["Scan finished."], not isValid and L["No changes detected."] or "")
 end

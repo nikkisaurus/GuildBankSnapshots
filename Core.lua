@@ -42,8 +42,10 @@ end
 
 function addon:GUILDBANKFRAME_CLOSED()
     if self.isScanning then
+        if self.isScanning ~= "auto" or self.db.global.settings.autoScanAlert then
+            self:Print(L["Scan failed."])
+        end
         self.isScanning = nil
-        self:Print(L["Scan failed."])
     end
 end
 
@@ -51,5 +53,5 @@ end
 
 function addon:GUILDBANKFRAME_OPENED()
     self:UpdateGuildDatabase()
-    self:ScanGuildBank()
+    self:ScanGuildBank(true)
 end
