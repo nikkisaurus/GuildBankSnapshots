@@ -1,6 +1,7 @@
 local addonName = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local AceSerializer = LibStub("AceSerializer-3.0")
 local AceGUI = LibStub("AceGUI-3.0", true)
 
 ------------------------------------------------------------
@@ -42,6 +43,22 @@ end
 
 local function guildList_OnValueChanged(_, _, selectedGuild)
     ReviewFrame:SetSelectedGuild(selectedGuild)
+end
+
+------------------------------------------------------------
+
+local function OnHyperlinkEnter(self, transaction)
+    GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+    GameTooltip:SetHyperlink(select(4, AceSerializer:Deserialize(transaction)))
+    GameTooltip:Show()
+end
+
+
+------------------------------------------------------------
+
+local function Tooltip_OnLeave()
+    GameTooltip:ClearLines()
+    GameTooltip:Hide()
 end
 
 ------------------------------------------------------------
@@ -98,10 +115,12 @@ local methods = {
 
     ------------------------------------------------------------
 
-    LoadTransactions = function(self, selectedGuild, selectedSnapshot, selectedTab)
-        -- print(selectedGuild, selectedSnapshot, selectedTab)
+    LoadTransactions = function(self)
+        local selectedGuild, selectedSnapshot, selectedTab = self:GetSelected()
         local tabPanel = ReviewFrame:GetUserData("children").tabPanel
-        -- tabPanel:ReleaseChildren()
+        tabPanel:ReleaseChildren()
+
+        if not selectedTab then return end
 
         local tabID = tonumber(strmatch(selectedTab, "^tab(%d+)$"))
         for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot][tabID].transactions, function(a, b) return b < a end) do
@@ -113,15 +132,8 @@ local methods = {
             label.frame:EnableMouse(true)
             label.frame:SetHyperlinksEnabled(true)
             label.frame:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow)
-            label.frame:SetScript("OnHyperlinkEnter", function(frame)
-                GameTooltip:SetOwner(frame, "ANCHOR_CURSOR")
-                GameTooltip:SetHyperlink(select(4, LibStub("AceSerializer-3.0"):Deserialize(transaction)))
-                GameTooltip:Show()
-            end)
-            label.frame:SetScript("OnHyperlinkLeave", function()
-                GameTooltip:ClearLines()
-                GameTooltip:Hide()
-            end)
+            label.frame:SetScript("OnHyperlinkEnter", function(frame) OnHyperlinkEnter(frame, transaction) end)
+            label.frame:SetScript("OnHyperlinkLeave", Tooltip_OnLeave)
         end
     end,
 
@@ -145,7 +157,7 @@ local methods = {
 
     SetSelectedTab = function(self, selectedTab)
         self:SetUserData("selectedTab", selectedTab)
-        self:LoadTransactions(self:GetSelected())
+        self:LoadTransactions()
     end,
 }
 
@@ -204,6 +216,8 @@ function addon:LoadReviewPanel(selectedSnap)
     local reviewPanel = ReviewFrame:GetUserData("children").reviewPanel
     local children = ReviewFrame:GetUserData("children")
 
+    reviewPanel:ReleaseChildren()
+
     ------------------------------------------------------------
 
     local tabGroup = AceGUI:Create("TabGroup")
@@ -222,4 +236,8 @@ function addon:LoadReviewPanel(selectedSnap)
     tabPanel:SetLayout("List")
     tabGroup:AddChild(tabPanel)
     children.tabPanel = tabPanel
+
+    ------------------------------------------------------------
+
+    ReviewFrame:LoadTransactions()
 end
