@@ -49,7 +49,7 @@ end
 
 local function OnHyperlinkEnter(self, transaction)
     GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-    GameTooltip:SetHyperlink(select(4, AceSerializer:Deserialize(transaction)))
+    GameTooltip:SetHyperlink(addon:GetTransactionInfo(transaction).itemLink)
     GameTooltip:Show()
 end
 
@@ -126,7 +126,7 @@ local methods = {
         for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot][tabID].transactions, function(a, b) return b < a end) do
             local label = AceGUI:Create("Label")
             label:SetFullWidth(true)
-            label:SetText(addon:GetTransactionLine(transaction))
+            label:SetText(addon:GetTransactionLabel(transaction))
             tabPanel:AddChild(label)
 
             label.frame:EnableMouse(true)

@@ -28,28 +28,48 @@ end
 
 ------------------------------------------------------------
 
-function addon:GetTransactionLine(transaction)
-    local _, transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = AceSerializer:Deserialize(transaction)
+function addon:GetTransactionInfo(transaction)
+    local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+    local info = {
+        transactionType = transactionType,
+        name = name,
+        itemLink = itemLink,
+        count = count,
+        moveOrigin = moveOrigin,
+        moveDestination = moveDestination,
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+    }
 
-    name = name or UNKNOWN
-    name = NORMAL_FONT_COLOR_CODE..name..FONT_COLOR_CODE_CLOSE
+    return info
+end
+
+------------------------------------------------------------
+
+function addon:GetTransactionLabel(transaction)
+    local info = self:GetTransactionInfo(transaction)
+
+    info.name = info.name or UNKNOWN
+    info.name = NORMAL_FONT_COLOR_CODE..info.name..FONT_COLOR_CODE_CLOSE
 
     local msg
-    if transactionType == "deposit" then
-        msg = format(GUILDBANK_DEPOSIT_FORMAT, name, itemLink)
-        if count > 1 then
-            msg = msg..format(GUILDBANK_LOG_QUANTITY, count)
+    if info.transactionType == "deposit" then
+        msg = format(GUILDBANK_DEPOSIT_FORMAT, info.name, info.itemLink)
+        if info.count > 1 then
+            msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
         end
-    elseif transactionType == "withdraw" then
-        msg = format(GUILDBANK_WITHDRAW_FORMAT, name, itemLink)
-        if count > 1 then
-            msg = msg..format(GUILDBANK_LOG_QUANTITY, count)
+    elseif info.transactionType == "withdraw" then
+        msg = format(GUILDBANK_WITHDRAW_FORMAT, info.name, info.itemLink)
+        if info.count > 1 then
+            msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
         end
-    elseif transactionType == "move" then
-		msg = format(GUILDBANK_MOVE_FORMAT, name, itemLink, count, GetGuildBankTabInfo(moveOrigin), GetGuildBankTabInfo(moveDestination))
+    elseif info.transactionType == "move" then
+		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, GetGuildBankTabInfo(info.moveOrigin), GetGuildBankTabInfo(info.moveDestination))
     end
 
-    msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(year, month, day, hour)))
+    msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(info.year, info.month, info.day, info.hour)))
 
     return msg
 end
