@@ -11,7 +11,6 @@ local QueryGuildBankLog, QueryGuildBankTab = QueryGuildBankLog, QueryGuildBankTa
 local GetNumGuildBankTransactions, GetGuildBankTransaction = GetNumGuildBankTransactions, GetGuildBankTransaction
 local GetGuildBankItemLink, GetGuildBankItemInfo, GetItemInfoInstant = GetGuildBankItemLink, GetGuildBankItemInfo, GetItemInfoInstant
 
-
 --*------------------------------------------------------------------------
 
 local hours = 60 * 60

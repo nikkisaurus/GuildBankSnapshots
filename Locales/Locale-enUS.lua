@@ -5,6 +5,7 @@ LibStub("LibAddonUtils-1.0"):Embed(addon)
 
 --*------------------------------------------------------------------------
 
+L["Money"] = true
 L["No changes detected."] = true
 L["Scan failed."] = true
 L["Scan finished."] = true

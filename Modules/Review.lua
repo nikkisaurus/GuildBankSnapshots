@@ -8,6 +8,7 @@ local AceGUI = LibStub("AceGUI-3.0", true)
 
 local gsub = string.gsub
 local pairs, tinsert = pairs, table.insert
+local GameTooltip = GameTooltip
 
 local ReviewFrame
 
@@ -33,8 +34,11 @@ local function GetTabList()
 
     for i = 1, addon.db.global.guilds[ReviewFrame:GetSelected()].numTabs do
         tinsert(list, {text = L["Tab"].." "..i, value = "tab"..i})
-        tinsert(sort, i)
+        tinsert(sort, "tab"..i)
     end
+
+    tinsert(list, {text = L["Money"], value = "moneyTab"})
+    tinsert(sort, "moneyTab")
 
     return list, sort
 end
@@ -122,18 +126,21 @@ local methods = {
 
         if not selectedTab then return end
 
-        local tabID = tonumber(strmatch(selectedTab, "^tab(%d+)$"))
-        for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot][tabID].transactions, function(a, b) return b < a end) do
-            local label = AceGUI:Create("Label")
-            label:SetFullWidth(true)
-            label:SetText(addon:GetTransactionLabel(transaction))
-            tabPanel:AddChild(label)
+        if selectedTab ~= "moneyTab" then
+            local tabID = tonumber(strmatch(selectedTab, "^tab(%d+)$"))
+            for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot][tabID].transactions, function(a, b) return b < a end) do
+                local label = AceGUI:Create("Label")
+                label:SetFullWidth(true)
+                label:SetText(addon:GetTransactionLabel(transaction))
+                tabPanel:AddChild(label)
 
-            label.frame:EnableMouse(true)
-            label.frame:SetHyperlinksEnabled(true)
-            label.frame:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow)
-            label.frame:SetScript("OnHyperlinkEnter", function(frame) OnHyperlinkEnter(frame, transaction) end)
-            label.frame:SetScript("OnHyperlinkLeave", Tooltip_OnLeave)
+                label.frame:EnableMouse(true)
+                label.frame:SetHyperlinksEnabled(true)
+                label.frame:SetScript("OnHyperlinkClick", ChatFrame_OnHyperlinkShow)
+                label.frame:SetScript("OnHyperlinkEnter", function(frame) OnHyperlinkEnter(frame, transaction) end)
+                label.frame:SetScript("OnHyperlinkLeave", Tooltip_OnLeave)
+            end
+        else
         end
     end,
 
