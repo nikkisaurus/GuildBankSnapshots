@@ -128,7 +128,7 @@ local methods = {
 
         if selectedTab ~= "moneyTab" then
             local tabID = tonumber(strmatch(selectedTab, "^tab(%d+)$"))
-            for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot][tabID].transactions, function(a, b) return b < a end) do
+            for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot].tabs[tabID].transactions, function(a, b) return b < a end) do
                 local label = AceGUI:Create("Label")
                 label:SetFullWidth(true)
                 label:SetText(addon:GetTransactionLabel(transaction))
@@ -141,6 +141,12 @@ local methods = {
                 label.frame:SetScript("OnHyperlinkLeave", Tooltip_OnLeave)
             end
         else
+            for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot].moneyTransactions, function(a, b) return b < a end) do
+                local label = AceGUI:Create("Label")
+                label:SetFullWidth(true)
+                label:SetText(addon:GetMoneyTransactionLabel(transaction))
+                tabPanel:AddChild(label)
+            end
         end
     end,
 

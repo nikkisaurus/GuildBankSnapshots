@@ -11,6 +11,10 @@ local QueryGuildBankLog, QueryGuildBankTab = QueryGuildBankLog, QueryGuildBankTa
 local GetNumGuildBankTransactions, GetGuildBankTransaction = GetNumGuildBankTransactions, GetGuildBankTransaction
 local GetGuildBankItemLink, GetGuildBankItemInfo, GetItemInfoInstant = GetGuildBankItemLink, GetGuildBankItemInfo, GetItemInfoInstant
 
+local UNKNOWN, NORMAL_FONT_COLOR_CODE, FONT_COLOR_CODE_CLOSE, GUILD_BANK_LOG_TIME = UNKNOWN, NORMAL_FONT_COLOR_CODE, FONT_COLOR_CODE_CLOSE, GUILD_BANK_LOG_TIME
+local GUILDBANK_DEPOSIT_MONEY_FORMAT, GUILDBANK_WITHDRAW_MONEY_FORMAT, GUILDBANK_REPAIR_MONEY_FORMAT, GUILDBANK_WITHDRAWFORTAB_MONEY_FORMAT, GUILDBANK_BUYTAB_MONEY_FORMAT, GUILDBANK_UNLOCKTAB_FORMAT, GUILDBANK_AWARD_MONEY_SUMMARY_FORMAT = GUILDBANK_DEPOSIT_MONEY_FORMAT, GUILDBANK_WITHDRAW_MONEY_FORMAT, GUILDBANK_REPAIR_MONEY_FORMAT, GUILDBANK_WITHDRAWFORTAB_MONEY_FORMAT, GUILDBANK_BUYTAB_MONEY_FORMAT, GUILDBANK_UNLOCKTAB_FORMAT, GUILDBANK_AWARD_MONEY_SUMMARY_FORMAT
+local GUILDBANK_DEPOSIT_FORMAT, GUILDBANK_LOG_QUANTITY, GUILDBANK_WITHDRAW_FORMAT, GUILDBANK_LOG_QUANTITY, GUILDBANK_MOVE_FORMAT = GUILDBANK_DEPOSIT_FORMAT, GUILDBANK_LOG_QUANTITY, GUILDBANK_WITHDRAW_FORMAT, GUILDBANK_LOG_QUANTITY, GUILDBANK_MOVE_FORMAT
+
 --*------------------------------------------------------------------------
 
 local hours = 60 * 60
@@ -23,6 +27,23 @@ local years = months * 12
 function addon:GetTransactionDate(scanTime, year, month, day, hour)
     local sec = (hour * hours) + (day * days) + (month * months) + (year * years)
     return scanTime - sec
+end
+
+------------------------------------------------------------
+
+function addon:GetMoneyTransactionInfo(transaction)
+    local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+    local info = {
+        transactionType = transactionType,
+        name = name,
+        amount = amount,
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+    }
+
+    return info
 end
 
 ------------------------------------------------------------
@@ -43,6 +64,39 @@ function addon:GetTransactionInfo(transaction)
     }
 
     return info
+end
+
+------------------------------------------------------------
+
+function addon:GetMoneyTransactionLabel(transaction)
+    local info = self:GetMoneyTransactionInfo(transaction)
+
+    info.name = info.name or UNKNOWN
+    info.name = NORMAL_FONT_COLOR_CODE..info.name..FONT_COLOR_CODE_CLOSE
+    local money = GetDenominationsFromCopper(info.amount)
+
+    local msg
+    if info.transactionType == "deposit" then
+        msg = format(GUILDBANK_DEPOSIT_MONEY_FORMAT, info.name, money)
+    elseif info.transactionType == "withdraw" then
+        msg = format(GUILDBANK_WITHDRAW_MONEY_FORMAT, info.name, money)
+    elseif info.transactionType == "repair" then
+        msg = format(GUILDBANK_REPAIR_MONEY_FORMAT, info.name, money)
+    elseif info.transactionType == "withdrawForTab" then
+        msg = format(GUILDBANK_WITHDRAWFORTAB_MONEY_FORMAT, info.name, money)
+    elseif info.transactionType == "buyTab" then
+        if amount > 0 then
+            msg = format(GUILDBANK_BUYTAB_MONEY_FORMAT, info.name, money)
+        else
+            msg = format(GUILDBANK_UNLOCKTAB_FORMAT, info.name)
+        end
+    elseif info.transactionType == "depositSummary" then
+        msg = format(GUILDBANK_AWARD_MONEY_SUMMARY_FORMAT, money)
+    end
+
+    msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(info.year, info.month, info.day, info.hour)))
+
+    return msg
 end
 
 ------------------------------------------------------------
@@ -146,8 +200,7 @@ function addon:ScanGuildBank(isAutoScan)
 
         db.totalMoney = GetGuildBankMoney()
         for i = 1, GetNumGuildBankMoneyTransactions() do
-            local transactionType, name, amount, years, months, days, hours = GetGuildBankMoneyTransaction(i)
-            tinsert(db.moneyTransactions, AceSerializer:Serialize(transactionType, name, amount, years, months, days, hours))
+            tinsert(db.moneyTransactions, AceSerializer:Serialize(GetGuildBankMoneyTransaction(i)))
         end
 
         self:ValidateScan(db)
