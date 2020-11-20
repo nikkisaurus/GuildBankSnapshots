@@ -110,25 +110,25 @@ function addon:ScanGuildBank(isAutoScan)
     ------------------------------------------------------------
 
     local numTabs = self.db.global.guilds[self:GetGuildID()].numTabs
-    for tab = 1, numTabs do
+    for tab = 1, numTabs  do
         QueryGuildBankTab(tab)
         QueryGuildBankLog(tab)
     end
+    QueryGuildBankLog(MAX_GUILDBANK_TABS + 1)
 
     ------------------------------------------------------------
 
     C_Timer.After(self.db.global.settings.autoScanDelay, function()
-        local db = {}
+        local db = {totalMoney = 0, moneyTransactions = {}, tabs = {}}
 
         for tab = 1, numTabs do
-            db[tab] = {items = {}, transactions = {}}
-            local tabDB = db[tab]
+            db.tabs[tab] = {items = {}, transactions = {}}
+            local tabDB = db.tabs[tab]
 
             ------------------------------------------------------------
 
             for index = 1, GetNumGuildBankTransactions(tab) do
                 local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = GetGuildBankTransaction(tab, index)
-                -- local itemID = GetItemInfoInstant(itemLink)
 
                 tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemLink, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
             end
@@ -142,6 +142,12 @@ function addon:ScanGuildBank(isAutoScan)
                     tabDB.items[slotItemID] = tabDB.items[slotItemID] and tabDB.items[slotItemID] + slotItemCount or slotItemCount
                 end
             end
+        end
+
+        db.totalMoney = GetGuildBankMoney()
+        for i = 1, GetNumGuildBankMoneyTransactions() do
+            local transactionType, name, amount, years, months, days, hours = GetGuildBankMoneyTransaction(i)
+            tinsert(db.moneyTransactions, AceSerializer:Serialize(transactionType, name, amount, years, months, days, hours))
         end
 
         self:ValidateScan(db)
@@ -158,23 +164,30 @@ function addon:ValidateScan(db)
 
     local isValid
     for scanTime, scan in self.pairs(scans, function(a, b) return b < a end) do
-        for tab, tabDB in pairs(scan) do
+        -- money changed
+        if scan.totalMoney ~= db.totalMoney then
+            isValid = true
+            break
+        end
+
+        for tab, tabDB in pairs(scan.tabs) do
             -- item was withdrawn
             for k, v in pairs(tabDB.items) do
-                if v ~= db[tab].items[k] then
+                if v ~= db.tabs[tab].items[k] then
                     isValid = true
                     break
                 end
             end
 
             -- item was deposited
-            for k, v in pairs(db[tab].items) do
+            for k, v in pairs(db.tabs[tab].items) do
                 if v ~= tabDB.items[k] then
                     isValid = true
                     break
                 end
             end
         end
+
         break
     end
 
