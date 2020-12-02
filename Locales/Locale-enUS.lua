@@ -11,7 +11,6 @@ L["Scan failed."] = true
 L["Scan finished."] = true
 L["Scanning"] = true
 L["Tab"] = true
-L["Total Gold"] = true
 
 --*------------------------------------------------------------------------
 

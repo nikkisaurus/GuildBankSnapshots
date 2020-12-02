@@ -6,10 +6,10 @@ local AceGUI = LibStub("AceGUI-3.0", true)
 
 ------------------------------------------------------------
 
-local gsub = string.gsub
+local gsub, tonumber = string.gsub, tonumber
 local pairs, tinsert = pairs, table.insert
 local GameTooltip = GameTooltip
-local GetDenominationsFromCopper = GetDenominationsFromCopper
+local GetCoinTextureString = GetCoinTextureString
 
 local ReviewFrame
 
@@ -44,6 +44,17 @@ local function GetTabList()
     return list, sort
 end
 
+------------------------------------------------------------
+
+local function GetTabName(guildID, tabID)
+    if tabID == "moneyTab" then
+        return L["Money"]
+    elseif guildID and tabID then
+        tabID = tonumber((gsub(tabID, "^tab", "")))
+        return string.format("%s (%s %d)", addon.db.global.guilds[guildID].tabs[tabID].name, L["Tab"], tabID)
+    end
+end
+
 --*------------------------------------------------------------------------
 
 local function guildList_OnValueChanged(_, _, selectedGuild)
@@ -75,7 +86,9 @@ end
 ------------------------------------------------------------
 
 local function tabGroup_OnGroupSelected(self, _, selectedTab)
+    ReviewFrame:GetUserData("children").tabTitle:SetText(GetTabName(ReviewFrame:GetSelected(), selectedTab))
     ReviewFrame:SetSelectedTab(selectedTab)
+    ReviewFrame:DoLayout()
 end
 
 --*------------------------------------------------------------------------
@@ -229,7 +242,7 @@ end
 function addon:LoadReviewPanel()
     local reviewPanel = ReviewFrame:GetUserData("children").reviewPanel
     local children = ReviewFrame:GetUserData("children")
-    local selectedGuild, selectedSnapshot = ReviewFrame:GetSelected()
+    local selectedGuild, selectedSnapshot, selectedTab = ReviewFrame:GetSelected()
     local scan = self.db.global.guilds[selectedGuild].scans[selectedSnapshot]
 
     reviewPanel:ReleaseChildren()
@@ -240,15 +253,16 @@ function addon:LoadReviewPanel()
     tabTitle:SetFullWidth(true)
     tabTitle:SetFontObject(GameFontNormalLarge)
     tabTitle:SetColor(1, .82, 0, 1)
-    -- tabTitle:SetText()
+    tabTitle:SetText(GetTabName(selectedGuild, selectedTab))
     reviewPanel:AddChild(tabTitle)
+    children.tabTitle = tabTitle
 
     ------------------------------------------------------------
 
     local totalMoney = AceGUI:Create("Label")
     totalMoney:SetFullWidth(true)
     totalMoney:SetFontObject(GameFontNormal)
-    totalMoney:SetText(L["Total Gold"]..": "..GetDenominationsFromCopper(scan.totalMoney))
+    totalMoney:SetText(GetCoinTextureString(scan.totalMoney))
     reviewPanel:AddChild(totalMoney)
 
     ------------------------------------------------------------
