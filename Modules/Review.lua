@@ -111,8 +111,12 @@ local methods = {
         local children = self:GetUserData("children")
         local guildList = GetGuildList()
         children.guildList:SetList(guildList)
-        children.guildList:SetValue(self:GetUserData("selectedGuild") or addon.db.global.settings.defaultGuild)
         children.guildList:SetDisabled(addon.tcount(guildList) == 0)
+        local selectedGuild = self:GetUserData("selectedGuild") or addon.db.global.settings.defaultGuild
+        if selectedGuild then
+            children.guildList:SetValue(selectedGuild)
+            self:SetSelectedGuild(selectedGuild)
+        end
     end,
 
     ------------------------------------------------------------
@@ -145,6 +149,7 @@ local methods = {
             for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot].tabs[tabID].transactions, function(a, b) return b < a end) do
                 local label = AceGUI:Create("Label")
                 label:SetFullWidth(true)
+                label:SetFontObject(GameFontHighlight)
                 label:SetText(addon:GetTransactionLabel(transaction))
                 tabPanel:AddChild(label)
 
@@ -158,6 +163,7 @@ local methods = {
             for _, transaction in addon.pairs(addon.db.global.guilds[selectedGuild].scans[selectedSnapshot].moneyTransactions, function(a, b) return b < a end) do
                 local label = AceGUI:Create("Label")
                 label:SetFullWidth(true)
+                label:SetFontObject(GameFontHighlight)
                 label:SetText(addon:GetMoneyTransactionLabel(transaction))
                 tabPanel:AddChild(label)
             end
