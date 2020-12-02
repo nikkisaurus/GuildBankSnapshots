@@ -184,6 +184,8 @@ local methods = {
     SetSelectedSnap = function(self, selectedSnap)
         self:SetUserData("selectedSnap", selectedSnap)
         addon:LoadReviewPanel()
+
+        self:GetUserData("children").tabGroup:SelectTab(self:GetUserData("selectedTab") or "tab1")
     end,
 
     ------------------------------------------------------------
@@ -255,13 +257,12 @@ function addon:LoadReviewPanel()
 
     ------------------------------------------------------------
 
-    local tabTitle = AceGUI:Create("Label")
-    tabTitle:SetFullWidth(true)
-    tabTitle:SetFontObject(GameFontNormalLarge)
-    tabTitle:SetColor(1, .82, 0, 1)
-    tabTitle:SetText(GetTabName(selectedGuild, selectedTab))
-    reviewPanel:AddChild(tabTitle)
-    children.tabTitle = tabTitle
+    local snapshot = AceGUI:Create("Label")
+    snapshot:SetFullWidth(true)
+    snapshot:SetColor(1, .82, 0, 1)
+    snapshot:SetText(date(addon.db.global.settings.dateFormat, selectedSnapshot))
+    reviewPanel:AddChild(snapshot)
+    children.tabTitle = snapshot
 
     ------------------------------------------------------------
 
@@ -270,6 +271,14 @@ function addon:LoadReviewPanel()
     totalMoney:SetFontObject(GameFontNormal)
     totalMoney:SetText(GetCoinTextureString(scan.totalMoney))
     reviewPanel:AddChild(totalMoney)
+
+    ------------------------------------------------------------
+
+    local tabTitle = AceGUI:Create("Label")
+    tabTitle:SetFullWidth(true)
+    tabTitle:SetText(GetTabName(selectedGuild, selectedTab))
+    reviewPanel:AddChild(tabTitle)
+    children.tabTitle = tabTitle
 
     ------------------------------------------------------------
 
