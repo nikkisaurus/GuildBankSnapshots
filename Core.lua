@@ -38,6 +38,7 @@ ns.f = f
 
 f:RegisterEvent("ADDON_LOADED")
 f:RegisterEvent("GUILDBANKFRAME_OPENED")
+f:RegisterEvent("GUILDBANKFRAME_CLOSED")
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -86,7 +87,7 @@ f.pairsByKeys = function(_, t, f)
             return a[i], t[a[i]]
         end
     end
-    
+
     return iter
 end
 
@@ -118,7 +119,7 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
 
                         for snapshot, snapshotTable in pairs(guildTable) do
                             local month, day, year, hour, min, sec = snapshot:match("(%d+)%/(%d+)%/(%d+)%s(%d+):(%d+):(%d+)")
-                        
+
                             local snapshotID = time({
                                   month = month,
                                   day = day,
@@ -127,17 +128,17 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
                                   min = min,
                                   sec = sec,
                             })
-                        
+
                             GuildBankSnapshotsDB.guilds[guildID][snapshotID] = {}
-                        
+
                             local i = 1
-                        
+
                             for tabNum, tabTable in pairs(snapshotTable.Transactions) do
                                 if type(tabTable) == "table" then
                                     for transID, v in pairs(tabTable) do
-                                        if type(v) == "table" then   
+                                        if type(v) == "table" then
                                             GuildBankSnapshotsDB.guilds[guildID][snapshotID][i] = GuildBankSnapshotsDB.guilds[guildID][snapshotID][i] or {}
-                                            GuildBankSnapshotsDB.guilds[guildID][snapshotID][i].tabName = tabTable.Name                     
+                                            GuildBankSnapshotsDB.guilds[guildID][snapshotID][i].tabName = tabTable.Name
                                             local approxTime =  time(f:GetDate(date("*t", snapshotID), v[8], v[9], v[10], v[11]))
                                             v[6] = v[1] == "move" and v[6][2] or nil
                                             v[7] = v[1] == "move" and v[7][2] or nil
@@ -145,7 +146,7 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
                                         end
                                     end
                                 end
-                               
+
                                 i = i + 1
                             end
 
@@ -153,7 +154,7 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
                             GuildBankSnapshotsDB.guilds[guildID][snapshotID][i].tabName = L["Money"]
 
                             for transID, v in pairs(snapshotTable.Money) do
-                                 if type(v) == "table" then                        
+                                 if type(v) == "table" then
                                     local approxTime =  time(f:GetDate(date("*t", snapshotID), v[8], v[9], v[10], v[11]))
                                     tinsert(GuildBankSnapshotsDB.guilds[guildID][snapshotID][i], {approxTime, v[2], v[1], v[3]})
                                  end
@@ -173,6 +174,7 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
 end
 
 function f:GUILDBANKFRAME_OPENED(event, ...)
+    ns.BankOpen = true
     for i = 1, MAX_GUILDBANK_TABS + 1 do
         QueryGuildBankLog(i)
 
@@ -185,7 +187,7 @@ function f:GUILDBANKFRAME_OPENED(event, ...)
                     if k > time() - 86400 then
                         scannedToday = true
                     end
-                end                
+                end
             end
 
             if not scannedToday then
@@ -195,6 +197,10 @@ function f:GUILDBANKFRAME_OPENED(event, ...)
             end
         end
     end
+end
+
+function f:GUILDBANKFRAME_CLOSED(event, ...)
+    ns.BankOpen = false
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -334,7 +340,7 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 function f:ScanBank(auto)
-    if not GuildBankFrame or not GuildBankFrame:IsVisible() then
+    if not ns.BankOpen then
         f:print(L["Please open your guild bank frame and try again."])
         return
     end
