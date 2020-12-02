@@ -1,6 +1,6 @@
-local addonName, addon = ...
-local FarmingBar = LibStub("AceAddon-3.0"):GetAddon("FarmingBar")
-local L = LibStub("AceLocale-3.0"):GetLocale("FarmingBar", true)
+local addonName = ...
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 
 local CreateFrame, UIParent = CreateFrame, UIParent

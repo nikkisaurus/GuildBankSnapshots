@@ -9,6 +9,7 @@ local AceGUI = LibStub("AceGUI-3.0", true)
 local gsub = string.gsub
 local pairs, tinsert = pairs, table.insert
 local GameTooltip = GameTooltip
+local GetDenominationsFromCopper = GetDenominationsFromCopper
 
 local ReviewFrame
 
@@ -163,7 +164,7 @@ local methods = {
 
     SetSelectedSnap = function(self, selectedSnap)
         self:SetUserData("selectedSnap", selectedSnap)
-        addon:LoadReviewPanel(selectedSnap)
+        addon:LoadReviewPanel()
     end,
 
     ------------------------------------------------------------
@@ -225,11 +226,30 @@ end
 
 --*------------------------------------------------------------------------
 
-function addon:LoadReviewPanel(selectedSnap)
+function addon:LoadReviewPanel()
     local reviewPanel = ReviewFrame:GetUserData("children").reviewPanel
     local children = ReviewFrame:GetUserData("children")
+    local selectedGuild, selectedSnapshot = ReviewFrame:GetSelected()
+    local scan = self.db.global.guilds[selectedGuild].scans[selectedSnapshot]
 
     reviewPanel:ReleaseChildren()
+
+    ------------------------------------------------------------
+
+    local tabTitle = AceGUI:Create("Label")
+    tabTitle:SetFullWidth(true)
+    tabTitle:SetFontObject(GameFontNormalLarge)
+    tabTitle:SetColor(1, .82, 0, 1)
+    -- tabTitle:SetText()
+    reviewPanel:AddChild(tabTitle)
+
+    ------------------------------------------------------------
+
+    local totalMoney = AceGUI:Create("Label")
+    totalMoney:SetFullWidth(true)
+    totalMoney:SetFontObject(GameFontNormal)
+    totalMoney:SetText(L["Total Gold"]..": "..GetDenominationsFromCopper(scan.totalMoney))
+    reviewPanel:AddChild(totalMoney)
 
     ------------------------------------------------------------
 
