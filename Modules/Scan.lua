@@ -18,15 +18,15 @@ local GUILDBANK_DEPOSIT_FORMAT, GUILDBANK_LOG_QUANTITY, GUILDBANK_WITHDRAW_FORMA
 
 --*------------------------------------------------------------------------
 
-local hours = 60 * 60
-local days = hours * 24
-local months = days * (365 / 12)
-local years = months * 12
+addon.secondsInHour = 60 * 60
+addon.secondsInDay = addon.secondsInHour * 24
+addon.secondsInMonth = addon.secondsInDay * (365 / 12)
+addon.secondsInYear = addon.secondsInMonth * 12
 
 ------------------------------------------------------------
 
 function addon:GetTransactionDate(scanTime, year, month, day, hour)
-    local sec = (hour * hours) + (day * days) + (month * months) + (year * years)
+    local sec = (hour * addon.secondsInHour) + (day * addon.secondsInDay) + (month * addon.secondsInMonth) + (year * addon.secondsInYear)
     return scanTime - sec
 end
 
@@ -69,7 +69,7 @@ end
 
 ------------------------------------------------------------
 
-function addon:GetMoneyTransactionLabel(transaction)
+function addon:GetMoneyTransactionLabel(transaction, approxDate)
     local info = self:GetMoneyTransactionInfo(transaction)
 
     info.name = info.name or UNKNOWN
@@ -95,18 +95,29 @@ function addon:GetMoneyTransactionLabel(transaction)
         msg = format(GUILDBANK_AWARD_MONEY_SUMMARY_FORMAT, money)
     end
 
-    msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(info.year, info.month, info.day, info.hour)))
+    if approxDate then
+    else
+        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(info.year, info.month, info.day, info.hour)))
+    end
 
     return msg
 end
 
 ------------------------------------------------------------
 
-function addon:GetTransactionLabel(transaction)
+function addon:GetTransactionLabel(transaction, snapshotDate)
     local info = self:GetTransactionInfo(transaction)
 
     info.name = info.name or UNKNOWN
     info.name = NORMAL_FONT_COLOR_CODE..info.name..FONT_COLOR_CODE_CLOSE
+    -- if overrideDate then
+    --     info.year = overrideDate.year
+    --     info.month = overrideDate.month
+    --     info.day = overrideDate.day
+    --     info.hour = overrideDate.hour
+    --     print(transaction)
+    --     for k, v in pairs(overrideDate) do print(k, v) end
+    -- end
 
     local msg
     if info.transactionType == "deposit" then
@@ -120,10 +131,29 @@ function addon:GetTransactionLabel(transaction)
             msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
         end
     elseif info.transactionType == "move" then
-		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, GetGuildBankTabInfo(info.moveOrigin), GetGuildBankTabInfo(info.moveDestination))
+        -- print(info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination)
+		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination) -- TODO: Get tab name
     end
 
-    msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(info.year, info.month, info.day, info.hour)))
+    local recentDate = RecentTimeDate(info.year, info.month, info.day, info.hour)
+    if snapshotDate then
+        local difference = difftime(time() - snapshotDate)
+        local currentTransactionDate = addon:GetTransactionDate(time(), info.year, info.month, info.day, info.hour)
+        local newTransactionDate = date("*t", currentTransactionDate - difference)
+        local oldDate = date("*t", currentTransactionDate)
+        recentDate = RecentTimeDate(oldDate.year - newTransactionDate.year, oldDate.month - newTransactionDate.month, oldDate.day - newTransactionDate.day, oldDate.hour - newTransactionDate.hour)
+    end
+
+    if snapshotDate then
+        -- local difference = difftime(time(), snapshotDate)
+        local currentTransactionDate = addon:GetTransactionDate(snapshotDate, info.year, info.month, info.day, info.hour)
+        -- local newTransactionDate = currentTransactionDate - difference
+        -- local oldDate = date("*t", currentTransactionDate)
+        msg = msg and (date(addon.db.global.settings.dateFormat, snapshotDate).." "..snapshotDate.." " .. strtrim(GUILD_BANK_LOG_TIME_PREPEND)..date(addon.db.global.settings.dateFormat, currentTransactionDate).."|r "..msg)
+    else
+        -- msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..date(addon.db.global.settings.dateFormat, addon:GetTransactionDate(time(), info.year, info.month, info.day, info.hour)))
+        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, recentDate))
+    end
 
     return msg
 end

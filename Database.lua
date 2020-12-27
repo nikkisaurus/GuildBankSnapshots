@@ -71,6 +71,12 @@ function addon:InitializeDatabase()
 
                 confirmDeletions = true,
             },
+
+            ------------------------------------------------------------
+
+            debug = {
+                ReviewFrame = false,
+            },
         },
     }
 
