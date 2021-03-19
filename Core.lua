@@ -15,9 +15,10 @@ local defaultDB = {
         confirmDeletion = true,
         approxDates = false,
         timeSinceCurrent = false,
+        exportDelimiter = ",",
     },
     guilds = {},
-    database = 3
+    database = 4
 }
 
 local L = setmetatable({}, {__index = function(t, k)
@@ -165,6 +166,10 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
                     end -- guild
                 end -- faction
             end -- realm
+        end
+
+        if GuildBankSnapshotsDB.Database and GuildBankSnapshotsDB.Database == 3 then
+            GuildBankSnapshotsDB.settings.exportDelimiter = defaultDB.settings.exportDelimiter
         end
 
         if debug then

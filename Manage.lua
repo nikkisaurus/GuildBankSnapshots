@@ -377,6 +377,7 @@ end
 
 function f:ExportPending()
     local lines = {}
+    local delimiter = db.settings.exportDelimiter
     for snapshotID, guildID in pairs(f.pendingExportsScrollFrame.snapshots) do
         for tab, tabTable in pairs(db.guilds[guildID][snapshotID]) do
             local tabName = db.guilds[guildID][snapshotID][tab].tabName
@@ -401,20 +402,20 @@ function f:ExportPending()
                     tinsert(line, approxDate) -- transactionDate
                     tinsert(line, f:FormatLine(transactionTable, tabTable.total and "money" or "item")) -- line
 
-                    line = table.concat(line, ",")
+                    line = table.concat(line, delimiter)
 
                     tinsert(lines, line)
                 end
             end
 
             if tabName == "Money" then
-                tinsert(lines, string.format("%s,%s,%s,%s,,,,%s", f:GetFormattedGuildName(guildID), f:GetFormattedDate(snapshotID), tabName, L["total"], f:GetMoneyString(db.guilds[guildID][snapshotID][tab].total)))
+                tinsert(lines, string.format("%s"..delimiter.."%s"..delimiter.."%s"..delimiter.."%s"..delimiter..delimiter..delimiter..delimiter.."%s", f:GetFormattedGuildName(guildID), f:GetFormattedDate(snapshotID), tabName, L["total"], f:GetMoneyString(db.guilds[guildID][snapshotID][tab].total)))
             end
         end
     end
 
     local exportText = table.concat(lines, "\n"):gsub("|%w%w%w%w%w%w%w%w%w", ""):gsub("|r", "")
-    exportText = "guildName,snapshotDate,tabName,transactionType,name,itemName,itemLevel,itemMoneyCount,moveTabName1,moveTabName2,timeSince,transactionDate,line\n" .. exportText
+    exportText = "guildName"..delimiter.."snapshotDate"..delimiter.."tabName"..delimiter.."transactionType"..delimiter.."name"..delimiter.."itemName"..delimiter.."itemLevel"..delimiter.."itemMoneyCount"..delimiter.."moveTabName1"..delimiter.."moveTabName2"..delimiter.."timeSince"..delimiter.."transactionDate"..delimiter.."line\n" .. exportText
 
     f.exportEditbox:SetText(exportText)
     f.exportEditbox:SetFocus()
