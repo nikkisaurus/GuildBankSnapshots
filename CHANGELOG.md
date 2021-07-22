@@ -1,4 +1,7 @@
 # Guild Bank Snapshots
+## Version 2.0.7
+- Added export delimiter setting
+
 ## Version 2.0.6
 - Fixed Bagnon compatibility error where scans would not recognize the Bagnon bank frame being open
 

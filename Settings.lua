@@ -179,6 +179,32 @@ function f:CreateSettingsTab()
                 end
             end,
         },
+        {
+            type = "header",
+            text = "Export Settings",
+        },
+        {
+            type = "dropdown",
+            name = "exportDelimiterDropDown",
+            text = db.settings.exportDelimiter or ",",
+            func = function(self, level)
+                local info = UIDropDownMenu_CreateInfo()
+                info.func = function(_, selected, text)
+                    db.settings.exportDelimiter = selected
+                    UIDropDownMenu_SetText(self, text)
+                    f:UpdateFrame(f.guild, f.snapshot, f.tab, f.filterType, f.filterKey, f.exportGuild, f.exportText)
+                end
+
+                for k in [",",";"] do
+                    info.text = k
+                    info.arg1 = k
+                    info.arg2 = info.text
+                    info.checked = db.settings.exportDelimiter and db.settings.exportDelimiter == k
+                    UIDropDownMenu_AddButton(info)
+                end
+
+            end,
+        },
     }
 
     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
