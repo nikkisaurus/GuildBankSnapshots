@@ -1,4 +1,7 @@
 # Guild Bank Snapshots
+## Version 2.0.8
+- Fixed bug causing settings to be unable to open
+
 ## Version 2.0.7
 - Added export delimiter setting
 

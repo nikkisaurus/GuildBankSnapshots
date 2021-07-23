@@ -45,9 +45,9 @@ function f:CreateSettingsTab()
     local header = tabFrame.ScrollContent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     header:SetPoint("TOPLEFT", 0, 0)
     header:SetText(L["Settings"])
-   
+
    -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
- 
+
     local settings = {
         {
             type = "header",
@@ -109,7 +109,7 @@ function f:CreateSettingsTab()
                 info.func = function(_, selected, text)
                     db.settings.dateFormat = selected
                     UIDropDownMenu_SetText(self, text)
-                    f:UpdateFrame(f.guild, f.snapshot, f.tab, f.filterType, f.filterKey, f.exportGuild, f.exportText)            
+                    f:UpdateFrame(f.guild, f.snapshot, f.tab, f.filterType, f.filterKey, f.exportGuild, f.exportText)
                 end
 
                 local formats = {
@@ -195,7 +195,7 @@ function f:CreateSettingsTab()
                     f:UpdateFrame(f.guild, f.snapshot, f.tab, f.filterType, f.filterKey, f.exportGuild, f.exportText)
                 end
 
-                for k in [",",";"] do
+                for k in pairs({",",";"}) do
                     info.text = k
                     info.arg1 = k
                     info.arg2 = info.text
