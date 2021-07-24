@@ -173,7 +173,7 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
         end
         
         local delimiter = GuildBankSnapshotsDB.settings.exportDelimiter
-        GuildBankSnapshotsDB.settings.exportDelimiter = (not delimiter or delimiter == 2) and "," or (delimiter == 1 and ";")
+        GuildBankSnapshotsDB.settings.exportDelimiter = (not delimiter or delimiter == 1) and "," or (delimiter == 2 and ";")
 
         if debug then
             f:CreateFrame()
