@@ -377,7 +377,7 @@ end
 
 function f:ExportPending()
     local lines = {}
-    local delimiter = db.settings.exportDelimiter
+    local delimiter = db.settings.exportDelimiter or ","
     for snapshotID, guildID in pairs(f.pendingExportsScrollFrame.snapshots) do
         for tab, tabTable in pairs(db.guilds[guildID][snapshotID]) do
             local tabName = db.guilds[guildID][snapshotID][tab].tabName
