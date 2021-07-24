@@ -171,6 +171,9 @@ function f:ADDON_LOADED(event, loadedAddon, ...)
         if GuildBankSnapshotsDB.Database and GuildBankSnapshotsDB.Database == 3 then
             GuildBankSnapshotsDB.settings.exportDelimiter = defaultDB.settings.exportDelimiter
         end
+        
+        local delimiter = GuildBankSnapshotsDB.settings.exportDelimiter
+        GuildBankSnapshotsDB.settings.exportDelimiter = (not delimiter or delimiter == 2) and "," or (delimiter == 1 and ";")
 
         if debug then
             f:CreateFrame()
