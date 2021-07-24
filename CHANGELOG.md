@@ -1,4 +1,7 @@
 # Guild Bank Snapshots
+## Version 2.0.9
+- Fixed bug preventing exports
+
 ## Version 2.0.8
 - Fixed bug causing settings to be unable to open
 
