@@ -195,11 +195,11 @@ function f:CreateSettingsTab()
                     f:UpdateFrame(f.guild, f.snapshot, f.tab, f.filterType, f.filterKey, f.exportGuild, f.exportText)
                 end
 
-                for k in pairs({",",";"}) do
-                    info.text = k
-                    info.arg1 = k
+                for k, v in pairs({",",";"}) do
+                    info.text = v
+                    info.arg1 = v
                     info.arg2 = info.text
-                    info.checked = db.settings.exportDelimiter and db.settings.exportDelimiter == k
+                    info.checked = db.settings.exportDelimiter and db.settings.exportDelimiter == v
                     UIDropDownMenu_AddButton(info)
                 end
 
