@@ -2,18 +2,16 @@ local addonName = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
---*------------------------------------------------------------------------
 
 function addon:InitializeDatabase()
     local db, backup, version = GuildBankSnapshotsDB
+
     if db then
         if db.database and db.database == 3 then
             backup = self:BackupDatabase()
             version = 3
         end
     end
-
-    ------------------------------------------------------------
 
     local defaults = {
         global = {
@@ -22,16 +20,12 @@ function addon:InitializeDatabase()
                     guildName = "",
                     faction = "",
                     realm = "",
-
                     numTabs = 0,
                     tabs = {},
                     masterScan = {},
                     scans = {},
                 },
             },
-
-            ------------------------------------------------------------
-
             commands = {
                 gbs = {
                     enabled = true,
@@ -53,9 +47,6 @@ function addon:InitializeDatabase()
                     func = "ScanGuildBank",
                 },
             },
-
-            ------------------------------------------------------------
-
             settings = {
                 autoScanDelay = .5,
                 autoScanAlert = true,
@@ -71,42 +62,34 @@ function addon:InitializeDatabase()
 
                 confirmDeletions = true,
             },
-
-            ------------------------------------------------------------
-
             debug = {
                 ReviewFrame = false,
             },
         },
     }
 
-    ------------------------------------------------------------
-
     self.db = LibStub("AceDB-3.0"):New("GuildBankSnapshotsDB", defaults, true)
-
-    ------------------------------------------------------------
 
     if backup then
         self:ConvertDatabase(backup, version)
     end
 
-    ------------------------------------------------------------
-
     self.db.global.version = 4
 end
 
---*------------------------------------------------------------------------
 
 function addon:BackupDatabase()
     local backup  = {}
+
     for k, v in pairs(GuildBankSnapshotsDB) do
         backup[k] = v
     end
+
     wipe(GuildBankSnapshotsDB)
+
     return backup
 end
 
-------------------------------------------------------------
 
 function addon:ConvertDatabase(backup, version)
     if version == 3 then
@@ -114,19 +97,14 @@ function addon:ConvertDatabase(backup, version)
     end
 end
 
---*------------------------------------------------------------------------
 
 function addon:UpdateGuildDatabase()
     local guildID, guildName, faction, realm = self:GetGuildID()
     local db = self.db.global.guilds[guildID]
 
-    ------------------------------------------------------------
-
     db.guildName = guildName
     db.faction = faction
     db.realm = realm
-
-    ------------------------------------------------------------
 
     local numTabs = GetNumGuildBankTabs()
     db.numTabs = numTabs

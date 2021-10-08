@@ -27,12 +27,11 @@ Locales\Locale-enUS.lua
 Database.lua
 Core.lua
 
-# Widgets
-Widgets\Layouts.lua
-Widgets\Frame.lua
-Widgets\SimpleGroup.lua
-Widgets\InlineGroup.lua
-
 # Modules
 Modules\Scan.lua
+Modules\Options.lua
 Modules\Review.lua
+Modules\Analyze.lua
+Modules\Export.lua
+Modules\Settings.lua
+Modules\Help.lua

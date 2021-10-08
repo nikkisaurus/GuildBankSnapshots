@@ -1,16 +1,12 @@
 local addonName = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local ACD = LibStub("AceConfigDialog-3.0")
 
-------------------------------------------------------------
-
-local format, strupper = string.format, string.upper
-local pairs = pairs
-
---*------------------------------------------------------------------------
 
 function addon:OnInitialize()
     self:InitializeDatabase()
+    self:InitializeOptions()
 
     for command, commandInfo in pairs(self.db.global.commands) do
         if commandInfo.enabled then
@@ -19,36 +15,42 @@ function addon:OnInitialize()
     end
 end
 
---*------------------------------------------------------------------------
 
 function addon:OnEnable()
-    LoadAddOn("Blizzard_GuildBankUI") -- ensures we have the necessary constants
+    LoadAddOn("Blizzard_GuildBankUI")
 
     self:RegisterEvent("GUILDBANKFRAME_CLOSED")
     self:RegisterEvent("GUILDBANKFRAME_OPENED")
-
-    self:InitializeReviewFrame()
+    
+    C_Timer.After(5, function()
+        ACD:SelectGroup(addonName, "analyze", "tab1")
+        ACD:Open(addonName)
+    end)
 end
 
-------------------------------------------------------------
 
 function addon:OnDisable()
-    self:UnregisterEvent("GUILDBANKFRAME_CLOSED")
-    self:UnregisterEvent("GUILDBANKFRAME_OPENED")
+    self:UnregisterAllEvents()
 end
 
---*------------------------------------------------------------------------
 
 function addon:SlashCommandFunc(input)
     input = strupper(input)
     if input == "SCAN" then
         self:ScanGuildBank()
+    elseif input == "DEFAULT" then
+        self.db.global.settings.defaultGuild = self:GetGuildID()
     else
-        self.ReviewFrame:Load()
+        ACD:SelectGroup(addonName, "review")
+        ACD:Open(addonName)
     end
 end
 
---*------------------------------------------------------------------------
+
+function addon:GetGuildDisplayName(guildID)
+    return guildID
+end
+
 
 function addon:GetGuildID()
     local guildName = GetGuildInfo("player")
@@ -57,10 +59,4 @@ function addon:GetGuildID()
     local guildID = format("%s - %s (%s)", guildName, realm, faction)
 
     return guildID, guildName, faction, realm
-end
-
-------------------------------------------------------------
-
-function addon:GetGuildDisplayName(guildID)
-    return guildID
 end
