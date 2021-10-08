@@ -41,7 +41,6 @@ function addon:GetOptions()
                 childGroups = "tab",
                 args = self:GetSettingsOptions(),
             },
-            profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db),
             help = {
                 order = 6,
                 type = "group",
@@ -50,8 +49,6 @@ function addon:GetOptions()
             },
         },
     }
-
-    self.options.args.profiles.order = 5
 
     return self.options
 end

@@ -22,10 +22,10 @@ function addon:OnEnable()
     self:RegisterEvent("GUILDBANKFRAME_CLOSED")
     self:RegisterEvent("GUILDBANKFRAME_OPENED")
     
-    C_Timer.After(5, function()
-        ACD:SelectGroup(addonName, "analyze", "tab1")
-        ACD:Open(addonName)
-    end)
+    -- C_Timer.After(5, function()
+    --     ACD:SelectGroup(addonName, "analyze", "tab1")
+    --     ACD:Open(addonName)
+    -- end)
 end
 
 
