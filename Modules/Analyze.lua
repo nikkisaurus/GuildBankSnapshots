@@ -6,9 +6,92 @@ local red = LibStub("LibAddonUtils-1.0").ChatColors["RED"]
 local white = LibStub("LibAddonUtils-1.0").ChatColors["WHITE"]
 
 
-local function SelectCharacter(character)
-    addon.selectedAnalyzeCharacter = character
-    return character
+local function SelectCharacter(options, character)
+    if not character then
+        -- Clear character
+        addon.selectedAnalyzeCharacter = nil
+        return
+    end
+
+    local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
+    local info = {
+        deposit = {
+            items = {
+                -- [itemID] = 0,
+            },
+            total = 0,
+        },
+        withdraw = {
+            items = {
+                -- [itemID] = 0,
+            },
+            total = 0,
+        },
+        money = {
+            repair = 0,
+            withdraw = 0,
+            deposit = 0,
+            buyTab = 0,
+        },
+    }
+
+    -- Wipe deposits and withdrawals
+    options.options.args.analyze.args.character.args.deposit.args = {}
+    options.options.args.analyze.args.character.args.withdraw.args = {}
+
+    local deposits = {}
+
+    -- Scan transactions
+    for tab, tabInfo in pairs(scan.tabs) do
+        for t, transaction in pairs(tabInfo.transactions) do
+            local transactionInfo = addon:GetTransactionInfo(transaction)
+            if transactionInfo and (transactionInfo.name and transactionInfo.name == character or not transactionInfo.name and character == "Unknown") then
+                -- Update info table
+                if info[transactionInfo.transactionType] then
+                    info[transactionInfo.transactionType].items[transactionInfo.itemLink] = transactionInfo.count
+                    info[transactionInfo.transactionType].total = info[transactionInfo.transactionType].total + transactionInfo.count
+                end
+
+                -- Update item lists
+                if options.options.args.analyze.args.character.args[transactionInfo.transactionType] then
+                    options.options.args.analyze.args.character.args[transactionInfo.transactionType].args[transactionInfo.itemLink] = {
+                        name = format("%s x%d", transactionInfo.itemLink, transactionInfo.count),
+                        type = "description",
+                        width = "full",
+                    }
+                end
+
+                -- -- Insert itemLinks into sorting table
+                -- if transactionInfo.transactionType == "deposit" then
+                --     -- tinsert(deposits, transactionInfo.itemLink)
+                --     deposits[GetItemInfo(transactionInfo.itemLink)] = info[transactionInfo.transactionType].items[transactionInfo.itemLink]
+                -- end
+            end
+        end
+    end
+
+    -- local i = 0
+    -- for k, v in addon.pairs(deposits) do
+    --     -- print(k, v)
+    --     options.options.args.analyze.args.character.args.deposit.args[k] = {
+    --         order = i,
+    --         name = format("%s x%d", k, v),
+    --         type = "description",
+    --         width = "full",
+    --     }
+    --     i = i + 1
+    -- end
+
+    -- Scan money
+    for _, transaction in pairs(scan.moneyTransactions) do
+        local transactionInfo = addon:GetMoneyTransactionInfo(transaction)
+        if transactionInfo and (transactionInfo.name and transactionInfo.name == character or not transactionInfo.name and character == "Unknown") then
+            info.money[transactionInfo.transactionType] = info.money[transactionInfo.transactionType] + transactionInfo.amount
+        end
+    end
+
+    addon.selectedAnalyzeCharacter = {character, info}
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
 end
 
 
@@ -21,8 +104,8 @@ end
 
 
 local function SelectScan(scanID)
-    addon.selectedAnalyzeScan = scanID   
-    addon.selectedAnalyzeCharacter = nil 
+    addon.selectedAnalyzeScan = scanID
+    addon.selectedAnalyzeCharacter = nil
     LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
     return scanID
 end
@@ -96,6 +179,7 @@ function addon:GetAnalyzeOptions()
         character = {
             order = 3,
             type = "group",
+            childGroups = "tab",
             name = L["Character"],
             disabled = function()
                 return not addon.selectedAnalyzeScan
@@ -108,10 +192,10 @@ function addon:GetAnalyzeOptions()
                     name = L["Character"],
                     width = "full",
                     get = function()
-                        return addon.selectedAnalyzeCharacter
+                        return addon.selectedAnalyzeCharacter and addon.selectedAnalyzeCharacter[1]
                     end,
-                    set = function(_, character)
-                        SelectCharacter(character)
+                    set = function(info, character)
+                        SelectCharacter(info, character)
                     end,
                     disabled = function()
                         if not addon.selectedAnalyzeScan then return {} end
@@ -176,23 +260,11 @@ function addon:GetAnalyzeOptions()
                             type = "description",
                             width = "full",
                             name = function()
-                                if not addon.selectedAnalyzeCharacter then return "" end
-        
-                                local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
-                                local count = 0
-        
-                                for _, tabInfo in pairs(scan.tabs) do
-                                    for transactionID, transactionInfo in pairs(tabInfo.transactions) do
-                                        local info = addon:GetTransactionInfo(transactionInfo)
-                                        if info and (info.name and info.name == addon.selectedAnalyzeCharacter or not info.name and addon.selectedAnalyzeCharacter == "Unknown") then
-                                            if info.transactionType == "deposit" then
-                                                count = count + 1
-                                            end
-                                        end
-                                    end
+                                if not addon.selectedAnalyzeCharacter then
+                                    return ""
+                                else
+                                    return format("%s: %d (%d)", L["Deposits"], addon.tcount(addon.selectedAnalyzeCharacter[2].deposit.items), addon.selectedAnalyzeCharacter[2].deposit.total)
                                 end
-        
-                                return format("%s: %d", L["Deposits"], count)
                             end,
                         },
                         withdrawals = {
@@ -200,23 +272,11 @@ function addon:GetAnalyzeOptions()
                             type = "description",
                             width = "full",
                             name = function()
-                                if not addon.selectedAnalyzeCharacter then return "" end
-        
-                                local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
-                                local count = 0
-        
-                                for _, tabInfo in pairs(scan.tabs) do
-                                    for transactionID, transactionInfo in pairs(tabInfo.transactions) do
-                                        local info = addon:GetTransactionInfo(transactionInfo)
-                                        if info and (info.name and info.name == addon.selectedAnalyzeCharacter or not info.name and addon.selectedAnalyzeCharacter == "Unknown") then
-                                            if info.transactionType == "withdraw" then
-                                                count = count + 1
-                                            end
-                                        end
-                                    end
+                                if not addon.selectedAnalyzeCharacter then
+                                    return ""
+                                else
+                                    return format("%s: %d (%d)", L["Withdrawals"], addon.tcount(addon.selectedAnalyzeCharacter[2].withdraw.items), addon.selectedAnalyzeCharacter[2].withdraw.total)
                                 end
-        
-                                return format("%s: %d", L["Withdrawals"], count)
                             end,
                         },
                         moneyHeader = {
@@ -230,21 +290,11 @@ function addon:GetAnalyzeOptions()
                             type = "description",
                             width = "full",
                             name = function()
-                                if not addon.selectedAnalyzeCharacter then return "" end
-        
-                                local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
-                                local count = 0
-        
-                                for transactionID, transactionInfo in pairs(scan.moneyTransactions) do
-                                    local info = addon:GetMoneyTransactionInfo(transactionInfo)
-                                    if info and (info.name and info.name == addon.selectedAnalyzeCharacter or not info.name and addon.selectedAnalyzeCharacter == "Unknown") then
-                                        if info.transactionType == "deposit" or info.transactionType == "buyTab" then
-                                            count = count + (info.amount or 0)
-                                        end
-                                    end
+                                if not addon.selectedAnalyzeCharacter then
+                                    return ""
+                                else
+                                    return format("%s: %s", L["Deposits"], GetCoinTextureString(addon.selectedAnalyzeCharacter[2].money.deposit + addon.selectedAnalyzeCharacter[2].money.buyTab))
                                 end
-        
-                                return format("%s: %s", L["Deposits"], GetCoinTextureString(count))
                             end,
                         },
                         moneyWithdrawals = {
@@ -252,21 +302,11 @@ function addon:GetAnalyzeOptions()
                             type = "description",
                             width = "full",
                             name = function()
-                                if not addon.selectedAnalyzeCharacter then return "" end
-        
-                                local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
-                                local count = 0
-        
-                                for transactionID, transactionInfo in pairs(scan.moneyTransactions) do
-                                    local info = addon:GetMoneyTransactionInfo(transactionInfo)
-                                    if info and (info.name and info.name == addon.selectedAnalyzeCharacter or not info.name and addon.selectedAnalyzeCharacter == "Unknown") then
-                                        if info.transactionType == "withdraw" then
-                                            count = count + (info.amount or 0)
-                                        end
-                                    end
+                                if not addon.selectedAnalyzeCharacter then
+                                    return ""
+                                else
+                                    return format("%s: %s", L["Withdrawals"], GetCoinTextureString(addon.selectedAnalyzeCharacter[2].money.withdraw))
                                 end
-        
-                                return format("%s: %s", L["Withdrawals"], GetCoinTextureString(count))
                             end,
                         },
                         moneyRepairs = {
@@ -274,21 +314,11 @@ function addon:GetAnalyzeOptions()
                             type = "description",
                             width = "full",
                             name = function()
-                                if not addon.selectedAnalyzeCharacter then return "" end
-        
-                                local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
-                                local count = 0
-        
-                                for transactionID, transactionInfo in pairs(scan.moneyTransactions) do
-                                    local info = addon:GetMoneyTransactionInfo(transactionInfo)
-                                    if info and (info.name and info.name == addon.selectedAnalyzeCharacter or not info.name and addon.selectedAnalyzeCharacter == "Unknown") then
-                                        if info.transactionType == "repair" then
-                                            count = count + (info.amount or 0)
-                                        end
-                                    end
+                                if not addon.selectedAnalyzeCharacter then
+                                    return ""
+                                else
+                                    return format("%s: %s", L["Repairs"], GetCoinTextureString(addon.selectedAnalyzeCharacter[2].money.repair))
                                 end
-        
-                                return format("%s: %s", L["Repairs"], GetCoinTextureString(count))
                             end,
                         },
                         netMoney = {
@@ -296,25 +326,35 @@ function addon:GetAnalyzeOptions()
                             type = "description",
                             width = "full",
                             name = function()
-                                if not addon.selectedAnalyzeCharacter then return "" end
-        
-                                local scan = addon.db.global.guilds[addon.selectedAnalyzeGuild].scans[addon.selectedAnalyzeScan]
-                                local count = 0
-        
-                                for transactionID, transactionInfo in pairs(scan.moneyTransactions) do
-                                    local info = addon:GetMoneyTransactionInfo(transactionInfo)
-                                    if info and (info.name and info.name == addon.selectedAnalyzeCharacter or not info.name and addon.selectedAnalyzeCharacter == "Unknown") then
-                                        if info.transactionType == "repair" or info.transactionType == "withdraw" then
-                                            count = count - (info.amount or 0)
-                                        elseif info.transactionType == "deposit" then
-                                            count = count + (info.amount or 0)
-                                        end
-                                    end
+                                if not addon.selectedAnalyzeCharacter then
+                                    return ""
+                                else
+                                    local count = addon.selectedAnalyzeCharacter[2].money.deposit + addon.selectedAnalyzeCharacter[2].money.buyTab - addon.selectedAnalyzeCharacter[2].money.withdraw - addon.selectedAnalyzeCharacter[2].money.repair
+                                    return format("%s: %s%s|r", L["Net"], count < 0 and red or white, GetCoinTextureString(math.abs(count)))
                                 end
 
-                                return format("%s: %s%s|r", L["Net"], count < 0 and red or white, GetCoinTextureString(math.abs(count)))
                             end,
                         },
+                    },
+                },
+                deposit = {
+                    order = 3,
+                    type = "group",
+                    name = L["Deposits"],
+                    disabled = function()
+                        return not addon.selectedAnalyzeCharacter
+                    end,
+                    args = {},
+                },
+                withdraw = {
+                    order = 4,
+                    type = "group",
+                    name = L["Withdrawals"],
+                    disabled = function()
+                        return not addon.selectedAnalyzeCharacter
+                    end,
+                    args = {
+
                     },
                 },
             },
@@ -327,7 +367,7 @@ function addon:GetAnalyzeOptions()
                 return not addon.selectedAnalyzeScan
             end,
             args = {
-            
+
             },
         },
         tab = {
@@ -338,7 +378,7 @@ function addon:GetAnalyzeOptions()
                 return not addon.selectedAnalyzeScan
             end,
             args = {
-            
+
             },
         },
     }
