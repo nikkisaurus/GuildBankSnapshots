@@ -13,7 +13,6 @@ local function ValidateItemNames()
 
     for itemLink, _ in pairs(scan[2].items) do
         if not scan[2].itemNames[itemLink] then
-            print("update")
             addon:SelectAnalyzeScan(addon.analyze.scan[1])
             LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
             return true
