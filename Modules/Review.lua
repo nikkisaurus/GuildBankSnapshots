@@ -13,8 +13,8 @@ end
 
 
 local function SelectScan(scanID)
-    addon.selectedReviewScan = scanID    
-    ACD:SelectGroup(addonName, "review", "tab1") 
+    addon.selectedReviewScan = scanID
+    ACD:SelectGroup(addonName, "review", "tab1")
     return scanID
 end
 
@@ -147,11 +147,12 @@ function addon:GetReviewOptions()
             type = "execute",
             name = L["Analyze Scan"],
             disabled = function()
-                return true or not addon.selectedReviewScan
+                return not addon.selectedReviewScan
             end,
-            func = function()
-                -- TODO
-                print("Analyze scan")
+            func = function(info)
+                ACD:SelectGroup(addonName, "analyze")
+                addon:SelectAnalyzeGuild(addon.selectedReviewGuild)
+                addon:SelectAnalyzeScan(addon.selectedReviewScan)
             end,
         },
         exportScan = {

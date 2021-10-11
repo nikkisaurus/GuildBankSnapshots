@@ -6,6 +6,7 @@ LibStub("LibAddonUtils-1.0"):Embed(addon)
 L["Analyze"] = true
 L["Analyze Scan"] = true
 L["Character"] = true
+L["Current Total"] = true
 L["Delete Scan"] = true
 L["Deposits"] = true
 L["Export"] = true
@@ -25,6 +26,7 @@ L["Scan"] = true
 L["Scan failed."] = true
 L["Scan finished."] = true
 L["Scanning"] = true
+L["Select Item"] = true
 L["Settings"] = true
 L["Summary"] = true
 L["Tab"] = true

@@ -21,11 +21,27 @@ function addon:OnEnable()
 
     self:RegisterEvent("GUILDBANKFRAME_CLOSED")
     self:RegisterEvent("GUILDBANKFRAME_OPENED")
-    
+
     C_Timer.After(5, function()
-        ACD:SelectGroup(addonName, "analyze", "tab1")
+        ACD:SelectGroup(addonName, "analyze", "tab1", "item")
         ACD:Open(addonName)
     end)
+    -- i = 0
+    -- C_Timer.After(5, function()
+    --     addon.tpairs(addon.db.global.guilds[addon:GetGuildID()].scans, function(t, k)
+    --         if t[k] then
+    --             addon.tpairs(t[k].tabs, function(T, K)
+    --                 if T[K] then
+    --                     addon.tpairs(T[K].transactions, function(tbl, key)
+    --                         print(tbl[key])
+    --                         print(i)
+    --                         i = i + 1
+    --                     end, 0.1)
+    --                 end
+    --             end, 0.1)
+    --         end
+    --     end, 0.1)
+    -- end)
 end
 
 
