@@ -152,7 +152,7 @@ function addon:GetReviewOptions()
             func = function(info)
                 ACD:SelectGroup(addonName, "analyze")
                 addon:SelectAnalyzeGuild(addon.selectedReviewGuild)
-                addon:SelectAnalyzeScan(addon.selectedReviewScan)
+                addon:SelectAnalyzeScan(info, addon.selectedReviewScan)
             end,
         },
         exportScan = {
