@@ -3,10 +3,6 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 
-function addon:InitializeOptions()
-    LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, self:GetOptions())
-    LibStub("AceConfigDialog-3.0"):SetDefaultSize(addonName, 850, 600)
-end
 
 
 function addon:GetOptions()
@@ -53,3 +49,8 @@ function addon:GetOptions()
     return self.options
 end
 
+
+function addon:InitializeOptions()
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, self:GetOptions())
+    LibStub("AceConfigDialog-3.0"):SetDefaultSize(addonName, 850, 600)
+end

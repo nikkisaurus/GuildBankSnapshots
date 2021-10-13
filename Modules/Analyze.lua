@@ -7,13 +7,15 @@ local white = LibStub("LibAddonUtils-1.0").ChatColors["WHITE"]
 addon.analyze = {}
 
 
+
+
 local function ValidateItemNames(info)
     local scan = addon.analyze.scan
     if not scan then return end
 
     for itemLink, _ in pairs(scan[2].items) do
         if not scan[2].itemNames[itemLink] then
-            addon:SelectAnalyzeScan(info, addon.analyze.scan[1])
+            addon:SelectAnalyzeScan(addon.analyze.scan[1], info)
             LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
             return true
         end
@@ -97,129 +99,6 @@ local function SelectItem(info, itemLink)
 end
 
 
-function addon:SelectAnalyzeGuild(guildID)
-    addon.analyze.guild = guildID
-    addon.analyze.scan = nil
-    addon.analyze.character = nil
-    addon.analyze.item = nil
-end
-
-
-function addon:SelectAnalyzeScan(options, scanID)
-    addon.analyze.character = nil
-    addon.analyze.item = nil
-
-    -- Initialize info
-    local info = {
-        items = {},
-        itemNames = {},
-        characters = {},
-        money = {
-            buyTab = 0,
-            repair = 0,
-            deposit = 0,
-            withdraw = 0,
-        },
-    }
-
-    local scan = addon.db.global.guilds[addon.analyze.guild].scans[scanID]
-
-    -- Scan transactions
-    for _, tabInfo in pairs(scan.tabs) do
-        for _, transaction in pairs(tabInfo.transactions) do
-            local transactionInfo = addon:GetTransactionInfo(transaction)
-            transactionInfo.name = transactionInfo.name or L["Unknown"]
-
-            if transactionInfo then
-                -- Initialize item table
-                info.items[transactionInfo.itemLink] = info.items[transactionInfo.itemLink] or {
-                    withdraw = {},
-                    deposit = {},
-                    move = {},
-                }
-
-                local item = info.items[transactionInfo.itemLink]
-
-                -- Update item values
-                item[transactionInfo.transactionType][transactionInfo.name] = transactionInfo.count + (item[transactionInfo.transactionType][transactionInfo.name] or 0)
-                addon.CacheItem(transactionInfo.itemLink, function(info, itemLink)
-                    info.itemNames[itemLink] = (GetItemInfo(itemLink))
-                end, info, transactionInfo.itemLink)
-
-                -- Initialize character table
-                info.characters[transactionInfo.name] = info.characters[transactionInfo.name] or {
-                    withdraw = {},
-                    deposit = {},
-                    move = {},
-                    money = {
-                        buyTab = 0,
-                        repair = 0,
-                        deposit = 0,
-                        withdraw = 0,
-                    },
-                }
-
-                local character = info.characters[transactionInfo.name]
-
-                -- Update character values
-                character[transactionInfo.transactionType][transactionInfo.itemLink] = transactionInfo.count + (character[transactionInfo.transactionType][transactionInfo.itemLink] or 0)
-            end
-        end
-    end
-
-    -- Get item names
-    for _, tabInfo in pairs(scan.tabs) do
-        for itemID, count in pairs(tabInfo.items) do
-            addon.CacheItem(itemID, function(info, itemID, count)
-                local itemName, itemLink = GetItemInfo(itemID)
-                info.itemNames[itemLink] = itemName
-            end, info, itemID, count)
-        end
-    end
-
-    -- Clear money lists
-    local args = options.options.args.analyze.args.money.args
-    wipe(args.deposit.args)
-    wipe(args.withdraw.args)
-    wipe(args.repair.args)
-
-    -- Scan money
-    for _, transaction in pairs(scan.moneyTransactions) do
-        local transactionInfo = addon:GetMoneyTransactionInfo(transaction)
-        transactionInfo.name = transactionInfo.name or L["Unknown"]
-
-        if transactionInfo then
-            -- Update money values
-            info.money[transactionInfo.transactionType] = (info.money[transactionInfo.transactionType] or 0) + transactionInfo.amount
-
-            -- Initialize character table
-            info.characters[transactionInfo.name] = info.characters[transactionInfo.name] or {
-                withdraw = {},
-                deposit = {},
-                move = {},
-                money = {
-                    buyTab = 0,
-                    repair = 0,
-                    deposit = 0,
-                    withdraw = 0,
-                },
-            }
-
-            local character = info.characters[transactionInfo.name]
-
-            -- Update character values
-            character.money[transactionInfo.transactionType] = (character.money[transactionInfo.transactionType] or 0) + transactionInfo.amount
-
-            -- Update money list
-            args[transactionInfo.transactionType == "buyTab" and "deposit" or transactionInfo.transactionType].args[transactionInfo.name] = {
-                type = "description",
-                name = format("%s: %s", transactionInfo.name, GetCoinTextureString(character.money[transactionInfo.transactionType])),
-            }
-        end
-    end
-
-    addon.analyze.scan = {scanID, info}
-end
 
 
 function addon:GetAnalyzeOptions()
@@ -234,7 +113,7 @@ function addon:GetAnalyzeOptions()
                 return addon.tcount(addon.db.global.guilds) == 0
             end,
             get = function()
-                return addon.analyze.guild or addon:SelectAnalyzeGuild(addon.db.global.settings.defaultGuild)
+                return addon.analyze.guild or addon:SelectAnalyzeGuild(addon.db.global.settings.preferences.defaultGuild)
             end,
             set = function(_, guildID)
                 addon:SelectAnalyzeGuild(guildID)
@@ -243,7 +122,7 @@ function addon:GetAnalyzeOptions()
                 local guilds = {}
 
                 for guildID, guildInfo in addon.pairs(addon.db.global.guilds) do
-                    guilds[guildID] = guildInfo.guildName
+                    guilds[guildID] = addon:GetGuildDisplayName(guildID)
                 end
 
                 return guilds
@@ -262,7 +141,7 @@ function addon:GetAnalyzeOptions()
                 return addon.analyze.scan and addon.analyze.scan[1]
             end,
             set = function(info, scanID)
-                addon:SelectAnalyzeScan(info, scanID)
+                addon:SelectAnalyzeScan(scanID, info)
             end,
             values = function()
                 if not addon.analyze.guild then return {} end
@@ -270,7 +149,7 @@ function addon:GetAnalyzeOptions()
                 local scans = {}
 
                 for scanID, _ in pairs(addon.db.global.guilds[addon.analyze.guild].scans) do
-                    scans[scanID] = date(addon.db.global.settings.dateFormat, scanID)
+                    scans[scanID] = date(addon.db.global.settings.preferences.dateFormat, scanID)
                 end
 
                 return scans
@@ -702,4 +581,132 @@ function addon:GetAnalyzeOptions()
     }
 
     return options
+end
+
+
+function addon:SelectAnalyzeGuild(guildID)
+    addon.analyze.guild = guildID
+    addon.analyze.scan = nil
+    addon.analyze.character = nil
+    addon.analyze.item = nil
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+    return guildID
+end
+
+
+function addon:SelectAnalyzeScan(scanID, options)
+    addon.analyze.character = nil
+    addon.analyze.item = nil
+
+    local scan = addon.db.global.guilds[addon.analyze.guild].scans[scanID]
+    options = options and options.options or addon.options
+
+    -- Initialize info
+    local info = {
+        items = {},
+        itemNames = {},
+        characters = {},
+        money = {
+            buyTab = 0,
+            repair = 0,
+            deposit = 0,
+            withdraw = 0,
+        },
+    }
+
+    -- Scan transactions
+    for _, tabInfo in pairs(scan.tabs) do
+        for _, transaction in pairs(tabInfo.transactions) do
+            local transactionInfo = addon:GetTransactionInfo(transaction)
+            transactionInfo.name = transactionInfo.name or L["Unknown"]
+
+            if transactionInfo then
+                -- Initialize item table
+                info.items[transactionInfo.itemLink] = info.items[transactionInfo.itemLink] or {
+                    withdraw = {},
+                    deposit = {},
+                    move = {},
+                }
+
+                local item = info.items[transactionInfo.itemLink]
+
+                -- Update item values
+                item[transactionInfo.transactionType][transactionInfo.name] = transactionInfo.count + (item[transactionInfo.transactionType][transactionInfo.name] or 0)
+                addon.CacheItem(transactionInfo.itemLink, function(info, itemLink)
+                    info.itemNames[itemLink] = (GetItemInfo(itemLink))
+                end, info, transactionInfo.itemLink)
+
+                -- Initialize character table
+                info.characters[transactionInfo.name] = info.characters[transactionInfo.name] or {
+                    withdraw = {},
+                    deposit = {},
+                    move = {},
+                    money = {
+                        buyTab = 0,
+                        repair = 0,
+                        deposit = 0,
+                        withdraw = 0,
+                    },
+                }
+
+                local character = info.characters[transactionInfo.name]
+
+                -- Update character values
+                character[transactionInfo.transactionType][transactionInfo.itemLink] = transactionInfo.count + (character[transactionInfo.transactionType][transactionInfo.itemLink] or 0)
+            end
+        end
+    end
+
+    -- Get item names
+    for _, tabInfo in pairs(scan.tabs) do
+        for itemID, count in pairs(tabInfo.items) do
+            addon.CacheItem(itemID, function(info, itemID, count)
+                local itemName, itemLink = GetItemInfo(itemID)
+                info.itemNames[itemLink] = itemName
+            end, info, itemID, count)
+        end
+    end
+
+    -- Clear money lists
+    local args = options.args.analyze.args.money.args
+    wipe(args.deposit.args)
+    wipe(args.withdraw.args)
+    wipe(args.repair.args)
+
+    -- Scan money
+    for _, transaction in pairs(scan.moneyTransactions) do
+        local transactionInfo = addon:GetMoneyTransactionInfo(transaction)
+        transactionInfo.name = transactionInfo.name or L["Unknown"]
+
+        if transactionInfo then
+            -- Update money values
+            info.money[transactionInfo.transactionType] = (info.money[transactionInfo.transactionType] or 0) + transactionInfo.amount
+
+            -- Initialize character table
+            info.characters[transactionInfo.name] = info.characters[transactionInfo.name] or {
+                withdraw = {},
+                deposit = {},
+                move = {},
+                money = {
+                    buyTab = 0,
+                    repair = 0,
+                    deposit = 0,
+                    withdraw = 0,
+                },
+            }
+
+            local character = info.characters[transactionInfo.name]
+
+            -- Update character values
+            character.money[transactionInfo.transactionType] = (character.money[transactionInfo.transactionType] or 0) + transactionInfo.amount
+
+            -- Update money list
+            args[transactionInfo.transactionType == "buyTab" and "deposit" or transactionInfo.transactionType].args[transactionInfo.name] = {
+                type = "description",
+                name = format("%s: %s", transactionInfo.name, GetCoinTextureString(character.money[transactionInfo.transactionType])),
+            }
+        end
+    end
+
+    addon.analyze.scan = {scanID, info}
 end

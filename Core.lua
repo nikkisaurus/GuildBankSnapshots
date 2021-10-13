@@ -4,8 +4,19 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local ACD = LibStub("AceConfigDialog-3.0")
 
 
+
+
+addon.unitsToSeconds = {
+    minutes = 60,
+    hours = 60 * 60,
+    days = 60 * 60 * 24,
+    weeks = 60 * 60 * 24 * 7,
+    months = 60 * 60 * 24 * 31,
+}
+
 function addon:OnInitialize()
     self:InitializeDatabase()
+    self:CleanupDatabase()
     self:InitializeOptions()
 
     for command, commandInfo in pairs(self.db.global.commands) do
@@ -23,7 +34,7 @@ function addon:OnEnable()
     self:RegisterEvent("GUILDBANKFRAME_OPENED")
 
     C_Timer.After(5, function()
-        ACD:SelectGroup(addonName, "analyze", "tab1", "item")
+        ACD:SelectGroup(addonName, "settings", "preferences")
         ACD:Open(addonName)
     end)
     -- i = 0
@@ -55,7 +66,7 @@ function addon:SlashCommandFunc(input)
     if input == "SCAN" then
         self:ScanGuildBank()
     elseif input == "DEFAULT" then
-        self.db.global.settings.defaultGuild = self:GetGuildID()
+        self.db.global.settings.preferences.defaultGuild = self:GetGuildID()
     else
         ACD:SelectGroup(addonName, "review")
         ACD:Open(addonName)
@@ -64,7 +75,14 @@ end
 
 
 function addon:GetGuildDisplayName(guildID)
-    return guildID
+    local guild, realm, faction = string.match(guildID, "(.+)%s%-%s(.*)%s%((.+)%)")
+    local guildFormat = self.db.global.settings.preferences.guildFormat
+    guildFormat = string.gsub(guildFormat, "%%g", guild)
+    guildFormat = string.gsub(guildFormat, "%%r", realm)
+    guildFormat = string.gsub(guildFormat, "%%f", faction)
+    guildFormat = string.gsub(guildFormat, "%%F", strsub(faction, 1, 1)) -- shortened faction
+
+    return guildFormat
 end
 
 
