@@ -51,19 +51,14 @@ function addon:GetSettingsOptions()
                     max = 5,
                     step = .01,
                 },
-                spacer = {
-                    order = 2,
-                    type = "description",
-                    name = "",
-                },
                 review = {
-                    order = 3,
+                    order = 2,
                     type = "toggle",
                     name = L["Review after scan"],
                     desc = L.ScanReviewDescription,
                 },
                 reviewPath = {
-                    order = 4,
+                    order = 3,
                     type = "select",
                     style = "dropdown",
                     name = L["Review Path"],
@@ -81,7 +76,7 @@ function addon:GetSettingsOptions()
                     sorting = {"review", "analyze", "export"},
                 },
                 autoScan = {
-                    order = 5,
+                    order = 4,
                     type = "group",
                     inline = true,
                     name = L["Auto Scan"],
@@ -165,7 +160,7 @@ function addon:GetSettingsOptions()
                     },
                 },
                 autoCleanup = {
-                    order = 6,
+                    order = 5,
                     type = "group",
                     inline = true,
                     name = L["Auto Cleanup"],
