@@ -89,6 +89,8 @@ local function ValidateScanFrequency(autoScanSettings)
     for scanID, _ in addon.pairs(addon.db.global.guilds[addon:GetGuildID()].scans, function(a, b) return b < a end) do
         return (scanID < time() - frequency)
     end
+    
+    return true
 end
 
 
