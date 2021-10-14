@@ -148,7 +148,7 @@ function addon:InitializeDatabase()
                             measure = 1,
                             unit = "days", -- minutes, hours, days, weeks, months
                         },
-                        review = true,
+                        review = false,
                     },
                     delay = 0.5,
                     review = true,
@@ -160,6 +160,7 @@ function addon:InitializeDatabase()
                     dateType = "default", -- "default", "approx"
                     defaultGuild = false, -- guildID
                     guildFormat = "%g - %r (%F)",
+                    exportDelimiter = ",",
                 },
             },
         },

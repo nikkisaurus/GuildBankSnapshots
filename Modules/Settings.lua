@@ -327,8 +327,23 @@ function addon:GetSettingsOptions()
                     name = L["Guild Format"],
                     desc = L.GuildFormatDescription,
                 },
-                confirmDeletions = {
+                exportDelimiter = {
                     order = 5,
+                    type = "select",
+                    style = "dropdown",
+                    name = L["Date Type"],
+                    desc = L.DateTypeDescription,
+                    values = function()
+                        return {
+                            [","] = format("%s (%s)", L["Comma"], ","),
+                            [";"] = format("%s (%s)", L["Semicolon"], ";"),
+                            ["|"] = format("%s (%s)", L["Pipe"], "|"),
+                        }
+                    end,
+                    sorting = {",", ";", "|",},
+                },
+                confirmDeletions = {
+                    order = 6,
                     type = "toggle",
                     name = L["Confirm Deletions"],
                     desc = L.ConfirmDeletionsDescription,
