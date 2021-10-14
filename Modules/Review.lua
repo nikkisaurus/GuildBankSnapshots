@@ -8,13 +8,26 @@ addon.review = {}
 
 
 
-local function GetTransactionDate(scanTime, year, month, day, hour)
-    local sec = (hour * 60 * 60) + (day * 60 * 60 * 24) + (month * 60 * 60 * 24 * 31) + (year * 60 * 60 * 24 * 31 * 12)
-    return scanTime - sec
+function addon:GetMoneyTransactionInfo(transaction)
+    if not transaction then return end
+
+    local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+
+    local info = {
+        transactionType = transactionType,
+        name = name,
+        amount = amount,
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+    }
+
+    return info
 end
 
 
-local function GetMoneyTransactionLabel(transaction)
+function addon:GetMoneyTransactionLabel(transaction)
     local info = addon:GetMoneyTransactionInfo(transaction)
 
     if not info then return end
@@ -43,66 +56,12 @@ local function GetMoneyTransactionLabel(transaction)
     end
 
     if addon.db.global.settings.preferences.dateType == "approx" then
-        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..date(addon.db.global.settings.preferences.dateFormat, GetTransactionDate(addon.review.scan or time(), info.year, info.month, info.day, info.hour)))
+        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..date(addon.db.global.settings.preferences.dateFormat, addon:GetTransactionDate(addon.review.scan or time(), info.year, info.month, info.day, info.hour)))
     else
         msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, RecentTimeDate(info.year, info.month, info.day, info.hour)))
     end
 
     return msg
-end
-
-
-local function GetTransactionLabel(transaction)
-    local info = addon:GetTransactionInfo(transaction)
-    if not info then return end
-
-    info.name = info.name or UNKNOWN
-    info.name = NORMAL_FONT_COLOR_CODE..info.name..FONT_COLOR_CODE_CLOSE
-
-    local msg
-    if info.transactionType == "deposit" then
-        msg = format(GUILDBANK_DEPOSIT_FORMAT, info.name, info.itemLink)
-        if info.count > 1 then
-            msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
-        end
-    elseif info.transactionType == "withdraw" then
-        msg = format(GUILDBANK_WITHDRAW_FORMAT, info.name, info.itemLink)
-        if info.count > 1 then
-            msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
-        end
-    elseif info.transactionType == "move" then
-		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination) -- TODO: Get tab name
-    end
-
-    local recentDate = RecentTimeDate(info.year, info.month, info.day, info.hour)
-    if addon.db.global.settings.preferences.dateType == "approx" then
-        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..date(addon.db.global.settings.preferences.dateFormat, GetTransactionDate(addon.review.scan or time(), info.year, info.month, info.day, info.hour)))
-    else
-        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, recentDate))
-    end
-
-    return msg
-end
-
-
-
-
-function addon:GetMoneyTransactionInfo(transaction)
-    if not transaction then return end
-
-    local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
-
-    local info = {
-        transactionType = transactionType,
-        name = name,
-        amount = amount,
-        year = year,
-        month = month,
-        day = day,
-        hour = hour,
-    }
-
-    return info
 end
 
 
@@ -186,20 +145,8 @@ function addon:GetReviewOptions()
                 addon:SelectAnalyzeScan(addon.review.scan, info)
             end,
         },
-        exportScan = {
-            order = 4,
-            type = "execute",
-            name = L["Export Scan"],
-            disabled = function()
-                return true or not addon.review.scan
-            end,
-            func = function()
-                -- TODO
-                print("Export scan")
-            end,
-        },
         deleteScan = {
-            order = 5,
+            order = 4,
             type = "execute",
             name = L["Delete Scan"],
             disabled = function()
@@ -217,7 +164,7 @@ function addon:GetReviewOptions()
 
     for tab = 1, moneyTab do
         options["tab"..tab] = {
-            order = tab + 5,
+            order = tab + 4,
             type = "group",
             name = tab == moneyTab and L["Money Tab"] or format("%s %d", L["Tab"], tab),
             disabled = function()
@@ -237,7 +184,7 @@ function addon:GetReviewOptions()
                 name = function()
                     local scan = addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
                     local transactions = addon.review.scan and (tab < moneyTab and scan.tabs[tab].transactions or scan.moneyTransactions)
-                    return addon.review.scan and (tab < moneyTab and GetTransactionLabel(transactions[line]) or GetMoneyTransactionLabel(transactions[line])) or ""
+                    return addon.review.scan and (tab < moneyTab and addon:GetTransactionLabel(transactions[line]) or addon:GetMoneyTransactionLabel(transactions[line])) or ""
                 end,
                 width = "full",
             }
@@ -246,6 +193,12 @@ function addon:GetReviewOptions()
     end
 
     return options
+end
+
+
+function addon:GetTransactionDate(scanTime, year, month, day, hour)
+    local sec = (hour * 60 * 60) + (day * 60 * 60 * 24) + (month * 60 * 60 * 24 * 31) + (year * 60 * 60 * 24 * 31 * 12)
+    return scanTime - sec
 end
 
 
@@ -268,6 +221,39 @@ function addon:GetTransactionInfo(transaction)
     }
 
     return info
+end
+
+
+function addon:GetTransactionLabel(transaction)
+    local info = addon:GetTransactionInfo(transaction)
+    if not info then return end
+
+    info.name = info.name or UNKNOWN
+    info.name = NORMAL_FONT_COLOR_CODE..info.name..FONT_COLOR_CODE_CLOSE
+
+    local msg
+    if info.transactionType == "deposit" then
+        msg = format(GUILDBANK_DEPOSIT_FORMAT, info.name, info.itemLink)
+        if info.count > 1 then
+            msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
+        end
+    elseif info.transactionType == "withdraw" then
+        msg = format(GUILDBANK_WITHDRAW_FORMAT, info.name, info.itemLink)
+        if info.count > 1 then
+            msg = msg..format(GUILDBANK_LOG_QUANTITY, info.count)
+        end
+    elseif info.transactionType == "move" then
+		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination) -- TODO: Get tab name
+    end
+
+    local recentDate = RecentTimeDate(info.year, info.month, info.day, info.hour)
+    if addon.db.global.settings.preferences.dateType == "approx" then
+        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..date(addon.db.global.settings.preferences.dateFormat, addon:GetTransactionDate(addon.review.scan or time(), info.year, info.month, info.day, info.hour)))
+    else
+        msg = msg and (msg..GUILD_BANK_LOG_TIME_PREPEND..format(GUILD_BANK_LOG_TIME, recentDate))
+    end
+
+    return msg
 end
 
 

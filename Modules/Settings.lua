@@ -238,6 +238,7 @@ function addon:GetSettingsOptions()
                                 addon:CleanupDatabase()
                                 addon:SelectReviewGuild(addon.review.guildID)
                                 addon:SelectAnalyzeGuild(addon.analyze.guildID)
+                                LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
                                 addon:Print(L["Cleanup finished."])
                             end,
                         },
