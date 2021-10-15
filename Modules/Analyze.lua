@@ -701,10 +701,12 @@ function addon:SelectAnalyzeScan(scanID, options)
             character.money[transactionInfo.transactionType] = (character.money[transactionInfo.transactionType] or 0) + transactionInfo.amount
 
             -- Update money list
-            args[transactionInfo.transactionType == "buyTab" and "deposit" or transactionInfo.transactionType].args[transactionInfo.name] = {
-                type = "description",
-                name = format("%s: %s", transactionInfo.name, GetCoinTextureString(character.money[transactionInfo.transactionType])),
-            }
+            if transactionInfo.transactionType ~= "depositSummary" then -- Implement deposit summary in analyze
+                args[transactionInfo.transactionType == "buyTab" and "deposit" or transactionInfo.transactionType].args[transactionInfo.name] = {
+                    type = "description",
+                    name = format("%s: %s", transactionInfo.name, GetCoinTextureString(character.money[transactionInfo.transactionType])),
+                }
+            end
         end
     end
 
