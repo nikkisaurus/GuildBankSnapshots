@@ -6,6 +6,7 @@ local AceSerializer = LibStub("AceSerializer-3.0")
 addon.review = {}
 
 
+GUILD_BANK_LOG_TIME_PREPEND = GUILD_BANK_LOG_TIME_PREPEND or "|cff009999   "
 
 
 function addon:GetMoneyTransactionInfo(transaction)

@@ -155,7 +155,7 @@ function addon:ScanGuildBank(isAutoScan)
                 tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemLink, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
             end
 
-            for slot = 1, MAX_GUILDBANK_SLOTS_PER_TAB do
+            for slot = 1, (MAX_GUILDBANK_SLOTS_PER_TAB or 98) do
                 local slotItemID = GetItemInfoInstant(GetGuildBankItemLink(tab, slot) or 0)
                 if slotItemID then
                     local _, slotItemCount = GetGuildBankItemInfo(tab, slot)
