@@ -1,34 +1,35 @@
 package-as: GuildBankSnapshots
 
 manual-changelog:
-  filename: CHANGELOG.md
-  markup-type: markdown
+    filename: CHANGELOG.md
+    markup-type: markdown
 
 enable-nolib-creation: no
 
 externals:
-  Libs/LibStub:
-    url: https://repos.curseforge.com/wow/libstub/trunk
-    tag: 1.0
-  Libs/LibAddonUtils: https://github.com/niketa-wow/libaddonutils
-  Libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-  Libs/AceAddon-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceAddon-3.0
-  Libs/AceEvent-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceEvent-3.0
-  Libs/AceConsole-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConsole-3.0
-  Libs/AceDB-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDB-3.0
-  Libs/AceDBOptions-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDBOptions-3.0
-  Libs/AceLocale-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0
-  Libs/AceGUI-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
-  Libs/AceSerializer-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceSerializer-3.0
+    Libs/LibStub:
+        url: https://repos.curseforge.com/wow/libstub/trunk
+        tag: 1.0
+    Libs/LibAddonUtils: https://github.com/niketa-wow/libaddonutils
+    Libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+    Libs/AceAddon-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceAddon-3.0
+    Libs/AceEvent-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceEvent-3.0
+    Libs/AceConsole-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConsole-3.0
+    Libs/AceDB-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDB-3.0
+    Libs/AceDBOptions-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDBOptions-3.0
+    Libs/AceLocale-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0
+    Libs/AceGUI-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
+    Libs/AceSerializer-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceSerializer-3.0
 
 embedded-libraries:
-  - libaddonutils
+    - libaddonutils
 
 ignore:
-  - Media/png
-  - README.md
-  - TODO.md
-  - Libs/*.md
-  - Libs/*.toc
-  - Libs/*.txt
-  - Libs/*.textile
+    - Media/png
+    - README.md
+    - TODO.md
+    - Libs/*.md
+    - Libs/*.toc
+    - Libs/*.txt
+    - Libs/*.textile
+    - install-deps.sh

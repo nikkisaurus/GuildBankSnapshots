@@ -1,24 +1,24 @@
 name: Package and release development builds
 
 on:
-  push:
-    tags:
-      - '*.*.*-*'
+    push:
+        tags:
+            - "*.*.*-*"
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+    release:
+        runs-on: ubuntu-latest
 
-    env:
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
-      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+        env:
+            CF_API_KEY: ${{ secrets.CF_API_KEY }}
+            WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
+            GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
-    steps:
-      - name: Clone project
-        uses: actions/checkout@v1
+        steps:
+            - name: Clone project
+              uses: actions/checkout@v1
 
-      - name: Package and release for Retail
-        uses: BigWigsMods/packager@master
-        with:
-          args: -w 0
+            - name: Package and release for Retail
+              uses: BigWigsMods/packager@master
+              with:
+                  args: -w 0
