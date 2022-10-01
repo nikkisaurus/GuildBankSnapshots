@@ -24,7 +24,10 @@ function addon:OnInitialize()
 end
 
 function addon:OnEnable()
-	LoadAddOn("Blizzard_GuildBankUI")
+	local _, _, _, loadable = GetAddOnInfo("Blizzard_GuildBankUI")
+	if loadable then
+		LoadAddOn("Blizzard_GuildBankUI")
+	end
 
 	self:RegisterEvent("GUILDBANKFRAME_CLOSED")
 	self:RegisterEvent("GUILDBANKFRAME_OPENED")
