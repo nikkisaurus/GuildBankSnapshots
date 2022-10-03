@@ -8,6 +8,7 @@
 ## X-WoWI-ID: 22913
 
 # Libraries
+# TODO embeds
 Libs\LibStub\LibStub.lua
 Libs\LibAddonUtils\LibAddonUtils.xml
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
@@ -22,19 +23,8 @@ Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
 
 # Locales
-Locales\Locale-enUS.lua
+Locales\embeds.xml
 
 # Core
-Modules\Database\Database.lua
-Modules\Database\DB4-5.lua
-Core.lua
-
-# Modules
-Modules\Scan.lua
-Modules\Widgets\Transaction.lua
-Modules\Options.lua
-Modules\Review.lua
-Modules\Analyze.lua
-Modules\Export.lua
-Modules\Settings.lua
-Modules\Help.lua
+GuildBankSnapshots.lua
+Modules\embeds.xml

@@ -1,65 +1,65 @@
-local addonName = ...
+local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function addon:GetOptions()
-	self.options = {
-		type = "group",
-		name = L.addon,
-		args = {
-			review = {
-				order = 1,
-				type = "group",
-				name = L["Review"],
-				childGroups = "tab",
-				args = self:GetReviewOptions(),
-			},
-			analyze = {
-				order = 2,
-				type = "group",
-				name = L["Analyze"],
-				childGroups = "tab",
-				args = self:GetAnalyzeOptions(),
-			},
-			export = {
-				order = 3,
-				type = "group",
-				name = L["Export"],
-				args = self:GetExportOptions(),
-			},
-			settings = {
-				order = 4,
-				type = "group",
-				name = L["Settings"],
-				childGroups = "tab",
-				args = self:GetSettingsOptions(),
-			},
-			help = {
-				order = 6,
-				type = "group",
-				name = L["Help"],
-				args = self:GetHelpOptions(),
-			},
-		},
-	}
+function private:GetOptions()
+    private.options = {
+        type = "group",
+        name = L.addonName,
+        args = {
+            review = {
+                order = 1,
+                type = "group",
+                name = L["Review"],
+                childGroups = "tab",
+                args = private:GetReviewOptions(),
+            },
+            analyze = {
+                order = 2,
+                type = "group",
+                name = L["Analyze"],
+                childGroups = "tab",
+                args = private:GetAnalyzeOptions(),
+            },
+            export = {
+                order = 3,
+                type = "group",
+                name = L["Export"],
+                args = private:GetExportOptions(),
+            },
+            settings = {
+                order = 4,
+                type = "group",
+                name = L["Settings"],
+                childGroups = "tab",
+                args = private:GetSettingsOptions(),
+            },
+            help = {
+                order = 6,
+                type = "group",
+                name = L["Help"],
+                args = private:GetHelpOptions(),
+            },
+        },
+    }
 
-	return self.options
+    return private.options
 end
 
-function addon:InitializeOptions()
-	LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, self:GetOptions())
-	LibStub("AceConfigDialog-3.0"):SetDefaultSize(addonName, 850, 600)
+function private:InitializeOptions()
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, private:GetOptions())
+    LibStub("AceConfigDialog-3.0"):SetDefaultSize(addonName, 850, 600)
 end
 
-function addon:RefreshOptions()
-	if not self.options then
-		return
-	end
+function private:RefreshOptions()
+    if not private.options then
+        return
+    end
 
-	if self.options.args.review then
-		self.options.args.review.args = self:GetReviewOptions()
-	end
+    if private.options.args.review then
+        private.options.args.review.args = private:GetReviewOptions()
+    end
 
-	LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-	LibStub("AceConfigDialog-3.0"):Open(addonName)
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+    LibStub("AceConfigDialog-3.0"):Open(addonName)
 end

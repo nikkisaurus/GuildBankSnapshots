@@ -1,14 +1,11 @@
-local addonName = ...
+local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
-
-
-
 
 local function GetUnits(measure)
     if measure == 1 then
         return {
-            minutes =  L["minute"],
+            minutes = L["minute"],
             hours = L["hour"],
             days = L["day"],
             weeks = L["week"],
@@ -16,7 +13,7 @@ local function GetUnits(measure)
         }
     else
         return {
-            minutes =  L["minutes"],
+            minutes = L["minutes"],
             hours = L["hours"],
             days = L["days"],
             weeks = L["weeks"],
@@ -25,20 +22,17 @@ local function GetUnits(measure)
     end
 end
 
-
-
-
-function addon:GetSettingsOptions()
+function private:GetSettingsOptions()
     local options = {
         scans = {
             order = 1,
             type = "group",
             name = L["Scans"],
             get = function(info)
-                return addon.db.global.settings.scans[info[#info]]
+                return private.db.global.settings.scans[info[#info]]
             end,
             set = function(info, value)
-                addon.db.global.settings.scans[info[#info]] = value
+                private.db.global.settings.scans[info[#info]] = value
             end,
             args = {
                 delay = {
@@ -49,7 +43,7 @@ function addon:GetSettingsOptions()
                     width = "double",
                     min = 0,
                     max = 5,
-                    step = .01,
+                    step = 0.01,
                 },
                 review = {
                     order = 2,
@@ -64,7 +58,7 @@ function addon:GetSettingsOptions()
                     name = L["Review Path"],
                     desc = L.ScanReviewPathDescription,
                     hidden = function()
-                        return not addon.db.global.settings.scans.review
+                        return not private.db.global.settings.scans.review
                     end,
                     values = function()
                         return {
@@ -73,7 +67,7 @@ function addon:GetSettingsOptions()
                             review = L["Review"],
                         }
                     end,
-                    sorting = {"review", "analyze", "export"},
+                    sorting = { "review", "analyze", "export" },
                 },
                 autoScan = {
                     order = 4,
@@ -81,10 +75,10 @@ function addon:GetSettingsOptions()
                     inline = true,
                     name = L["Auto Scan"],
                     get = function(info)
-                        return addon.db.global.settings.scans.autoScan[info[#info]]
+                        return private.db.global.settings.scans.autoScan[info[#info]]
                     end,
                     set = function(info, value)
-                        addon.db.global.settings.scans.autoScan[info[#info]] = value
+                        private.db.global.settings.scans.autoScan[info[#info]] = value
                     end,
                     args = {
                         enabled = {
@@ -114,10 +108,10 @@ function addon:GetSettingsOptions()
                             name = L["Enable frequency limit"],
                             desc = L.ScanAutoFrequncyEnabledDescription,
                             get = function()
-                                return addon.db.global.settings.scans.autoScan.frequency.enabled
+                                return private.db.global.settings.scans.autoScan.frequency.enabled
                             end,
                             set = function(_, value)
-                                addon.db.global.settings.scans.autoScan.frequency.enabled = value
+                                private.db.global.settings.scans.autoScan.frequency.enabled = value
                             end,
                         },
                         frequencyMeasure = {
@@ -126,13 +120,13 @@ function addon:GetSettingsOptions()
                             name = L["Frequency Measure"],
                             desc = L.ScanAutoFrequencyDescription,
                             disabled = function()
-                                return not addon.db.global.settings.scans.autoScan.frequency.enabled
+                                return not private.db.global.settings.scans.autoScan.frequency.enabled
                             end,
                             get = function()
-                                return addon.db.global.settings.scans.autoScan.frequency.measure
+                                return private.db.global.settings.scans.autoScan.frequency.measure
                             end,
                             set = function(_, value)
-                                addon.db.global.settings.scans.autoScan.frequency.measure = value
+                                private.db.global.settings.scans.autoScan.frequency.measure = value
                             end,
                             min = 1,
                             max = 59,
@@ -144,18 +138,18 @@ function addon:GetSettingsOptions()
                             style = "dropdown",
                             name = L["Frequency Unit"],
                             disabled = function()
-                                return not addon.db.global.settings.scans.autoScan.frequency.enabled
+                                return not private.db.global.settings.scans.autoScan.frequency.enabled
                             end,
                             get = function()
-                                return addon.db.global.settings.scans.autoScan.frequency.unit
+                                return private.db.global.settings.scans.autoScan.frequency.unit
                             end,
                             set = function(_, value)
-                                addon.db.global.settings.scans.autoScan.frequency.unit = value
+                                private.db.global.settings.scans.autoScan.frequency.unit = value
                             end,
                             values = function()
-                                return GetUnits(addon.db.global.settings.scans.autoScan.frequency.measure)
+                                return GetUnits(private.db.global.settings.scans.autoScan.frequency.measure)
                             end,
-                            sorting = {"minutes", "hours", "days", "weeks", "months"},
+                            sorting = { "minutes", "hours", "days", "weeks", "months" },
                         },
                     },
                 },
@@ -165,10 +159,10 @@ function addon:GetSettingsOptions()
                     inline = true,
                     name = L["Auto Cleanup"],
                     get = function(info)
-                        return addon.db.global.settings.scans.autoCleanup[info[#info]]
+                        return private.db.global.settings.scans.autoCleanup[info[#info]]
                     end,
                     set = function(info, value)
-                        addon.db.global.settings.scans.autoCleanup[info[#info]] = value
+                        private.db.global.settings.scans.autoCleanup[info[#info]] = value
                     end,
                     args = {
                         corrupted = {
@@ -181,13 +175,13 @@ function addon:GetSettingsOptions()
                             order = 2,
                             type = "toggle",
                             width = 1.5,
-                            name = L["Delete scans older than"]..":",
+                            name = L["Delete scans older than"] .. ":",
                             desc = L.ScanAutoCleanupEnabledDescription,
                             get = function()
-                                return addon.db.global.settings.scans.autoCleanup.age.enabled
+                                return private.db.global.settings.scans.autoCleanup.age.enabled
                             end,
                             set = function(_, value)
-                                addon.db.global.settings.scans.autoCleanup.age.enabled = value
+                                private.db.global.settings.scans.autoCleanup.age.enabled = value
                             end,
                         },
                         ageMeasure = {
@@ -196,13 +190,13 @@ function addon:GetSettingsOptions()
                             name = L["Age Measure"],
                             desc = L.ScanAutoCleanupDescription,
                             disabled = function()
-                                return not addon.db.global.settings.scans.autoCleanup.age.enabled
+                                return not private.db.global.settings.scans.autoCleanup.age.enabled
                             end,
                             get = function()
-                                return addon.db.global.settings.scans.autoCleanup.age.measure
+                                return private.db.global.settings.scans.autoCleanup.age.measure
                             end,
                             set = function(_, value)
-                                addon.db.global.settings.scans.autoCleanup.age.measure = value
+                                private.db.global.settings.scans.autoCleanup.age.measure = value
                             end,
                             min = 1,
                             max = 59,
@@ -214,18 +208,18 @@ function addon:GetSettingsOptions()
                             style = "dropdown",
                             name = L["Age Unit"],
                             disabled = function()
-                                return not addon.db.global.settings.scans.autoCleanup.age.enabled
+                                return not private.db.global.settings.scans.autoCleanup.age.enabled
                             end,
                             get = function()
-                                return addon.db.global.settings.scans.autoCleanup.age.unit
+                                return private.db.global.settings.scans.autoCleanup.age.unit
                             end,
                             set = function(_, value)
-                                addon.db.global.settings.scans.autoCleanup.age.unit = value
+                                private.db.global.settings.scans.autoCleanup.age.unit = value
                             end,
                             values = function()
-                                return GetUnits(addon.db.global.settings.scans.autoCleanup.age.measure)
+                                return GetUnits(private.db.global.settings.scans.autoCleanup.age.measure)
                             end,
-                            sorting = {"minutes", "hours", "days", "weeks", "months"},
+                            sorting = { "minutes", "hours", "days", "weeks", "months" },
                         },
                         cleanup = {
                             order = 5,
@@ -235,9 +229,9 @@ function addon:GetSettingsOptions()
                                 return L.ConfirmCleanup
                             end,
                             func = function()
-                                addon:CleanupDatabase()
-                                addon:SelectReviewGuild(addon.review.guildID)
-                                addon:SelectAnalyzeGuild(addon.analyze.guildID)
+                                private:CleanupDatabase()
+                                private:SelectReviewGuild(private.review.guildID)
+                                private:SelectAnalyzeGuild(private.analyze.guildID)
                                 LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
                                 addon:Print(L["Cleanup finished."])
                             end,
@@ -251,10 +245,10 @@ function addon:GetSettingsOptions()
             type = "group",
             name = L["Preferences"],
             get = function(info)
-                return addon.db.global.settings.preferences[info[#info]]
+                return private.db.global.settings.preferences[info[#info]]
             end,
             set = function(info, value)
-                addon.db.global.settings.preferences[info[#info]] = value
+                private.db.global.settings.preferences[info[#info]] = value
             end,
             args = {
                 dateFormat = {
@@ -300,7 +294,7 @@ function addon:GetSettingsOptions()
                             approx = L["Approximate"],
                         }
                     end,
-                    sorting = {"default", "approx"},
+                    sorting = { "default", "approx" },
                 },
                 defaultGuild = {
                     order = 3,
@@ -310,13 +304,13 @@ function addon:GetSettingsOptions()
                     desc = L.DefaultGuildDescription,
                     width = "double",
                     disabled = function()
-                        return addon.tcount(addon.db.global.guilds) == 0
+                        return addon.tcount(private.db.global.guilds) == 0
                     end,
                     values = function()
                         local guilds = {}
 
-                        for guildID, guildInfo in addon.pairs(addon.db.global.guilds) do
-                            guilds[guildID] = addon:GetGuildDisplayName(guildID)
+                        for guildID, guildInfo in addon.pairs(private.db.global.guilds) do
+                            guilds[guildID] = private:GetGuildDisplayName(guildID)
                         end
 
                         return guilds
@@ -341,7 +335,7 @@ function addon:GetSettingsOptions()
                             ["|"] = format("%s (%s)", L["Pipe"], "|"),
                         }
                     end,
-                    sorting = {",", ";", "|",},
+                    sorting = { ",", ";", "|" },
                 },
                 confirmDeletions = {
                     order = 6,

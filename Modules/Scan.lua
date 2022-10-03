@@ -1,20 +1,26 @@
-local addonName = ...
+local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local ACD = LibStub("AceConfigDialog-3.0")
 local AceSerializer = LibStub("AceSerializer-3.0")
 
-
-
-
 local function ValidateScan(db)
-    if not addon.bankIsOpen then addon:Print(L.BankClosedError) return end
-    if not addon.isScanning then return end
+    if not private.bankIsOpen then
+        addon:Print(L.BankClosedError)
+        return
+    end
+    if not private.isScanning then
+        return
+    end
 
-    local scans = addon.db.global.guilds[addon:GetGuildID()].scans
+    local scans = private.db.global.guilds[private:GetGuildID()].scans
 
     local isValid
-    for scanTime, scan in addon.pairs(scans, function(a, b) return b < a end) do
+    for scanTime, scan in
+        addon.pairs(scans, function(a, b)
+            return b < a
+        end)
+    do
         -- Money changed
         if scan.totalMoney ~= db.totalMoney then
             isValid = true
@@ -47,106 +53,106 @@ local function ValidateScan(db)
     -- Save scan
     if isValid then
         local scanTime = time()
-        local scanSettings = addon.db.global.settings.scans
+        local scanSettings = private.db.global.settings.scans
 
         -- Save db
-        addon.db.global.guilds[addon:GetGuildID()].scans[scanTime] = db
+        private.db.global.guilds[private:GetGuildID()].scans[scanTime] = db
 
-        if addon:DeleteCorruptedScans(scanTime) then
+        if private:DeleteCorruptedScans(scanTime) then
             addon:Print(L.CorruptScan)
         else
             -- Open the review frame
-            if not corrupt and ((addon.isScanning ~= "auto" and scanSettings.review) or (addon.isScanning == "auto" and scanSettings.autoScan.review)) then
+            if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
                 ACD:SelectGroup(addonName, scanSettings.reviewPath)
                 ACD:Open(addonName)
 
                 if scanSettings.reviewPath ~= "export" then
                     -- Select guild and scan
-                    addon["Select"..strupper(strsub(scanSettings.reviewPath, 1, 1))..strsub(scanSettings.reviewPath, 2).."Guild"](addon, addon:GetGuildID())
-                    addon["Select"..strupper(strsub(scanSettings.reviewPath, 1, 1))..strsub(scanSettings.reviewPath, 2).."Scan"](addon, scanTime)
+                    addon["Select" .. strupper(strsub(scanSettings.reviewPath, 1, 1)) .. strsub(scanSettings.reviewPath, 2) .. "Guild"](addon, private:GetGuildID())
+                    addon["Select" .. strupper(strsub(scanSettings.reviewPath, 1, 1)) .. strsub(scanSettings.reviewPath, 2) .. "Scan"](addon, scanTime)
                 end
             end
         end
     end
 
     -- Alert scan finished
-    if addon.isScanning ~= "auto" or addon.db.global.settings.scans.autoScan.alert then
+    if private.isScanning ~= "auto" or private.db.global.settings.scans.autoScan.alert then
         addon:Print(L["Scan finished."], not isValid and L["No changes detected."] or "")
     end
 
-    addon.isScanning = nil
+    private.isScanning = nil
     LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
 end
 
-
 local function ValidateScanFrequency(autoScanSettings)
-    if not autoScanSettings.frequency.enabled then return true end
+    if not autoScanSettings.frequency.enabled then
+        return true
+    end
 
     -- Convert frequency to seconds
-    local frequency = autoScanSettings.frequency.measure * addon.unitsToSeconds[autoScanSettings.frequency.unit]
+    local frequency = autoScanSettings.frequency.measure * private.unitsToSeconds[autoScanSettings.frequency.unit]
 
     -- Get the last scan date and compare
-    for scanID, _ in addon.pairs(addon.db.global.guilds[addon:GetGuildID()].scans, function(a, b) return b < a end) do
+    for scanID, _ in
+        addon.pairs(private.db.global.guilds[private:GetGuildID()].scans, function(a, b)
+            return b < a
+        end)
+    do
         return (scanID < time() - frequency)
     end
-    
+
     return true
 end
 
-
-
-
-function addon:GUILDBANKFRAME_OPENED()
-    self.bankIsOpen = true
-    self:UpdateGuildDatabase() -- Ensure guild bank database is formatted
-
-    local autoScanSettings = self.db.global.settings.scans.autoScan
-    if autoScanSettings.enabled and ValidateScanFrequency(autoScanSettings) then
-        self:ScanGuildBank(true) -- AutoScan
-    end
-end
-
-
 function addon:GUILDBANKFRAME_CLOSED()
     -- Warn user if scan is canceled before finishing
-    if self.isScanning then
-        if self.isScanning ~= "auto" or self.db.global.settings.scans.autoScan.alert then
-            self:Print(L["Scan failed."])
+    if private.isScanning then
+        if private.isScanning ~= "auto" or private.db.global.settings.scans.autoScan.alert then
+            addon:Print(L["Scan failed."])
         end
 
-        self.isScanning = nil
+        private.isScanning = nil
     end
 
-    self.bankIsOpen = nil
+    private.bankIsOpen = nil
 end
 
+function addon:GUILDBANKFRAME_OPENED()
+    private.bankIsOpen = true
+    private:UpdateGuildDatabase() -- Ensure guild bank database is formatted
 
-function addon:ScanGuildBank(isAutoScan)
+    local autoScanSettings = private.db.global.settings.scans.autoScan
+    if autoScanSettings.enabled and ValidateScanFrequency(autoScanSettings) then
+        private:ScanGuildBank(true) -- AutoScan
+    end
+end
+
+function private:ScanGuildBank(isAutoScan)
     -- Alert user of progress
-    if not self.bankIsOpen then
-        self:Print(L.BankClosedError)
+    if not private.bankIsOpen then
+        addon:Print(L.BankClosedError)
         return
-    elseif not isAutoScan or self.db.global.settings.scans.autoScan.alert then
-        self:Print(L["Scanning"].."...")
+    elseif not isAutoScan or private.db.global.settings.scans.autoScan.alert then
+        addon:Print(L["Scanning"] .. "...")
     end
 
-    self.isScanning = isAutoScan and "auto" or true
+    private.isScanning = isAutoScan and "auto" or true
 
     -- Query guild bank tabs
-    local numTabs = self.db.global.guilds[self:GetGuildID()].numTabs
-    for tab = 1, numTabs  do
+    local numTabs = private.db.global.guilds[private:GetGuildID()].numTabs
+    for tab = 1, numTabs do
         QueryGuildBankTab(tab)
         QueryGuildBankLog(tab)
     end
     QueryGuildBankLog(MAX_GUILDBANK_TABS + 1)
 
     -- Scan bank
-    C_Timer.After(self.db.global.settings.scans.delay, function()
-        local db = {totalMoney = 0, moneyTransactions = {}, tabs = {}}
+    C_Timer.After(private.db.global.settings.scans.delay, function()
+        local db = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
 
         -- Item transactions
         for tab = 1, numTabs do
-            db.tabs[tab] = {items = {}, transactions = {}}
+            db.tabs[tab] = { items = {}, transactions = {} }
             local tabDB = db.tabs[tab]
 
             for index = 1, GetNumGuildBankTransactions(tab) do

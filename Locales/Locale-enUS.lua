@@ -1,8 +1,9 @@
-local addonName = ...
+local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 LibStub("LibAddonUtils-1.0"):Embed(addon)
 
+-- TODO: sort
 L["Age Measure"] = true
 L["Age Unit"] = true
 L["Alert scan progress"] = true
@@ -94,13 +95,12 @@ L["weeks"] = true
 L["Withdraw"] = true
 L["Withdrawals"] = true
 
-L.addon = "Guild Bank Snapshots"
+L.addonName = "Guild Bank Snapshots"
 L.BankClosedError = "Please open your guild bank frame and try again."
 L.ConfirmDeleteScan = "Are you sure you want to delete this scan?"
 L.CorruptScan = "Scan corrupt. Please try again."
 
-L.ScanDelayDescription =
-	"Determines the amount of time between querying the guild bank transaction logs and saving the scan. Increasing this delay may help reduce corrupt scans."
+L.ScanDelayDescription = "Determines the amount of time between querying the guild bank transaction logs and saving the scan. Increasing this delay may help reduce corrupt scans."
 L.ScanReviewDescription = "Shows the review frame after manually scanning the bank."
 L.ScanReviewPathDescription = "Determines which panel is opened when the review frame is shown."
 
@@ -110,14 +110,10 @@ L.ScanAutoFrequncyEnabledDescription = "Limits the number of auto scans allowed 
 L.ScanAutoFrequencyDescription = "Determines the frequency at which auto scans are allowed to run."
 
 L.ScanAutoCleanupEnabledDescription = "Automatically deletes scans older than the specified time frame."
-L.ScanAutoCleanupDescription =
-	"Determines how far back scans are saved. For example, if this is set to 30 days, all scans older than 30 days will be deleted."
-L.ConfirmCleanup =
-	"Are you sure you want to clean up your database? This action is irreversible. Be sure to backup or export your settings."
+L.ScanAutoCleanupDescription = "Determines how far back scans are saved. For example, if this is set to 30 days, all scans older than 30 days will be deleted."
+L.ConfirmCleanup = "Are you sure you want to clean up your database? This action is irreversible. Be sure to backup or export your settings."
 
-L.DateTypeDescription =
-	"Determines whether dates are shown as presented in the guild bank transaction log or approximate dates based on the scan time."
+L.DateTypeDescription = "Determines whether dates are shown as presented in the guild bank transaction log or approximate dates based on the scan time."
 L.DefaultGuildDescription = "Sets the default guild to load when reviewing or analyzing a scan."
 L.GuildFormatDescription = "%g = guild name\n%r = realm name\n%f = faction\n%F = shortened faction"
-L.ConfirmDeletionsDescription =
-	"Prompt for confirmation when deleting scans via the review frame. Note: this does not apply to auto cleanup deletions."
+L.ConfirmDeletionsDescription = "Prompt for confirmation when deleting scans via the review frame. Note: this does not apply to auto cleanup deletions."
