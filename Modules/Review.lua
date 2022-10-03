@@ -183,11 +183,31 @@ function addon:GetReviewOptions()
 				addon:SelectReviewScan()
 			end,
 		},
+		sorting = {
+			order = 5,
+			type = "select",
+			style = "dropdown",
+			name = L["Sorting"],
+			values = {
+				asc = L["Ascending"],
+				des = L["Descending"],
+			},
+			disabled = function()
+				return not addon.review.scan
+			end,
+			get = function()
+				return addon.db.global.settings.preferences.sorting
+			end,
+			set = function(_, value)
+				addon.db.global.settings.preferences.sorting = value
+				addon:RefreshOptions()
+			end,
+		},
 	}
 
 	for tab = 1, moneyTab do
 		options["tab" .. tab] = {
-			order = tab + 4,
+			order = tab + 5,
 			type = "group",
 			name = function()
 				local tabName
@@ -237,7 +257,7 @@ function addon:GetReviewOptions()
 					type = "select",
 					style = "dropdown",
 					name = function()
-						return addon.review.filter
+						return addon.review.filter or ""
 					end,
 					values = function()
 						local values = {
@@ -352,7 +372,7 @@ function addon:GetReviewOptions()
 					end,
 				},
 				minIlvl = {
-					order = 2,
+					order = 3,
 					type = "range",
 					min = 1,
 					max = 304,
@@ -369,7 +389,7 @@ function addon:GetReviewOptions()
 					end,
 				},
 				maxIlvl = {
-					order = 3,
+					order = 4,
 					type = "range",
 					min = 1,
 					max = 304,
@@ -447,7 +467,11 @@ function addon:GetReviewOptions()
 				end,
 				width = "full",
 			}
-			i = i + 1
+			if addon.db.global.settings.preferences.sorting == "des" then
+				i = i + 1
+			else
+				i = i - 1
+			end
 		end
 	end
 

@@ -157,6 +157,7 @@ function addon:InitializeDatabase()
 					defaultGuild = false, -- guildID
 					guildFormat = "%g - %r (%F)",
 					exportDelimiter = ",",
+					sorting = "des",
 				},
 			},
 		},

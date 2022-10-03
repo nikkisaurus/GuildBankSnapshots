@@ -50,3 +50,16 @@ function addon:InitializeOptions()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, self:GetOptions())
 	LibStub("AceConfigDialog-3.0"):SetDefaultSize(addonName, 850, 600)
 end
+
+function addon:RefreshOptions()
+	if not self.options then
+		return
+	end
+
+	if self.options.args.review then
+		self.options.args.review.args = self:GetReviewOptions()
+	end
+
+	LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+	LibStub("AceConfigDialog-3.0"):Open(addonName)
+end
