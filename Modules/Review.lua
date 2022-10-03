@@ -189,7 +189,16 @@ function addon:GetReviewOptions()
 		options["tab" .. tab] = {
 			order = tab + 4,
 			type = "group",
-			name = tab == moneyTab and L["Money Tab"] or format("%s %d", L["Tab"], tab),
+			name = function()
+				local tabName
+				if tab == moneyTab then
+					tabName = L["Money Tab"]
+				elseif addon.review.scan then
+					tabName = addon.db.global.guilds[addon.review.guildID].tabs[tab].name
+				end
+				tabName = tabName ~= "" and tabName or format("%s %d", L["Tab"], tab)
+				return tabName
+			end,
 			disabled = function()
 				return not addon.review.scan
 					or (tab ~= moneyTab and addon.db.global.guilds[addon.review.guildID].numTabs < tab)
@@ -274,7 +283,7 @@ function addon:GetTransactionLabel(transaction)
 			msg = msg .. format(GUILDBANK_LOG_QUANTITY, info.count)
 		end
 	elseif info.transactionType == "move" then
-		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination) -- TODO: Get tab name
+		msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination)
 	end
 
 	local recentDate = RecentTimeDate(info.year, info.month, info.day, info.hour)
