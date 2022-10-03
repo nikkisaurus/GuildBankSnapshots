@@ -203,19 +203,240 @@ function addon:GetReviewOptions()
 				return not addon.review.scan
 					or (tab ~= moneyTab and addon.db.global.guilds[addon.review.guildID].numTabs < tab)
 			end,
-			args = {},
+			args = {
+				filter = {
+					order = 1,
+					type = "select",
+					style = "dropdown",
+					name = L["Filter"],
+					values = tab == moneyTab and {
+						name = L["Name"],
+						type = L["Type"],
+						clear = L["Clear Filter"],
+					} or {
+						name = L["Name"],
+						type = L["Type"],
+						item = L["Item"],
+						ilvl = L["Item Level"],
+						clear = L["Clear Filter"],
+					},
+					sorting = tab == moneyTab and { "name", "type", "clear" }
+						or { "name", "type", "item", "ilvl", "clear" },
+					get = function()
+						return addon.review.filterType
+					end,
+					set = function(_, value)
+						addon.review.filterType = value ~= "clear" and value
+						addon.review.filter = nil
+						addon.review.minIlvl = nil
+						addon.review.maxIlvl = nil
+					end,
+				},
+				filter2 = {
+					order = 2,
+					type = "select",
+					style = "dropdown",
+					name = function()
+						return addon.review.filter
+					end,
+					values = function()
+						local values = {
+							clear = L["Clear Filter"],
+						}
+
+						local filterType = addon.review.filterType
+						local scan = addon.review.guildID
+							and addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
+						local transactions = addon.review.scan
+							and (tab < moneyTab and scan.tabs[tab].transactions or scan.moneyTransactions)
+
+						if not transactions then
+							return values
+						end
+
+						if filterType == "name" then
+							for _, transaction in pairs(transactions) do
+								local info = addon:GetTransactionInfo(transaction)
+								values[info.name] = info.name
+							end
+						elseif filterType == "type" then
+							values.deposit = L["Deposit"]
+							values.withdraw = L["Withdraw"]
+							if tab == moneyTab then
+								values.repair = L["Repair"]
+							else
+								values.move = L["Move"]
+							end
+						elseif filterType == "item" then
+							for _, transaction in pairs(transactions) do
+								local info = addon:GetTransactionInfo(transaction)
+								values[info.itemLink] = info.itemLink
+							end
+						end
+
+						return values
+					end,
+					sorting = function()
+						local values = {}
+
+						local filterType = addon.review.filterType
+						local scan = addon.review.guildID
+							and addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
+						local transactions = addon.review.scan
+							and (tab < moneyTab and scan.tabs[tab].transactions or scan.moneyTransactions)
+
+						if not transactions then
+							tinsert(values, "clear")
+							return values
+						end
+
+						if filterType == "name" then
+							for _, transaction in
+								addon.pairs(transactions, function(a, b)
+									local infoA = addon:GetTransactionInfo(transactions[a])
+									local infoB = addon:GetTransactionInfo(transactions[b])
+
+									return infoA.name < infoB.name
+								end)
+							do
+								local info = addon:GetTransactionInfo(transaction)
+								if not addon.GetTableKey(values, info.name) then
+									tinsert(values, info.name)
+								end
+							end
+						elseif filterType == "type" then
+							if tab == moneyTab then
+								return { "deposit", "repair", "withdraw", "clear" }
+							else
+								return { "deposit", "move", "withdraw", "clear" }
+							end
+						elseif filterType == "item" then
+							for _, transaction in
+								addon.pairs(transactions, function(a, b)
+									local infoA = addon:GetTransactionInfo(transactions[a])
+									local infoB = addon:GetTransactionInfo(transactions[b])
+									local _, _, itemA =
+										strfind(select(3, strfind(infoA.itemLink, "|H(.+)|h")), "%[(.+)%]")
+									local _, _, itemB =
+										strfind(select(3, strfind(infoB.itemLink, "|H(.+)|h")), "%[(.+)%]")
+
+									return itemA < itemB
+								end)
+							do
+								local info = addon:GetTransactionInfo(transaction)
+								if not addon.GetTableKey(values, info.itemLink) then
+									tinsert(values, info.itemLink)
+								end
+							end
+						end
+
+						tinsert(values, "clear")
+
+						return values
+					end,
+					hidden = function()
+						if
+							tab == moneyTab
+							and (addon.review.filterType == "item" or addon.review.filterType == "ilvl")
+						then
+							addon.review.filterType = nil
+						end
+
+						return not addon.review.filterType or addon.review.filterType == "ilvl"
+					end,
+					get = function()
+						return addon.review.filter ~= "clear" and addon.review.filter
+					end,
+					set = function(_, value)
+						addon.review.filter = value ~= "clear" and value
+					end,
+				},
+				minIlvl = {
+					order = 2,
+					type = "range",
+					min = 1,
+					max = 304,
+					step = 1,
+					name = L["Min Item Level"],
+					hidden = function()
+						return addon.review.filterType ~= "ilvl"
+					end,
+					get = function(info)
+						return addon.review[info[#info]] or 1
+					end,
+					set = function(info, value)
+						addon.review[info[#info]] = value
+					end,
+				},
+				maxIlvl = {
+					order = 3,
+					type = "range",
+					min = 1,
+					max = 304,
+					step = 1,
+					name = L["Max Item Level"],
+					hidden = function()
+						return addon.review.filterType ~= "ilvl"
+					end,
+					get = function(info)
+						return addon.review[info[#info]] or 304
+					end,
+					set = function(info, value)
+						addon.review[info[#info]] = value
+					end,
+				},
+			},
 		}
 
-		local i = 1
+		local i = 101
 		for line = 25, 1, -1 do
 			options["tab" .. tab].args["line" .. line] = {
 				order = i,
 				type = "description",
+				dialogControl = "GuildBankSnapshotsTransaction",
 				hidden = function()
+					if tab == moneyTab and (addon.review.filterType == "item" or addon.review.filterType == "ilvl") then
+						addon.review.filterType = nil
+					end
+					local filterType = addon.review.filterType
+					local scan = addon.review.guildID
+						and addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
+					local transactions = addon.review.scan
+						and (tab < moneyTab and scan.tabs[tab].transactions or scan.moneyTransactions)
+
+					if not transactions then
+						return true
+					end
+
+					local info = tab == moneyTab and addon:GetMoneyTransactionInfo(transactions[line])
+						or addon:GetTransactionInfo(transactions[line])
+					if
+						(tab ~= moneyTab and addon.review.filter == "repair")
+						or (tab == moneyTab and addon.review.filter == "move")
+					then
+						addon.review.filter = nil
+					end
+
+					if filterType == "name" and addon.review.filter then
+						return info.name ~= addon.review.filter
+					elseif filterType == "type" and addon.review.filter then
+						return info.transactionType ~= addon.review.filter
+					elseif filterType == "item" and addon.review.filter then
+						return info.itemLink ~= addon.review.filter
+					elseif filterType == "ilvl" then
+						local _, _, _, _, _, itemType = GetItemInfo(info.itemLink)
+						if itemType ~= "Weapon" and itemType ~= "Armor" then
+							return true
+						end
+						local ilvl = GetDetailedItemLevelInfo(info.itemLink)
+						return ilvl < (addon.review.minIlvl or 1) or ilvl > (addon.review.maxIlvl or 304)
+					end
+
 					return not addon.review.scan
 				end,
 				name = function()
-					local scan = addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
+					local scan = addon.review.guildID
+						and addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
 					local transactions = addon.review.scan
 						and (tab < moneyTab and scan.tabs[tab].transactions or scan.moneyTransactions)
 					return addon.review.scan

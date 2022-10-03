@@ -93,7 +93,7 @@ function addon:InitializeDatabase()
 
 	local defaults = {
 		global = {
-			-- debug = true,
+			debug = true,
 			guilds = {
 				["**"] = { -- guildID: "Guild Name (F) - Realm Name"
 					guildName = "",

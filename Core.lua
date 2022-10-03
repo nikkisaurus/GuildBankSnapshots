@@ -37,7 +37,7 @@ end
 function addon:PLAYER_ENTERING_WORLD()
 	if self.db.global.debug then
 		C_Timer.After(1, function()
-			ACD:SelectGroup(addonName, "export")
+			ACD:SelectGroup(addonName)
 			ACD:Open(addonName)
 		end)
 	end

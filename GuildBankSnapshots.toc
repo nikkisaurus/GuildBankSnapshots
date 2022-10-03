@@ -31,6 +31,7 @@ Core.lua
 
 # Modules
 Modules\Scan.lua
+Modules\Widgets\Transaction.lua
 Modules\Options.lua
 Modules\Review.lua
 Modules\Analyze.lua
