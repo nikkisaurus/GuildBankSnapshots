@@ -708,7 +708,7 @@ function addon:SelectAnalyzeScan(scanID, options)
 				-- Update item values
 				item[transactionInfo.transactionType][transactionInfo.name] = transactionInfo.count
 					+ (item[transactionInfo.transactionType][transactionInfo.name] or 0)
-				addon.CacheItem(transactionInfo.itemLink, function(_, info, itemLink)
+				addon.CacheItem(transactionInfo.itemLink, function(itemID, info, itemLink)
 					info.itemNames[itemLink] = (GetItemInfo(itemLink))
 				end, info, transactionInfo.itemLink)
 
@@ -783,7 +783,7 @@ function addon:SelectAnalyzeScan(scanID, options)
 
 			-- Update money list
 			if transactionInfo.transactionType ~= "depositSummary" then -- Implement deposit summary in analyze
-				args[transactionInfo.transactionType == "buyTab" and "deposit" or transactionInfo.transactionType].args[transactionInfo.name] =
+				args[(transactionInfo.transactionType == "buyTab" and "deposit") or (transactionInfo.transactionType == "withdrawForTab" and "withdraw") or transactionInfo.transactionType].args[transactionInfo.name] =
 					{
 						type = "description",
 						name = format(
