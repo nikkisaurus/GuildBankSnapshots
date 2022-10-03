@@ -38,9 +38,13 @@ function addon:SelectExportScans()
 	local frame = AceGUI:Create("Frame")
 	frame:SetLayout("Flow")
 	frame:SetTitle(format("%s %s", L.addon, L["Export"]))
+	_G["GuildBankSnapshotsExportFrame"] = frame.frame
+	tinsert(UISpecialFrames, "GuildBankSnapshotsExportFrame")
 
 	frame:SetCallback("OnClose", function()
-		ACD:Open(addonName)
+		C_Timer.After(0.5, function()
+			ACD:Open(addonName)
+		end)
 	end)
 
 	local selectScansContainer = AceGUI:Create("InlineGroup")

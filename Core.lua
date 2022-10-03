@@ -29,13 +29,18 @@ function addon:OnEnable()
 		LoadAddOn("Blizzard_GuildBankUI")
 	end
 
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("GUILDBANKFRAME_CLOSED")
 	self:RegisterEvent("GUILDBANKFRAME_OPENED")
+end
 
-	-- C_Timer.After(5, function()
-	-- 	ACD:SelectGroup(addonName, "analyze")
-	-- 	ACD:Open(addonName)
-	-- end)
+function addon:PLAYER_ENTERING_WORLD()
+	if self.db.global.debug then
+		C_Timer.After(1, function()
+			ACD:SelectGroup(addonName, "export")
+			ACD:Open(addonName)
+		end)
+	end
 end
 
 function addon:OnDisable()
@@ -47,6 +52,9 @@ function addon:SlashCommandFunc(input)
 	if input == "SCAN" then
 		self:ScanGuildBank()
 	else
+		if _G["GuildBankSnapshotsExportFrame"] then
+			_G["GuildBankSnapshotsExportFrame"]:Hide()
+		end
 		ACD:SelectGroup(addonName, "review")
 		ACD:Open(addonName)
 	end
