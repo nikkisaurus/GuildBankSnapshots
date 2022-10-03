@@ -1,4 +1,6 @@
 ## Interface: 90207
+## Interface-Wrath: 30400
+
 ## Title: Guild Bank Snapshots
 ## Notes: Creates snapshots of guild bank logs.
 ## Author: Nikketa-Hyjal-US
