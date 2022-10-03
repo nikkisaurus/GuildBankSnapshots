@@ -3,7 +3,9 @@ name: Package and release development builds
 on:
     push:
         tags:
-            - "*.*.*-*"
+            - "v*.*.*-*"
+            - "v*.*-*"
+    workflow_dispatch:
 
 jobs:
     release:
@@ -26,4 +28,4 @@ jobs:
             - name: Package and release for Retail
               uses: BigWigsMods/packager@master
               with:
-                  args: -w 0
+                  args: -g retail -w 0
