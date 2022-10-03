@@ -15,12 +15,7 @@ function addon:OnInitialize()
     private:InitializeDatabase()
     private:CleanupDatabase()
     private:InitializeOptions()
-
-    for command, commandInfo in pairs(private.db.global.commands) do
-        if commandInfo.enabled then
-            addon:RegisterChatCommand(command, commandInfo.func)
-        end
-    end
+    private:InitializeSlashCommands()
 end
 
 function addon:OnEnable()
@@ -50,7 +45,7 @@ end
 function addon:SlashCommandFunc(input)
     local cmd, arg = strsplit(" ", strlower(input))
     if cmd == "scan" then
-        private:ScanGuildBank(nil, arg == "o")
+        addon:ScanGuildBank(nil, arg == "o")
     else
         if _G["GuildBankSnapshotsExportFrame"] then
             _G["GuildBankSnapshotsExportFrame"]:Hide()
@@ -78,4 +73,14 @@ function private:GetGuildID()
     local guildID = format("%s - %s (%s)", guildName, realm, faction)
 
     return guildID, guildName, faction, realm
+end
+
+function private:InitializeSlashCommands()
+    for command, commandInfo in pairs(private.db.global.commands) do
+        if commandInfo.enabled then
+            addon:RegisterChatCommand(command, commandInfo.func)
+        else
+            addon:UnregisterChatCommand(command)
+        end
+    end
 end

@@ -343,9 +343,32 @@ function private:GetSettingsOptions()
                     name = L["Confirm Deletions"],
                     desc = L.ConfirmDeletionsDescription,
                 },
+                commands = {
+                    order = 7,
+                    type = "group",
+                    inline = true,
+                    name = L["Scan Shortcuts"],
+                    args = {},
+                },
             },
         },
     }
+
+    for cmd, info in pairs(private.db.global.commands) do
+        if cmd ~= "gbs" then
+            options.preferences.args.commands.args[cmd] = {
+                type = "toggle",
+                name = "/" .. cmd,
+                get = function()
+                    return info.enabled
+                end,
+                set = function(_, value)
+                    private.db.global.commands[cmd].enabled = value and true or false
+                    private:InitializeSlashCommands()
+                end,
+            }
+        end
+    end
 
     return options
 end

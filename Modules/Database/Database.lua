@@ -123,7 +123,7 @@ function private:InitializeDatabase()
                 },
 
                 snapshot = {
-                    enabled = true,
+                    enabled = false,
                     func = "ScanGuildBank",
                 },
             },

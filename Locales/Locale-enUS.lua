@@ -76,6 +76,7 @@ L["Review Path"] = true
 L["Scan"] = true
 L["Scan failed."] = true
 L["Scan finished."] = true
+L["Scan Shortcuts"] = true
 L["Scanning"] = true
 L["Scans"] = true
 L["Select All"] = true

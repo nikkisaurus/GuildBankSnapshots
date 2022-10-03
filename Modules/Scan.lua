@@ -123,11 +123,11 @@ function addon:GUILDBANKFRAME_OPENED()
 
     local autoScanSettings = private.db.global.settings.scans.autoScan
     if autoScanSettings.enabled and ValidateScanFrequency(autoScanSettings) then
-        private:ScanGuildBank(true) -- AutoScan
+        addon:ScanGuildBank(true) -- AutoScan
     end
 end
 
-function private:ScanGuildBank(isAutoScan, override)
+function addon:ScanGuildBank(isAutoScan, override)
     -- Alert user of progress
     if not private.bankIsOpen then
         addon:Print(L.BankClosedError)
