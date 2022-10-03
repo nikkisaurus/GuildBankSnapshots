@@ -48,9 +48,9 @@ function addon:OnDisable()
 end
 
 function addon:SlashCommandFunc(input)
-    input = strupper(input)
-    if input == "SCAN" then
-        private:ScanGuildBank()
+    local cmd, arg = strsplit(" ", strlower(input))
+    if cmd == "scan" then
+        private:ScanGuildBank(nil, arg == "o")
     else
         if _G["GuildBankSnapshotsExportFrame"] then
             _G["GuildBankSnapshotsExportFrame"]:Hide()

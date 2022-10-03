@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local ACD = LibStub("AceConfigDialog-3.0")
 local AceSerializer = LibStub("AceSerializer-3.0")
 
-local function ValidateScan(db)
+local function ValidateScan(db, override)
     if not private.bankIsOpen then
         addon:Print(L.BankClosedError)
         return
@@ -15,7 +15,7 @@ local function ValidateScan(db)
 
     local scans = private.db.global.guilds[private:GetGuildID()].scans
 
-    local isValid
+    local isValid = override
     for scanTime, scan in
         addon.pairs(scans, function(a, b)
             return b < a
@@ -127,7 +127,7 @@ function addon:GUILDBANKFRAME_OPENED()
     end
 end
 
-function private:ScanGuildBank(isAutoScan)
+function private:ScanGuildBank(isAutoScan, override)
     -- Alert user of progress
     if not private.bankIsOpen then
         addon:Print(L.BankClosedError)
@@ -177,6 +177,6 @@ function private:ScanGuildBank(isAutoScan)
         end
 
         -- Validation
-        ValidateScan(db)
+        ValidateScan(db, override)
     end)
 end
