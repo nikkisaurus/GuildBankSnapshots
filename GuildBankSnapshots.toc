@@ -25,7 +25,8 @@ Libs\AceConfig-3.0\AceConfig-3.0.xml
 Locales\Locale-enUS.lua
 
 # Core
-Database.lua
+Modules\Database\Database.lua
+Modules\Database\DB4-5.lua
 Core.lua
 
 # Modules
