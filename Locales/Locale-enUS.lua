@@ -19,6 +19,7 @@ L["Cleanup finished."] = true
 L["Clear Filter"] = true
 L["Comma"] = true
 L["Confirm Deletions"] = true
+L["Copy Text"] = true
 L["Current Total"] = true
 L["Date Format"] = true
 L["Date Type"] = true

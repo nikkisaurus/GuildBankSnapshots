@@ -203,11 +203,25 @@ function addon:GetReviewOptions()
 				addon:RefreshOptions()
 			end,
 		},
+		copyText = {
+			order = 6,
+			type = "toggle",
+			name = L["Copy Text"],
+			disabled = function()
+				return not addon.review.scan
+			end,
+			get = function()
+				return addon.review.copyText
+			end,
+			set = function(_, value)
+				addon.review.copyText = value
+			end,
+		},
 	}
 
 	for tab = 1, moneyTab do
 		options["tab" .. tab] = {
-			order = tab + 5,
+			order = tab + 6,
 			type = "group",
 			name = function()
 				local tabName
@@ -405,6 +419,65 @@ function addon:GetReviewOptions()
 						addon.review[info[#info]] = value
 					end,
 				},
+				copyText = {
+					order = 5,
+					type = "input",
+					multiline = 10,
+					width = "full",
+					name = "",
+					hidden = function()
+						return not addon.review.copyText
+					end,
+					get = function()
+						local text = ""
+						local scan = addon.review.guildID
+							and addon.db.global.guilds[addon.review.guildID].scans[addon.review.scan]
+						local transactions = addon.review.scan
+							and (tab < moneyTab and scan.tabs[tab].transactions or scan.moneyTransactions)
+
+						for transactionID, transaction in
+							addon.pairs(transactions, function(a, b)
+								if addon.db.global.settings.preferences.sorting == "des" then
+									return a > b
+								else
+									return a < b
+								end
+							end)
+						do
+							local info = tab == moneyTab and addon:GetMoneyTransactionInfo(transactions[transactionID])
+								or addon:GetTransactionInfo(transactions[transactionID])
+							local line = (
+								tab < moneyTab and addon:GetTransactionLabel(transactions[transactionID])
+								or addon:GetMoneyTransactionLabel(transactions[transactionID])
+							) or ""
+
+							local filterType, isFiltered = addon.review.filterType
+							if filterType then
+								if filterType == "name" and addon.review.filter then
+									isFiltered = info.name ~= addon.review.filter
+								elseif filterType == "type" and addon.review.filter then
+									isFiltered = info.transactionType ~= addon.review.filter
+								elseif filterType == "item" and addon.review.filter then
+									isFiltered = info.itemLink ~= addon.review.filter
+								elseif filterType == "ilvl" then
+									local _, _, _, _, _, itemType = GetItemInfo(info.itemLink)
+									if itemType ~= "Weapon" and itemType ~= "Armor" then
+										isFiltered = true
+									else
+										local ilvl = GetDetailedItemLevelInfo(info.itemLink)
+										isFiltered = ilvl < (addon.review.minIlvl or 1)
+											or ilvl > (addon.review.maxIlvl or 304)
+									end
+								end
+							end
+
+							if not isFiltered then
+								text = text == "" and line or (text .. "|r\n" .. line)
+							end
+						end
+						return text
+					end,
+				},
 			},
 		}
 
@@ -415,6 +488,11 @@ function addon:GetReviewOptions()
 				type = "description",
 				dialogControl = "GuildBankSnapshotsTransaction",
 				hidden = function()
+					-- Check if should be hidden to copy text
+					if addon.review.copyText then
+						return true
+					end
+
 					if tab == moneyTab and (addon.review.filterType == "item" or addon.review.filterType == "ilvl") then
 						addon.review.filterType = nil
 					end
