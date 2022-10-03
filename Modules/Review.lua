@@ -39,7 +39,7 @@ local lists = {
 }
 
 local function GetInfo(tab, moneyTab, transaction)
-    return tab == moneyTab and private:GetMoneyTransactionInfo(transaction) or private:GetTransactionInfo(transaction)
+    return tab == moneyTab and private:GetMoneyTransactionInfo(transaction) or private:GetTransactionInfo(transaction) or {}
 end
 
 local function GetTransactions(tab, moneyTab)
@@ -254,7 +254,7 @@ function private:GetReviewOptions()
                 if tab == moneyTab then
                     tabName = L["Money Tab"]
                 elseif private.review.scan then
-                    tabName = private.db.global.guilds[private.review.guildID].tabs[tab].name
+                    tabName = private.db.global.guilds[private.review.guildID].tabs[tab] and private.db.global.guilds[private.review.guildID].tabs[tab].name
                 end
                 tabName = tabName ~= "" and tabName or format("%s %d", L["Tab"], tab)
                 return tabName
