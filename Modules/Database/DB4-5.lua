@@ -43,6 +43,7 @@ function addon:ConvertDB4_5(backup)
 								db.tabs[tab].name = transaction
 							end
 						elseif type(transaction) == "table" then
+							local t = date("*t", time())
 							if (transaction.tabName and transaction.tabName == "Money") or tab == 9 then
 								local transactionTime, name, transactionType, count = unpack(transaction)
 								transactionTime = date("*t", transactionTime)
@@ -53,10 +54,10 @@ function addon:ConvertDB4_5(backup)
 										transactionType,
 										name,
 										count,
-										transactionTime.year,
-										transactionTime.month,
-										transactionTime.day,
-										transactionTime.hour
+										t.year - transactionTime.year,
+										t.month - transactionTime.month,
+										t.day - transactionTime.day,
+										t.hour - transactionTime.hour
 									)
 								)
 							else
@@ -73,10 +74,10 @@ function addon:ConvertDB4_5(backup)
 										count,
 										moveOrigin or 0,
 										moveDestination or 0,
-										transactionTime.year,
-										transactionTime.month,
-										transactionTime.day,
-										transactionTime.hour
+										t.year - transactionTime.year,
+										t.month - transactionTime.month,
+										t.day - transactionTime.day,
+										t.hour - transactionTime.hour
 									)
 								)
 							end
