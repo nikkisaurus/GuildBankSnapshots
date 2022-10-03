@@ -18,6 +18,10 @@ jobs:
         steps:
             - name: Clone project
               uses: actions/checkout@v1
+            - name: Package and release for Wrath
+              uses: BigWigsMods/packager@master
+              with:
+                  args: -g wrath
 
             - name: Package and release for Retail
               uses: BigWigsMods/packager@master
