@@ -28,4 +28,5 @@ ignore:
     - Libs/*.toc
     - Libs/*.txt
     - Libs/*.textile
+    - .stylua.toml
     - install-deps.sh
