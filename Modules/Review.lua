@@ -111,42 +111,7 @@ function private:GetReviewOptions()
         options[guildKey] = {
             type = "group",
             name = private:GetGuildDisplayName(guildKey),
-            args = {
-                sorting = {
-                    order = 1,
-                    type = "select",
-                    style = "dropdown",
-                    name = L["Sorting"],
-                    values = {
-                        asc = L["Ascending"],
-                        des = L["Descending"],
-                    },
-                    disabled = function()
-                        return addon.tcount(guild.scans) == 0
-                    end,
-                    get = function()
-                        return private.db.global.settings.preferences.sorting
-                    end,
-                    set = function(_, value)
-                        private.db.global.settings.preferences.sorting = value
-                        private:RefreshOptions()
-                    end,
-                },
-                copyText = {
-                    order = 2,
-                    type = "toggle",
-                    name = L["Copy Text"],
-                    disabled = function()
-                        return addon.tcount(guild.scans) == 0
-                    end,
-                    get = function()
-                        return private.review.copyText
-                    end,
-                    set = function(_, value)
-                        private.review.copyText = value
-                    end,
-                },
-            },
+            args = {},
         }
 
         local i = 0
@@ -162,16 +127,8 @@ function private:GetReviewOptions()
                 name = date(private.db.global.settings.preferences.dateFormat, scanID),
                 childGroups = "tab",
                 args = {
-                    analyzeScan = {
-                        order = 1,
-                        type = "execute",
-                        name = L["Analyze Scan"],
-                        func = function(info)
-                            ACD:SelectGroup(addonName, "analyze", guildKey, tostring(scanID))
-                        end,
-                    },
                     deleteScan = {
-                        order = 2,
+                        order = 1,
                         type = "execute",
                         name = L["Delete Scan"],
                         confirm = function()
@@ -182,12 +139,61 @@ function private:GetReviewOptions()
                             private:RefreshOptions()
                         end,
                     },
+                    review = {
+                        order = 2,
+                        type = "group",
+                        name = L["Review"],
+                        childGroups = "tab",
+                        args = {
+                            sorting = {
+                                order = 1,
+                                type = "select",
+                                style = "dropdown",
+                                name = L["Sorting"],
+                                values = {
+                                    asc = L["Ascending"],
+                                    des = L["Descending"],
+                                },
+                                disabled = function()
+                                    return addon.tcount(guild.scans) == 0
+                                end,
+                                get = function()
+                                    return private.db.global.settings.preferences.sorting
+                                end,
+                                set = function(_, value)
+                                    private.db.global.settings.preferences.sorting = value
+                                    private:RefreshOptions()
+                                end,
+                            },
+                            copyText = {
+                                order = 2,
+                                type = "toggle",
+                                name = L["Copy Text"],
+                                disabled = function()
+                                    return addon.tcount(guild.scans) == 0
+                                end,
+                                get = function()
+                                    return private.review.copyText
+                                end,
+                                set = function(_, value)
+                                    private.review.copyText = value
+                                end,
+                            },
+                        },
+                    },
+                    analyze = {
+                        order = 3,
+                        type = "group",
+                        name = L["Analyze"],
+                        childGroups = "tab",
+                        args = private:GetAnalyzeOptions(guildKey, scanID),
+                    },
                 },
             }
 
             for tab = 1, moneyTab do
-                options[guildKey].args[tostring(scanID)].args[tostring(tab)] = {
-                    order = tab + 6,
+                options[guildKey].args[tostring(scanID)].args.review.args[tostring(tab)] = {
+                    order = tab + 2,
                     type = "group",
                     name = function()
                         local tabName
@@ -417,7 +423,7 @@ function private:GetReviewOptions()
 
                 local i = 101
                 for line = 25, 1, -1 do
-                    options[guildKey].args[tostring(scanID)].args[tostring(tab)].args["line" .. line] = {
+                    options[guildKey].args[tostring(scanID)].args.review.args[tostring(tab)].args["line" .. line] = {
                         order = i,
                         type = "description",
                         dialogControl = "GuildBankSnapshotsTransaction",

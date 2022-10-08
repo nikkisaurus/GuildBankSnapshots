@@ -1,6 +1,7 @@
 local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local ACD = LibStub("AceConfigDialog-3.0")
 
 function private:GetOptions()
     private.options = {
@@ -14,28 +15,21 @@ function private:GetOptions()
                 childGroups = "select",
                 args = private:GetReviewOptions(),
             },
-            analyze = {
-                order = 2,
-                type = "group",
-                name = L["Analyze"],
-                childGroups = "select",
-                args = private:GetAnalyzeOptions(),
-            },
             export = {
-                order = 3,
+                order = 2,
                 type = "group",
                 name = L["Export"],
                 args = private:GetExportOptions(),
             },
             settings = {
-                order = 4,
+                order = 3,
                 type = "group",
                 name = L["Settings"],
                 childGroups = "tab",
                 args = private:GetSettingsOptions(),
             },
             help = {
-                order = 6,
+                order = 4,
                 type = "group",
                 name = L["Help"],
                 args = private:GetHelpOptions(),
@@ -48,7 +42,7 @@ end
 
 function private:InitializeOptions()
     LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, private:GetOptions())
-    LibStub("AceConfigDialog-3.0"):SetDefaultSize(addonName, 850, 600)
+    ACD:SetDefaultSize(addonName, 850, 600)
 end
 
 function private:RefreshOptions()
@@ -65,7 +59,7 @@ function private:RefreshOptions()
     end
 
     LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-    LibStub("AceConfigDialog-3.0"):Open(addonName)
+    ACD:Open(addonName)
 end
 
 function private:RefreshReviewOptions()
@@ -78,18 +72,17 @@ function private:RefreshReviewOptions()
     end
 
     LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-    LibStub("AceConfigDialog-3.0"):Open(addonName)
+    ACD:Open(addonName)
 end
 
-function private:RefreshAnalyzeOptions()
+function private:RefreshAnalyzeOptions(guildKey, scanID)
     if not private.options then
         return
     end
 
     if private.options.args.analyze then
-        private.options.args.analyze.args = private:GetAnalyzeOptions()
+        private.options.args.analyze.args = private:GetAnalyzeOptions(guildKey, scanID)
     end
 
     LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-    LibStub("AceConfigDialog-3.0"):Open(addonName)
 end
