@@ -63,12 +63,26 @@ function private:DeleteCorruptedScans(lastScan)
             for _, tabInfo in pairs(scan.tabs) do
                 if addon.tcount(tabInfo.transactions) == 0 then
                     empty = empty + 1
+                else
+                    for _, transaction in pairs(tabInfo.transactions) do
+                        local info = private:GetTransactionInfo(transaction)
+                        if not info.name then
+                            info.name = UNKNOWN
+                        end
+                    end
                 end
             end
 
             -- Count empty money transactions
             if addon.tcount(scan.moneyTransactions) == 0 then
                 empty = empty + 1
+            else
+                for _, transaction in pairs(scan.moneyTransactions) do
+                    local info = private:GetMoneyTransactionInfo(transaction)
+                    if not info.name then
+                        info.name = UNKNOWN
+                    end
+                end
             end
 
             -- Delete corrupt scan
@@ -94,7 +108,7 @@ function private:InitializeDatabase()
 
     local defaults = {
         global = {
-            -- debug = true,
+            debug = true,
             guilds = {
                 ["**"] = { -- guildID: "Guild Name (F) - Realm Name"
                     guildName = "",

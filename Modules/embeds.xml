@@ -9,4 +9,8 @@
     <Include file="Review.lua"/>
     <Include file="Scan.lua"/>
     <Include file="Settings.lua"/>
+    
+    <Include file="Frame.lua"/>
+    <Include file="Filters.lua"/>
+    <Include file="Transactions.lua"/>
 </Ui>
