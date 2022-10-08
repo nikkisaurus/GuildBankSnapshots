@@ -63,14 +63,11 @@ local function ValidateScan(db, override)
         else
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                ACD:SelectGroup(addonName, scanSettings.reviewPath)
                 ACD:Open(addonName)
-
-                if scanSettings.reviewPath ~= "export" then
-                    -- Select guild and scan
-                    addon["Select" .. strupper(strsub(scanSettings.reviewPath, 1, 1)) .. strsub(scanSettings.reviewPath, 2) .. "Guild"](addon, private:GetGuildID())
-                    addon["Select" .. strupper(strsub(scanSettings.reviewPath, 1, 1)) .. strsub(scanSettings.reviewPath, 2) .. "Scan"](addon, scanTime)
-                end
+                ACD:SelectGroup(addonName, scanSettings.reviewPath, (private:GetGuildID()), tostring(scanTime))
+                private:RefreshOptions()
+            elseif ACD.OpenFrames[addonName] then
+                private:RefreshOptions()
             end
         end
     end
@@ -105,6 +102,10 @@ local function ValidateScanFrequency(autoScanSettings)
 end
 
 function addon:GUILDBANKFRAME_CLOSED()
+    if not addon:IsEnabled() then
+        return
+    end
+
     -- Warn user if scan is canceled before finishing
     if private.isScanning then
         if private.isScanning ~= "auto" or private.db.global.settings.scans.autoScan.alert then
@@ -118,6 +119,10 @@ function addon:GUILDBANKFRAME_CLOSED()
 end
 
 function addon:GUILDBANKFRAME_OPENED()
+    if not addon:IsEnabled() then
+        return
+    end
+
     private.bankIsOpen = true
     private:UpdateGuildDatabase() -- Ensure guild bank database is formatted
 

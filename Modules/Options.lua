@@ -11,7 +11,7 @@ function private:GetOptions()
                 order = 1,
                 type = "group",
                 name = L["Review"],
-                childGroups = "tab",
+                childGroups = "select",
                 args = private:GetReviewOptions(),
             },
             analyze = {

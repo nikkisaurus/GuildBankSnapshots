@@ -9,7 +9,7 @@ svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceDB-3.0 ./Lib
 svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceDBOptions-3.0 ./Libs/AceDBOptions-3.0
 svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceEvent-3.0 ./Libs/AceEvent-3.0
 svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0 ./Libs/AceGUI-3.0
-# svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceHook-3.0 ./Libs/AceHook-3.0
+svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceHook-3.0 ./Libs/AceHook-3.0
 svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0 ./Libs/AceLocale-3.0
 svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceSerializer-3.0 ./Libs/AceSerializer-3.0
 # svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceTimer-3.0 ./Libs/AceTimer-3.0

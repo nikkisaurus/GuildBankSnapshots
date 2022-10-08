@@ -1,9 +1,11 @@
 local addonName, private = ...
-local addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
+local addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 LibStub("LibAddonUtils-1.0"):Embed(addon)
 
 -- TODO: sort
+L["Buy Tab"] = true
+L["Withdraw For Tab"] = true
 L["Age Measure"] = true
 L["Age Unit"] = true
 L["Alert scan progress"] = true
