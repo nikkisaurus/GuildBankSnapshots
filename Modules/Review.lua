@@ -245,7 +245,7 @@ function private:GetReviewOptions()
 
                                 if filterType == "name" then
                                     for _, transaction in pairs(transactions) do
-                                        local info = private:GetTransactionInfo(transaction)
+                                        local info = tab < moneyTab and private:GetTransactionInfo(transaction) or private:GetMoneyTransactionInfo(transaction)
                                         values[info.name] = info.name
                                     end
                                 elseif filterType == "type" then
@@ -256,7 +256,7 @@ function private:GetReviewOptions()
                                     end
                                 elseif filterType == "item" then
                                     for _, transaction in pairs(transactions) do
-                                        local info = private:GetTransactionInfo(transaction)
+                                        local info = tab < moneyTab and private:GetTransactionInfo(transaction) or private:GetMoneyTransactionInfo(transaction)
                                         values[info.itemLink] = info.itemLink
                                     end
                                 end
@@ -280,7 +280,7 @@ function private:GetReviewOptions()
                                             return private:GetTransactionInfo(transactions[a]).name < private:GetTransactionInfo(transactions[b]).name
                                         end)
                                     do
-                                        local info = private:GetTransactionInfo(transaction)
+                                        local info = tab < moneyTab and private:GetTransactionInfo(transaction) or private:GetMoneyTransactionInfo(transaction)
                                         if not addon.GetTableKey(values, info.name) then
                                             tinsert(values, info.name)
                                         end
@@ -302,7 +302,7 @@ function private:GetReviewOptions()
                                             return itemA < itemB
                                         end)
                                     do
-                                        local info = private:GetTransactionInfo(transaction)
+                                        local info = tab < moneyTab and private:GetTransactionInfo(transaction) or private:GetMoneyTransactionInfo(transaction)
                                         if not addon.GetTableKey(values, info.itemLink) then
                                             tinsert(values, info.itemLink)
                                         end

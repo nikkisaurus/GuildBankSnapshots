@@ -60,6 +60,36 @@ function private:RefreshOptions()
         private.options.args.review.args = private:GetReviewOptions()
     end
 
+    if private.options.args.analyze then
+        private.options.args.analyze.args = private:GetAnalyzeOptions()
+    end
+
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+    LibStub("AceConfigDialog-3.0"):Open(addonName)
+end
+
+function private:RefreshReviewOptions()
+    if not private.options then
+        return
+    end
+
+    if private.options.args.review then
+        private.options.args.review.args = private:GetReviewOptions()
+    end
+
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+    LibStub("AceConfigDialog-3.0"):Open(addonName)
+end
+
+function private:RefreshAnalyzeOptions()
+    if not private.options then
+        return
+    end
+
+    if private.options.args.analyze then
+        private.options.args.analyze.args = private:GetAnalyzeOptions()
+    end
+
     LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
     LibStub("AceConfigDialog-3.0"):Open(addonName)
 end

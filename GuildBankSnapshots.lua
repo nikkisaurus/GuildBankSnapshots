@@ -17,9 +17,9 @@ function addon:OnInitialize()
     private:InitializeOptions()
     private:InitializeSlashCommands()
 
-    EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
-        local version = select(4, GetBuildInfo())
-        if version >= 100002 then
+    local version = select(4, GetBuildInfo())
+    if version >= 100002 then
+        EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
             if IsAddOnLoaded("ElvUI") then
                 -- get bank frame
             elseif IsAddOnLoaded("ArkInventory") then
@@ -32,23 +32,26 @@ function addon:OnInitialize()
 
             addon:HookScript(private.bankFrame, "OnShow", addon.GUILDBANKFRAME_OPENED)
             addon:HookScript(private.bankFrame, "OnHide", addon.GUILDBANKFRAME_CLOSED)
-        else
-            addon:RegisterEvent("GUILDBANKFRAME_CLOSED")
-            addon:RegisterEvent("GUILDBANKFRAME_OPENED")
-        end
 
-        private:UpdateGuildDatabase()
-    end)
+            private:UpdateGuildDatabase()
+        end)
+    else
+        addon:RegisterEvent("GUILDBANKFRAME_CLOSED")
+        addon:RegisterEvent("GUILDBANKFRAME_OPENED")
+    end
 end
 
 function addon:OnEnable()
     addon:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+    ACD:SelectGroup(addonName, "analyze", private.db.global.settings.preferences.defaultGuild)
+    ACD:SelectGroup(addonName, "review", private.db.global.settings.preferences.defaultGuild)
 end
 
 function addon:PLAYER_ENTERING_WORLD()
     if private.db.global.debug then
         C_Timer.After(1, function()
-            ACD:SelectGroup(addonName)
+            ACD:SelectGroup(addonName, "analyze")
             ACD:Open(addonName)
         end)
     end
@@ -66,7 +69,6 @@ function addon:SlashCommandFunc(input)
         if _G["GuildBankSnapshotsExportFrame"] then
             _G["GuildBankSnapshotsExportFrame"]:Hide()
         end
-        ACD:SelectGroup(addonName, "analyze")
         ACD:Open(addonName)
     end
 end
