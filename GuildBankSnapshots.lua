@@ -66,7 +66,7 @@ function addon:SlashCommandFunc(input)
         if _G["GuildBankSnapshotsExportFrame"] then
             _G["GuildBankSnapshotsExportFrame"]:Hide()
         end
-        ACD:SelectGroup(addonName, "review")
+        ACD:SelectGroup(addonName, "analyze")
         ACD:Open(addonName)
     end
 end

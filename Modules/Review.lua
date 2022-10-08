@@ -550,16 +550,3 @@ function private:GetTransactionLabel(scanID, transaction)
 
     return msg
 end
-
-function private:SelectReviewGuild(guildID)
-    private.review.guildID = guildID
-    private.review.scan = nil
-    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-    return guildID
-end
-
-function private:SelectReviewScan(scanID)
-    private.review.scan = scanID
-    ACD:SelectGroup(addonName, "review", "tab1")
-    return scanID
-end

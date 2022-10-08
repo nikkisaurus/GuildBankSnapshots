@@ -18,7 +18,7 @@ function private:GetOptions()
                 order = 2,
                 type = "group",
                 name = L["Analyze"],
-                childGroups = "tab",
+                childGroups = "select",
                 args = private:GetAnalyzeOptions(),
             },
             export = {

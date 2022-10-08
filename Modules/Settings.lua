@@ -230,7 +230,6 @@ function private:GetSettingsOptions()
                             end,
                             func = function()
                                 private:CleanupDatabase()
-                                private:SelectReviewGuild(private.review.guildID)
                                 private:SelectAnalyzeGuild(private.analyze.guildID)
                                 LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
                                 addon:Print(L["Cleanup finished."])
