@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function private:GetFilterNames(guildKey, scanID)
+function private:GetFilterNames(guildKey, scanID, none)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local names, sorting = {}, {}
 
@@ -22,13 +22,15 @@ function private:GetFilterNames(guildKey, scanID)
         tinsert(sorting, name)
     end
 
-    names.clear = L["None"]
-    tinsert(sorting, "clear")
+    if none then
+        names.clear = L["None"]
+        tinsert(sorting, "clear")
+    end
 
     return names, sorting
 end
 
-function private:GetFilterItems(guildKey, scanID)
+function private:GetFilterItems(guildKey, scanID, none)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local items, sorting = {}, {}
 
@@ -50,8 +52,10 @@ function private:GetFilterItems(guildKey, scanID)
         tinsert(sorting, itemLink)
     end
 
-    items.clear = L["None"]
-    tinsert(sorting, "clear")
+    if none then
+        items.clear = L["None"]
+        tinsert(sorting, "clear")
+    end
 
     return items, sorting
 end

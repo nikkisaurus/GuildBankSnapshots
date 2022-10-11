@@ -3,8 +3,6 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
-local selectedGuild, selectedScan, selectedTab, selectedReviewTab, selectedFilterNames, selectedFilterItems, selectedFilterTypes, selectedCopyText
-
 local tabGroupList = {
     {
         value = "Review",
@@ -31,11 +29,11 @@ end
 
 local function GetTab(reviewTabGroup, _, tab)
     local moneyTab = MAX_GUILDBANK_TABS + 1
-    selectedReviewTab = tab
+    private.selectedBankTab = tab
     reviewTabGroup:ReleaseChildren()
 
     local editbox, scrollFrame
-    if selectedCopyText then
+    if private.selectedCopyText then
         editbox = AceGUI:Create("MultiLineEditBox")
         editbox:SetLabel("")
         reviewTabGroup:AddChild(editbox)
@@ -45,8 +43,8 @@ local function GetTab(reviewTabGroup, _, tab)
         reviewTabGroup:AddChild(scrollFrame)
     end
 
-    local scan = private.db.global.guilds[selectedGuild].scans[selectedScan]
-    local transactions = tab < moneyTab and scan.tabs[selectedReviewTab].transactions or scan.moneyTransactions
+    local scan = private.db.global.guilds[private.selectedGuild].scans[private.selectedScan]
+    local transactions = tab < moneyTab and scan.tabs[private.selectedBankTab].transactions or scan.moneyTransactions
     local text = ""
     for _, transaction in
         addon.pairs(transactions, function(a, b)
@@ -60,19 +58,19 @@ local function GetTab(reviewTabGroup, _, tab)
         local info = tab < moneyTab and private:GetTransactionInfo(transaction) or private:GetMoneyTransactionInfo(transaction)
 
         local filtered
-        if selectedFilterNames and selectedFilterNames ~= info.name then
+        if private.selectedFilterName and private.selectedFilterName ~= info.name then
             filtered = true
         end
-        if selectedFilterItems and selectedFilterItems ~= info.itemLink then
+        if private.selectedFilterItem and private.selectedFilterItem ~= info.itemLink then
             filtered = true
         end
-        if selectedFilterTypes and selectedFilterTypes ~= info.transactionType then
+        if private.selectedFilterType and private.selectedFilterType ~= info.transactionType then
             filtered = true
         end
 
         if not filtered then
-            local label = tab < moneyTab and private:GetTransactionLabel(selectedScan, transaction) or private:GetMoneyTransactionLabel(selectedScan, transaction)
-            if selectedCopyText then
+            local label = tab < moneyTab and private:GetTransactionLabel(private.selectedScan, transaction) or private:GetMoneyTransactionLabel(private.selectedScan, transaction)
+            if private.selectedCopyText then
                 text = text == "" and label or (text .. "\n" .. label)
                 editbox:SetText(text)
             else
@@ -86,20 +84,25 @@ local function GetTab(reviewTabGroup, _, tab)
 end
 
 local function SelectReviewTab(tabGroup)
+    tabGroup:SetLayout("Flow")
+
     local filterNames = AceGUI:Create("Dropdown")
     filterNames:SetLabel(L["Filter by Name"])
-    filterNames:SetList(private:GetFilterNames(selectedGuild, selectedScan))
+    filterNames:SetList(private:GetFilterNames(private.selectedGuild, private.selectedScan, true))
     tabGroup:AddChild(filterNames)
+    filterNames:SetValue(private.selectedFilterName)
 
     local filterItems = AceGUI:Create("Dropdown")
     filterItems:SetLabel(L["Filter by Item"])
-    filterItems:SetList(private:GetFilterItems(selectedGuild, selectedScan))
+    filterItems:SetList(private:GetFilterItems(private.selectedGuild, private.selectedScan))
     tabGroup:AddChild(filterItems)
+    filterItems:SetValue(private.selectedFilterItem)
 
     local filterTypes = AceGUI:Create("Dropdown")
     filterTypes:SetLabel(L["Filter by Type"])
-    filterTypes:SetList(private:GetFilterTypes(selectedGuild, selectedScan))
+    filterTypes:SetList(private:GetFilterTypes(private.selectedGuild, private.selectedScan))
     tabGroup:AddChild(filterTypes)
+    filterTypes:SetValue(private.selectedFilterType)
 
     local clearFilters = AceGUI:Create("Button")
     clearFilters:SetText(L["Clear Filters"])
@@ -117,8 +120,9 @@ local function SelectReviewTab(tabGroup)
     local copyText = AceGUI:Create("CheckBox")
     copyText:SetLabel(L["Copy Text"])
     tabGroup:AddChild(copyText)
+    copyText:SetValue(private.selectedCopyText)
 
-    local tabs, sel = private:GetGuildTabs(selectedGuild)
+    local tabs, sel = private:GetGuildTabs(private.selectedGuild)
     local reviewTabGroup = AceGUI:Create("TabGroup")
     reviewTabGroup:SetLayout("Fill")
     reviewTabGroup:SetFullWidth(true)
@@ -126,69 +130,70 @@ local function SelectReviewTab(tabGroup)
     reviewTabGroup:SetTabs(tabs)
     reviewTabGroup:SetCallback("OnGroupSelected", GetTab)
     tabGroup:AddChild(reviewTabGroup)
-    reviewTabGroup:SelectTab(sel)
+    reviewTabGroup:SelectTab(private.selectedBankTab or sel)
 
     filterNames:SetCallback("OnValueChanged", function(self, _, filter)
-        selectedFilterNames = filter ~= "clear" and filter or nil
+        private.selectedFilterName = filter ~= "clear" and filter or nil
         if filter == "clear" then
             self:SetText(false)
         end
-        GetTab(reviewTabGroup, _, selectedReviewTab)
+        GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
 
     filterItems:SetCallback("OnValueChanged", function(self, _, filter)
-        selectedFilterItems = filter ~= "clear" and filter or nil
+        private.selectedFilterItem = filter ~= "clear" and filter or nil
         if filter == "clear" then
             self:SetText(false)
         end
-        GetTab(reviewTabGroup, _, selectedReviewTab)
+        GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
 
     filterTypes:SetCallback("OnValueChanged", function(self, _, filter)
-        selectedFilterTypes = filter ~= "clear" and filter or nil
+        private.selectedFilterType = filter ~= "clear" and filter or nil
         if filter == "clear" then
             self:SetText(false)
         end
-        GetTab(reviewTabGroup, _, selectedReviewTab)
+        GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
 
     clearFilters:SetCallback("OnClick", function()
-        selectedFilterNames = nil
-        selectedFilterItems = nil
-        selectedFilterTypes = nil
+        private.selectedFilterName = nil
+        private.selectedFilterItem = nil
+        private.selectedFilterType = nil
         filterNames:SetValue(nil)
         filterItems:SetValue(nil)
         filterTypes:SetValue(nil)
-        GetTab(reviewTabGroup, _, selectedReviewTab)
+        GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
 
     sortLines:SetCallback("OnValueChanged", function(_, _, sorting)
         private.db.global.settings.preferences.sorting = sorting
 
-        GetTab(reviewTabGroup, _, selectedReviewTab)
+        GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
 
     copyText:SetCallback("OnValueChanged", function(_, _, enabled)
-        selectedCopyText = enabled
+        private.selectedCopyText = enabled
 
-        GetTab(reviewTabGroup, _, selectedReviewTab)
+        GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
 
     tabGroup:DoLayout()
 end
 
 local function SelectTab(tabGroup, _, tab)
-    selectedTab = tab
+    private.selectedReviewTab = tab
     tabGroup:ReleaseChildren()
 
     if tab == "Review" then
         SelectReviewTab(tabGroup)
     elseif tab == "Analyze" then
+        private:GetAnalyzeOptions(tabGroup)
     end
 end
 
 local function SelectScan(scanGroup, _, scanID)
-    selectedScan = scanID
+    private.selectedScan = scanID
     scanGroup:ReleaseChildren()
 
     local tabGroup = AceGUI:Create("TabGroup")
@@ -196,11 +201,16 @@ local function SelectScan(scanGroup, _, scanID)
     tabGroup:SetTabs(tabGroupList)
     tabGroup:SetCallback("OnGroupSelected", SelectTab)
     scanGroup:AddChild(tabGroup)
-    tabGroup:SelectTab("Review")
+    tabGroup:SelectTab(private.selectedReviewTab or "Review")
 end
 
 local function SelectGuild(guildGroup, _, guildKey)
-    selectedGuild = guildKey
+    private.selectedGuild = guildKey
+    private.selectedScan = nil
+    private.selectedCharacter = nil
+    private.selectedCharTab = nil
+    private.selectedItem = nil
+    private.selectedItemTab = nil
     guildGroup:ReleaseChildren()
 
     local scans, sel = private:GetScansTree(guildKey)
@@ -209,18 +219,16 @@ local function SelectGuild(guildGroup, _, guildKey)
     scanGroup:SetTree(scans)
     scanGroup:SetCallback("OnGroupSelected", SelectScan)
     guildGroup:AddChild(scanGroup)
-    scanGroup:SelectByPath(sel)
+    scanGroup:SelectByPath(private.selectedScan or sel)
 end
 
 function private:GetReviewOptions(content)
     content:SetLayout("Fill")
-
-    local guildKey = selectedGuild or private.db.global.settings.preferences.defaultGuild
 
     local guildGroup = AceGUI:Create("DropdownGroup")
     guildGroup:SetLayout("Fill")
     guildGroup:SetGroupList(private:GetGuildList())
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
-    guildGroup:SetGroup(guildKey)
+    guildGroup:SetGroup(private.selectedGuild or private.db.global.settings.preferences.defaultGuild)
 end
