@@ -3,20 +3,29 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
-local tabGroupList = {
-    {
-        value = "Character",
-        text = L["Character"],
-    },
-    {
-        value = "Item",
-        text = L["Item"],
-    },
-    {
-        value = "Money",
-        text = L["Money"],
-    },
-}
+local function moneyTabGroupList(moneyInfo)
+    return {
+        {
+            value = "summary",
+            text = L["Summary"],
+        },
+        {
+            value = "deposit",
+            text = L["Deposits"],
+            disabled = addon.tcount(moneyInfo.deposit) == 0,
+        },
+        {
+            value = "withdraw",
+            text = L["Withdrawals"],
+            disabled = addon.tcount(moneyInfo.withdraw) == 0,
+        },
+        {
+            value = "repair",
+            text = L["Repairs"],
+            disabled = addon.tcount(moneyInfo.repair) == 0,
+        },
+    }
+end
 
 local function itemTabGroupList(itemInfo)
     return {
@@ -50,6 +59,132 @@ local function charTabGroupList(charInfo)
             disabled = addon.tcount(charInfo.withdraw) == 0,
         },
     }
+end
+
+local tabGroupList = {
+    {
+        value = "Character",
+        text = L["Character"],
+    },
+    {
+        value = "Item",
+        text = L["Item"],
+    },
+    {
+        value = "Money",
+        text = L["Money"],
+    },
+}
+
+local function SelectMoneyGroupTab(moneyTabGroup, tab, moneyInfo)
+    private.selectedMoneyTab = tab
+    moneyTabGroup:ReleaseChildren()
+
+    local scrollFrame = AceGUI:Create("ScrollFrame")
+    scrollFrame:SetLayout("List")
+    moneyTabGroup:AddChild(scrollFrame)
+
+    if tab == "summary" then
+        local money = AceGUI:Create("InlineGroup")
+        money:SetLayout("Flow")
+        money:SetFullWidth(true)
+        money:SetTitle(L["Money"])
+        scrollFrame:AddChild(money)
+
+        local totalMoney = AceGUI:Create("Label")
+        totalMoney:SetFullWidth(true)
+        totalMoney:SetText(format("%s: %s|r", L["Total Money"], GetCoinTextureString(math.abs(moneyInfo.totalMoney))))
+        money:AddChild(totalMoney)
+
+        local deposits = 0
+        for _, count in pairs(moneyInfo.deposit) do
+            deposits = deposits + count
+        end
+        for _, count in pairs(moneyInfo.buyTab) do
+            deposits = deposits + count
+        end
+        local moneyDeposits = AceGUI:Create("Label")
+        moneyDeposits:SetFullWidth(true)
+        moneyDeposits:SetText(format("%s: %s", L["Deposits"], GetCoinTextureString(deposits)))
+        money:AddChild(moneyDeposits)
+
+        local withdrawals = 0
+        for _, count in pairs(moneyInfo.withdraw) do
+            withdrawals = withdrawals + count
+        end
+        local moneyWithdrawals = AceGUI:Create("Label")
+        moneyWithdrawals:SetFullWidth(true)
+        moneyWithdrawals:SetText(format("%s: %s", L["Withdrawals"], GetCoinTextureString(withdrawals)))
+        money:AddChild(moneyWithdrawals)
+
+        local repairs = 0
+        for _, count in pairs(moneyInfo.repair) do
+            repairs = repairs + count
+        end
+        local moneyRepairs = AceGUI:Create("Label")
+        moneyRepairs:SetFullWidth(true)
+        moneyRepairs:SetText(format("%s: %s", L["Repairs"], GetCoinTextureString(repairs)))
+        money:AddChild(moneyRepairs)
+
+        local netCount = deposits - withdrawals - repairs
+        local red = LibStub("LibAddonUtils-1.0").ChatColors["RED"]
+        local white = LibStub("LibAddonUtils-1.0").ChatColors["WHITE"]
+
+        local netMoney = AceGUI:Create("Label")
+        netMoney:SetFullWidth(true)
+        netMoney:SetText(format("%s: %s%s|r", L["Net"], netCount < 0 and red or white, GetCoinTextureString(math.abs(netCount))))
+        money:AddChild(netMoney)
+    elseif tab == "deposit" then
+        for character, count in addon.pairs(moneyInfo.deposit) do
+            local line = AceGUI:Create("GuildBankSnapshotsTransaction")
+            line:SetFullWidth(true)
+            line:SetText(format("%s: %s", character, GetCoinTextureString(count)))
+            scrollFrame:AddChild(line)
+        end
+    elseif tab == "withdraw" then
+        for character, count in addon.pairs(moneyInfo.withdraw) do
+            local line = AceGUI:Create("GuildBankSnapshotsTransaction")
+            line:SetFullWidth(true)
+            line:SetText(format("%s: %s", character, GetCoinTextureString(count)))
+            scrollFrame:AddChild(line)
+        end
+    elseif tab == "repair" then
+        for character, count in addon.pairs(moneyInfo.repair) do
+            local line = AceGUI:Create("GuildBankSnapshotsTransaction")
+            line:SetFullWidth(true)
+            line:SetText(format("%s: %s", character, GetCoinTextureString(count)))
+            scrollFrame:AddChild(line)
+        end
+    end
+end
+
+local function SelectMoneyTab(tabGroup)
+    local guild = private.db.global.guilds[private.selectedGuild]
+    local scan = guild.scans[private.selectedScan]
+
+    local moneyInfo = {
+        totalMoney = scan.totalMoney,
+        buyTab = {},
+        repair = {},
+        deposit = {},
+        withdraw = {},
+    }
+
+    for _, transaction in pairs(scan.moneyTransactions) do
+        local transactionInfo = private:GetMoneyTransactionInfo(transaction)
+        transactionInfo.name = transactionInfo.name or L["Unknown"]
+
+        moneyInfo[transactionInfo.transactionType][transactionInfo.name] = transactionInfo.amount + (moneyInfo[transactionInfo.transactionType][transactionInfo.name] or 0)
+    end
+
+    local moneyTabGroup = AceGUI:Create("TabGroup")
+    moneyTabGroup:SetLayout("Flow")
+    moneyTabGroup:SetTabs(moneyTabGroupList(moneyInfo))
+    moneyTabGroup:SetCallback("OnGroupSelected", function(moneyTabGroup, _, tab)
+        SelectMoneyGroupTab(moneyTabGroup, tab, moneyInfo)
+    end)
+    tabGroup:AddChild(moneyTabGroup)
+    moneyTabGroup:SelectTab(private.selectedMoneyTab or "summary")
 end
 
 local function SelectItemGroupTab(itemTabGroup, tab, itemInfo)
@@ -300,6 +435,7 @@ local function SelectTab(tabGroup, _, tab)
     elseif tab == "Item" then
         SelectItemTab(tabGroup)
     elseif tab == "Money" then
+        SelectMoneyTab(tabGroup)
     end
 end
 
