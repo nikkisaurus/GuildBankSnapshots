@@ -45,6 +45,9 @@ function private:InitializeFrame()
     end)
     frame:AddChild(menu)
     menu:SelectTab("Review")
+
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName .. "Settings", private:GetSettingsOptionsTable())
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName .. "Help", private:GetHelpOptionsTable())
 end
 
 function private:LoadFrame()
