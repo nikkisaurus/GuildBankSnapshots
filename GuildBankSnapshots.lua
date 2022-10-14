@@ -14,7 +14,6 @@ private.unitsToSeconds = {
 function addon:OnInitialize()
     private:InitializeDatabase()
     private:CleanupDatabase()
-    -- private:InitializeOptions()
     private:InitializeFrame()
     private:InitializeSlashCommands()
 
@@ -44,16 +43,11 @@ end
 
 function addon:OnEnable()
     addon:RegisterEvent("PLAYER_ENTERING_WORLD")
-
-    -- ACD:SelectGroup(addonName, "analyze", private.db.global.settings.preferences.defaultGuild)
-    -- ACD:SelectGroup(addonName, "review", private.db.global.settings.preferences.defaultGuild)
 end
 
 function addon:PLAYER_ENTERING_WORLD()
     if private.db.global.debug then
         C_Timer.After(1, function()
-            -- ACD:SelectGroup(addonName, "analyze")
-            -- ACD:Open(addonName)
             private:LoadFrame()
         end)
     end
@@ -68,10 +62,6 @@ function addon:SlashCommandFunc(input)
     if cmd == "scan" then
         addon:ScanGuildBank(nil, arg == "o")
     else
-        -- if _G["GuildBankSnapshotsExportFrame"] then
-        --     _G["GuildBankSnapshotsExportFrame"]:Hide()
-        -- end
-        -- ACD:Open(addonName)
         private:LoadFrame()
     end
 end

@@ -98,6 +98,7 @@ L["Summary"] = true
 L["Tab"] = true
 L["Tabs"] = true
 L["Total Money"] = true
+L["Trends"] = true
 L["Type"] = true
 L["Unknown"] = true
 L["week"] = true
