@@ -29,6 +29,8 @@ function private:InitializeFrame()
     frame:SetWidth(950)
     frame:SetHeight(600)
     frame:Hide()
+    _G["GuildBankSnapshotsFrame"] = frame.frame
+    tinsert(UISpecialFrames, "GuildBankSnapshotsFrame")
     private.frame = frame
 
     local menu = AceGUI:Create("TabGroup")
