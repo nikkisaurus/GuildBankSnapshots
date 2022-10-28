@@ -17,28 +17,20 @@ function addon:OnInitialize()
     private:InitializeFrame()
     private:InitializeSlashCommands()
 
-    local version = select(4, GetBuildInfo())
-    if version >= 100002 then
-        EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
-            if IsAddOnLoaded("ElvUI") then
-                -- get bank frame
-            elseif IsAddOnLoaded("ArkInventory") then
-                -- get bank frame
-            elseif IsAddOnLoaded("Bagnon") then
-                -- get bank frame
-            else
-                private.bankFrame = _G["GuildBankFrame"]
-            end
+    EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
+        addon:HookScript(_G["GuildBankFrame"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+        addon:HookScript(_G["GuildBankFrame"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
 
-            addon:HookScript(private.bankFrame, "OnShow", addon.GUILDBANKFRAME_OPENED)
-            addon:HookScript(private.bankFrame, "OnHide", addon.GUILDBANKFRAME_CLOSED)
+        if IsAddOnLoaded("ArkInventory") then
+            addon:HookScript(_G["ARKINV_Frame4"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+            addon:HookScript(_G["ARKINV_Frame4"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+        elseif IsAddOnLoaded("Bagnon") then
+            addon:HookScript(_G["BagnonBankFrame1"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+            addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+        end
 
-            private:UpdateGuildDatabase()
-        end)
-    else
-        addon:RegisterEvent("GUILDBANKFRAME_CLOSED")
-        addon:RegisterEvent("GUILDBANKFRAME_OPENED")
-    end
+        private:UpdateGuildDatabase()
+    end)
 end
 
 function addon:OnEnable()
