@@ -17,20 +17,31 @@ function addon:OnInitialize()
     private:InitializeFrame()
     private:InitializeSlashCommands()
 
-    EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
-        addon:HookScript(_G["GuildBankFrame"], "OnShow", addon.GUILDBANKFRAME_OPENED)
-        addon:HookScript(_G["GuildBankFrame"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+    if select(4, GetBuildInfo()) >= 100000 then
+        EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
+            addon:HookScript(_G["GuildBankFrame"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+            addon:HookScript(_G["GuildBankFrame"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
 
-        if IsAddOnLoaded("ArkInventory") then
-            addon:HookScript(_G["ARKINV_Frame4"], "OnShow", addon.GUILDBANKFRAME_OPENED)
-            addon:HookScript(_G["ARKINV_Frame4"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
-        elseif IsAddOnLoaded("Bagnon") then
-            addon:HookScript(_G["BagnonBankFrame1"], "OnShow", addon.GUILDBANKFRAME_OPENED)
-            addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+            if IsAddOnLoaded("ArkInventory") then
+                addon:HookScript(_G["ARKINV_Frame4"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+                addon:HookScript(_G["ARKINV_Frame4"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+            elseif IsAddOnLoaded("Bagnon") then
+                addon:HookScript(_G["BagnonBankFrame1"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+                addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+            end
+
+            private:UpdateGuildDatabase()
+        end)
+    else
+        local _, _, _, loadable = GetAddOnInfo("Blizzard_GuildBankUI")
+        if loadable then
+            LoadAddOn("Blizzard_GuildBankUI")
         end
 
-        private:UpdateGuildDatabase()
-    end)
+        addon:RegisterEvent("PLAYER_ENTERING_WORLD")
+        addon:RegisterEvent("GUILDBANKFRAME_CLOSED")
+        addon:RegisterEvent("GUILDBANKFRAME_OPENED")
+    end
 end
 
 function addon:OnEnable()
