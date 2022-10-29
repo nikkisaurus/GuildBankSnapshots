@@ -12,18 +12,18 @@ local menuList = {
         value = "Export",
         text = L["Export"],
     },
-    {
-        value = "Trends",
-        text = L["Trends"],
-    },
+    -- {
+    --     value = "Trends",
+    --     text = L["Trends"],
+    -- },
     {
         value = "Settings",
         text = L["Settings"],
     },
-    {
-        value = "Help",
-        text = L["Help"],
-    },
+    -- {
+    --     value = "Help",
+    --     text = L["Help"],
+    -- },
 }
 
 function private:InitializeFrame()
