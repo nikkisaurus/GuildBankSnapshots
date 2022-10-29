@@ -61,16 +61,20 @@ local function ValidateScan(db, override)
         if private:DeleteCorruptedScans(scanTime) then
             addon:Print(L.CorruptScan)
         else
+            -- LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
+
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                ACD:SelectGroup(addonName, scanSettings.reviewPath)
-                ACD:Open(addonName)
-
-                if scanSettings.reviewPath ~= "export" then
-                    -- Select guild and scan
-                    addon["Select" .. strupper(strsub(scanSettings.reviewPath, 1, 1)) .. strsub(scanSettings.reviewPath, 2) .. "Guild"](addon, private:GetGuildID())
-                    addon["Select" .. strupper(strsub(scanSettings.reviewPath, 1, 1)) .. strsub(scanSettings.reviewPath, 2) .. "Scan"](addon, scanTime)
-                end
+                -- private:RefreshOptions()
+                -- if scanSettings.reviewPath == "export" then
+                --     ACD:Close(addonName)
+                --     private:SelectExportScans()
+                -- else
+                --     ACD:Open(addonName)
+                --     ACD:SelectGroup(addonName, scanSettings.reviewPath, (private:GetGuildID()), tostring(scanTime))
+                -- end
+                -- elseif ACD.OpenFrames[addonName] then
+                -- private:RefreshOptions()
             end
         end
     end
@@ -81,7 +85,6 @@ local function ValidateScan(db, override)
     end
 
     private.isScanning = nil
-    LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
 end
 
 local function ValidateScanFrequency(autoScanSettings)
@@ -105,6 +108,10 @@ local function ValidateScanFrequency(autoScanSettings)
 end
 
 function addon:GUILDBANKFRAME_CLOSED()
+    if not addon:IsEnabled() then
+        return
+    end
+
     -- Warn user if scan is canceled before finishing
     if private.isScanning then
         if private.isScanning ~= "auto" or private.db.global.settings.scans.autoScan.alert then
@@ -118,6 +125,10 @@ function addon:GUILDBANKFRAME_CLOSED()
 end
 
 function addon:GUILDBANKFRAME_OPENED()
+    if not addon:IsEnabled() then
+        return
+    end
+
     private.bankIsOpen = true
     private:UpdateGuildDatabase() -- Ensure guild bank database is formatted
 
@@ -157,6 +168,7 @@ function addon:ScanGuildBank(isAutoScan, override)
 
             for index = 1, GetNumGuildBankTransactions(tab) do
                 local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = GetGuildBankTransaction(tab, index)
+                name = name or UNKNOWN
 
                 tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemLink, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
             end
@@ -173,7 +185,10 @@ function addon:ScanGuildBank(isAutoScan, override)
         -- Money transactions
         db.totalMoney = GetGuildBankMoney()
         for i = 1, GetNumGuildBankMoneyTransactions() do
-            tinsert(db.moneyTransactions, AceSerializer:Serialize(GetGuildBankMoneyTransaction(i)))
+            local transactionType, name, amount, years, months, days, hours = GetGuildBankMoneyTransaction(i)
+            name = name or UNKNOWN
+
+            tinsert(db.moneyTransactions, AceSerializer:Serialize(transactionType, name, amount, years, months, days, hours))
         end
 
         -- Validation

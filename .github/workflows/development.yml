@@ -3,7 +3,9 @@ name: Package and release development builds
 on:
     push:
         tags:
-            - "*.*.*-*"
+            - "v*.*.*-*"
+            - "v*.*-*"
+    workflow_dispatch:
 
 jobs:
     release:
@@ -12,6 +14,7 @@ jobs:
         env:
             CF_API_KEY: ${{ secrets.CF_API_KEY }}
             WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
+            WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
             GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
         steps:
@@ -26,4 +29,4 @@ jobs:
             - name: Package and release for Retail
               uses: BigWigsMods/packager@master
               with:
-                  args: -w 0
+                  args: -g retail -w 0
