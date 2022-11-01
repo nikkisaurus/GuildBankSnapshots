@@ -59,6 +59,7 @@ function private:LoadFrame(tab, guild, scanID)
     end
 
     if guild then
+        private.frame:GetUserData("guildGroup"):SetGroupList(private:GetGuildList())
         private.frame:GetUserData("guildGroup"):SetGroup(guild)
     end
 
