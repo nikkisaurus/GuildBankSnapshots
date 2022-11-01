@@ -9,6 +9,10 @@ function private:GetFilterNames(guildKey, scanID, none)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local names, sorting = {}, {}
 
+    if not scan then
+        return names, sorting
+    end
+
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
             local info = private:GetTransactionInfo(transaction)
@@ -36,6 +40,10 @@ end
 function private:GetFilterItems(guildKey, scanID, none)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local items, sorting = {}, {}
+
+    if not scan then
+        return items, sorting
+    end
 
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
@@ -66,6 +74,10 @@ end
 function private:GetFilterTypes(guildKey, scanID)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local types, sorting = {}, {}
+
+    if not scan then
+        return types, sorting
+    end
 
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do

@@ -45,19 +45,36 @@ function private:InitializeFrame()
     end)
     frame:AddChild(menu)
     menu:SelectTab("Review")
+    frame:SetUserData("menu", menu)
 
     LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName .. "Settings", private:GetSettingsOptionsTable())
     LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName .. "Help", private:GetHelpOptionsTable())
 end
 
-function private:LoadFrame()
+function private:LoadFrame(tab, guild, scanID)
     private.frame:Show()
+
+    if tab then
+        private.frame:GetUserData("menu"):SelectTab(tab)
+    end
+
+    if guild then
+        private.frame:GetUserData("guildGroup"):SetGroup(guild)
+    end
+
+    if scanID then
+        private.frame:GetUserData("scanGroup"):SelectByPath(scanID)
+    end
 end
 
 function private:GetGuildList()
     local guilds, sorting = {}, {}
 
-    for guildID, guildInfo in addon.pairs(private.db.global.guilds) do
+    for guildID, guildInfo in
+        addon.pairs(private.db.global.guilds, function(a, b)
+            return tostring(a) < tostring(b)
+        end)
+    do
         if addon.tcount(guildInfo.scans) > 0 then
             guilds[guildID] = private:GetGuildDisplayName(guildID)
             tinsert(sorting, guildID)

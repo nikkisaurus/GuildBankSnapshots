@@ -202,6 +202,7 @@ local function SelectScan(scanGroup, _, scanID)
     tabGroup:SetCallback("OnGroupSelected", SelectTab)
     scanGroup:AddChild(tabGroup)
     tabGroup:SelectTab(private.selectedReviewTab or "Review")
+    private.frame:SetUserData("reviewTabGroup", tabGroup)
 end
 
 local function SelectGuild(guildGroup, _, guildKey)
@@ -220,6 +221,7 @@ local function SelectGuild(guildGroup, _, guildKey)
     scanGroup:SetCallback("OnGroupSelected", SelectScan)
     guildGroup:AddChild(scanGroup)
     scanGroup:SelectByPath(private.selectedScan or sel)
+    private.frame:SetUserData("scanGroup", scanGroup)
 end
 
 function private:GetReviewOptions(content)
@@ -231,4 +233,5 @@ function private:GetReviewOptions(content)
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
     guildGroup:SetGroup(private.selectedGuild or private.db.global.settings.preferences.defaultGuild)
+    private.frame:SetUserData("guildGroup", guildGroup)
 end

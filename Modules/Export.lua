@@ -246,4 +246,5 @@ function private:GetExportOptions(content)
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
     guildGroup:SetGroup(private.selectedExportGuild or private.db.global.settings.preferences.defaultGuild)
+    private.frame:SetUserData("guildGroup", guildGroup)
 end
