@@ -12,6 +12,7 @@ L["Alert scan progress"] = true
 L["Analyze"] = true
 L["Analyze Scan"] = true
 L["Approximate"] = true
+L["Are you sure you want to delete this scan?"] = true
 L["Ascending"] = true
 L["Auto Cleanup"] = true
 L["Auto Scan"] = true

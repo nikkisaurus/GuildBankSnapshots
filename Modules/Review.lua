@@ -3,6 +3,20 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
+StaticPopupDialogs["GBS_CONFIRM_DELETE"] = {
+    text = L["Are you sure you want to delete this scan?"],
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function()
+        private.db.global.guilds[private.selectedGuild].scans[private.selectedScan] = nil
+        private.frame:GetUserData("guildGroup"):SetGroup(private.selectedGuild)
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3, -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+}
+
 local tabGroupList = {
     {
         value = "Review",
@@ -121,6 +135,13 @@ local function SelectReviewTab(tabGroup)
     copyText:SetLabel(L["Copy Text"])
     tabGroup:AddChild(copyText)
     copyText:SetValue(private.selectedCopyText)
+
+    local delete = AceGUI:Create("Button")
+    delete:SetText(DELETE)
+    tabGroup:AddChild(delete)
+    delete:SetCallback("OnClick", function()
+        StaticPopup_Show("GBS_CONFIRM_DELETE")
+    end)
 
     local tabs, sel = private:GetGuildTabs(private.selectedGuild)
     local reviewTabGroup = AceGUI:Create("TabGroup")
