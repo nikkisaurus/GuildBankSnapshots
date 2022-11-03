@@ -58,7 +58,7 @@ local function GetTab(reviewTabGroup, _, tab)
     end
 
     local scan = private.db.global.guilds[private.selectedGuild].scans[private.selectedScan]
-    local transactions = tab < moneyTab and scan.tabs[private.selectedBankTab].transactions or scan.moneyTransactions
+    local transactions = tab < moneyTab and (scan.tabs[private.selectedBankTab] and scan.tabs[private.selectedBankTab].transactions or {}) or scan.moneyTransactions
     local text = ""
     for _, transaction in
         addon.pairs(transactions, function(a, b)

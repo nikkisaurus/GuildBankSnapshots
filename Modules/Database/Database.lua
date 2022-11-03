@@ -62,7 +62,7 @@ function private:DeleteCorruptedScans(lastScan)
             -- Count empty transactions
             for i = 1, guildInfo.numTabs do
                 local tabInfo = scan.tabs[i]
-                if not tabInfo or addon.tcount(tabInfo.transactions) == 0 then
+                if not tabInfo or (addon.tcount(tabInfo.items) == 0 and addon.tcount(tabInfo.transactions) == 0) then
                     empty = empty + 1
                 else
                     for _, transaction in pairs(tabInfo.transactions) do
@@ -87,7 +87,7 @@ function private:DeleteCorruptedScans(lastScan)
             end
 
             -- Delete corrupt scan
-            if empty == guildInfo.numTabs + 1 then
+            if empty == guildInfo.numTabs + 1 or (scan.totalMoney == 0 and addon.tcount(scan.tabs) == 0 and addon.tcount(scan.moneyTransactions) == 0) then
                 lastScanCorrupted = scanID == lastScan
                 private.db.global.guilds[guildID].scans[scanID] = nil
             end
