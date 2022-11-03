@@ -48,7 +48,7 @@ function private:GetFilterItems(guildKey, scanID, none)
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
             local info = private:GetTransactionInfo(transaction)
-            items[info.itemLink] = info.itemLink
+            items[info.itemLink or "1"] = info.itemLink
         end
     end
 
@@ -110,7 +110,7 @@ function private:GetMoneyTransactionInfo(transaction)
 
     local info = {
         transactionType = transactionType,
-        name = name,
+        name = name or UNKNOWN,
         amount = amount,
         year = year,
         month = month,
@@ -177,7 +177,7 @@ function private:GetTransactionInfo(transaction)
 
     local info = {
         transactionType = transactionType,
-        name = name,
+        name = name or UNKNOWN,
         itemLink = itemLink,
         count = count,
         moveOrigin = moveOrigin,

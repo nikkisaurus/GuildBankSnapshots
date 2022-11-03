@@ -15,7 +15,7 @@ local function BackupDatabase()
 end
 
 local function ConvertDatabase(backup, version)
-    if version == 4 then
+    if version == 4 or version == 3 then
         private:ConvertDB4_5(backup)
     end
 end
@@ -60,8 +60,9 @@ function private:DeleteCorruptedScans(lastScan)
             local empty = 0
 
             -- Count empty transactions
-            for _, tabInfo in pairs(scan.tabs) do
-                if addon.tcount(tabInfo.transactions) == 0 then
+            for i = 1, guildInfo.numTabs do
+                local tabInfo = scan.tabs[i]
+                if not tabInfo or addon.tcount(tabInfo.transactions) == 0 then
                     empty = empty + 1
                 else
                     for _, transaction in pairs(tabInfo.transactions) do

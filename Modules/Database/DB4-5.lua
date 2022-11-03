@@ -18,33 +18,37 @@ function private:ConvertDB4_5(backup)
             db.faction = faction
             db.realm = realm
 
-            for tab = 1, MAX_GUILDBANK_TABS do
-                db.tabs[tab] = {
-                    name = "",
-                    icon = 134400,
-                }
-            end
-
             for scanID, scan in
                 addon.pairs(scans, function(a, b)
                     return a > b
                 end)
             do
-                db.numTabs = db.numTabs == 0 and addon.tcount(scan) or db.numTabs
+                db.numTabs = db.numTabs == 0 and (addon.tcount(scan) - 1) or db.numTabs
                 db.scans[scanID] = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
 
                 for tab, transactions in pairs(scan) do
-                    db.scans[scanID].tabs[tab] = { items = {}, transactions = {} }
+                    if transactions.tabName ~= "Money" then
+                        db.scans[scanID].tabs[tab] = { items = {}, transactions = {} }
+                    end
                     for transactionID, transaction in pairs(transactions) do
                         if transactionID == "total" then
                             db.scans[scanID].totalMoney = transaction
                         elseif transactionID == "tabName" then
-                            if db.tabs[tab] then
-                                db.tabs[tab].name = transaction
+                            if transaction ~= "Money" then
+                                db.tabs[tab] = {
+                                    name = transaction,
+                                    icon = 134400,
+                                }
+                            elseif tab ~= MAX_GUILDBANK_TABS + 1 then
+                                local name, icon = GetGuildBankTabInfo(tab)
+                                db.tabs[tab] = {
+                                    name = name,
+                                    icon = icon or 134400,
+                                }
                             end
                         elseif type(transaction) == "table" then
                             local t = date("*t", time())
-                            if (transaction.tabName and transaction.tabName == "Money") or tab == 9 then
+                            if (transactions.tabName and transactions.tabName == "Money") or tab == 9 then
                                 local transactionTime, name, transactionType, count = unpack(transaction)
                                 transactionTime = date("*t", transactionTime)
 

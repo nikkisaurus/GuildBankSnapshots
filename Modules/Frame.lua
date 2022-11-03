@@ -106,17 +106,21 @@ function private:GetScansTree(guildKey)
     return scanList, sel
 end
 
-function private:GetGuildTabs(guildKey)
+function private:GetGuildTabs(guildKey, scanID)
     local tabs, sel = {}
 
-    for tab, tabInfo in pairs(private.db.global.guilds[guildKey].tabs) do
+    if not private.db.global.guilds[guildKey].scans[scanID] then
+        return
+    end
+
+    for tab, tabInfo in pairs(private.db.global.guilds[guildKey].scans[scanID].tabs) do
         if not sel then
             sel = tab
         end
 
         tinsert(tabs, {
             value = tab,
-            text = tabInfo.name or L["Tab"] .. " " .. tab,
+            text = private.db.global.guilds[guildKey].tabs[tab] and private.db.global.guilds[guildKey].tabs[tab].name or L["Tab"] .. " " .. tab,
         })
     end
 

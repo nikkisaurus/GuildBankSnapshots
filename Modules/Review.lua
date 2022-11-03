@@ -143,7 +143,7 @@ local function SelectReviewTab(tabGroup)
         StaticPopup_Show("GBS_CONFIRM_DELETE")
     end)
 
-    local tabs, sel = private:GetGuildTabs(private.selectedGuild)
+    local tabs, sel = private:GetGuildTabs(private.selectedGuild, private.selectedScan)
     local reviewTabGroup = AceGUI:Create("TabGroup")
     reviewTabGroup:SetLayout("Fill")
     reviewTabGroup:SetFullWidth(true)
