@@ -1,0 +1,14 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+    <Include file="Database/Database.lua"/>
+    <Include file="Database/DB4-5.lua"/>
+    <Include file="Widgets/Transaction.lua"/>
+    <Include file="Analyze.lua"/>
+    <Include file="Export.lua"/>
+    <Include file="Frame.lua"/>
+    <Include file="Help.lua"/>
+    <Include file="Helpers.lua"/>
+    <Include file="Review.lua"/>
+    <Include file="Scan.lua"/>
+    <Include file="Settings.lua"/>    
+    <Include file="Trends.lua"/>
+</Ui>
