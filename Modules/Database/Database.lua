@@ -97,6 +97,18 @@ function private:DeleteCorruptedScans(lastScan)
     return lastScanCorrupted
 end
 
+private.defaults = {
+    guild = {
+        guildName = "",
+        faction = "",
+        realm = "",
+        numTabs = 0,
+        tabs = {},
+        masterScan = {},
+        scans = {},
+    },
+}
+
 function private:InitializeDatabase()
     local db, backup, version = GuildBankSnapshotsDB
 
@@ -109,18 +121,8 @@ function private:InitializeDatabase()
 
     local defaults = {
         global = {
-            debug = true,
-            guilds = {
-                -- ["**"] = { -- guildID: "Guild Name (F) - Realm Name"
-                --     guildName = "",
-                --     faction = "",
-                --     realm = "",
-                --     numTabs = 0,
-                --     tabs = {},
-                --     masterScan = {},
-                --     scans = {},
-                -- },
-            },
+            -- debug = true,
+            guilds = {},
             commands = {
                 gbs = {
                     enabled = true,
@@ -194,7 +196,7 @@ end
 
 function private:UpdateGuildDatabase()
     local guildID, guildName, faction, realm = private:GetGuildID()
-    local db = private.db.global.guilds[guildID]
+    local db = private.db.global.guilds[guildID] or addon.CloneTable(private.defaults.guild)
 
     db.guildName = guildName
     db.faction = faction

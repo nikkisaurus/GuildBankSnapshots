@@ -152,6 +152,9 @@ local function SelectGuild(guildGroup, _, guildKey)
     guildGroup:ReleaseChildren()
 
     local guild = private.db.global.guilds[guildKey]
+    if not guild then
+        return
+    end
     local numScans = addon.tcount(guild.scans)
     local numSelected = addon.tcount(private.selectedScans)
 
