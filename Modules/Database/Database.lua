@@ -109,17 +109,17 @@ function private:InitializeDatabase()
 
     local defaults = {
         global = {
-            -- debug = true,
+            debug = true,
             guilds = {
-                ["**"] = { -- guildID: "Guild Name (F) - Realm Name"
-                    guildName = "",
-                    faction = "",
-                    realm = "",
-                    numTabs = 0,
-                    tabs = {},
-                    masterScan = {},
-                    scans = {},
-                },
+                -- ["**"] = { -- guildID: "Guild Name (F) - Realm Name"
+                --     guildName = "",
+                --     faction = "",
+                --     realm = "",
+                --     numTabs = 0,
+                --     tabs = {},
+                --     masterScan = {},
+                --     scans = {},
+                -- },
             },
             commands = {
                 gbs = {

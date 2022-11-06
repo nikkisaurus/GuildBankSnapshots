@@ -70,10 +70,6 @@ function addon:SlashCommandFunc(input)
 end
 
 function private:GetGuildDisplayName(guildID)
-    if type(guildID) ~= "string" then
-        return
-    end
-
     local guild, realm, faction = string.match(guildID, "(.+)%s%-%s(.*)%s%((.+)%)")
     local guildFormat = private.db.global.settings.preferences.guildFormat
     guildFormat = string.gsub(guildFormat, "%%g", guild)

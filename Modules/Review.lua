@@ -98,6 +98,9 @@ local function GetTab(reviewTabGroup, _, tab)
 end
 
 local function SelectReviewTab(tabGroup)
+    if not private.selectedGuild or not private.selectedScan then
+        return
+    end
     tabGroup:SetLayout("Flow")
 
     local filterNames = AceGUI:Create("Dropdown")
@@ -217,6 +220,10 @@ local function SelectScan(scanGroup, _, scanID)
     private.selectedScan = scanID
     scanGroup:ReleaseChildren()
 
+    if not private.selectedGuild or not scanID then
+        return
+    end
+
     local tabGroup = AceGUI:Create("TabGroup")
     tabGroup:SetLayout("Flow")
     tabGroup:SetTabs(tabGroupList)
@@ -238,7 +245,7 @@ local function SelectGuild(guildGroup, _, guildKey)
     local scans, sel = private:GetScansTree(guildKey)
     local scanGroup = AceGUI:Create("TreeGroup")
     scanGroup:SetLayout("Fill")
-    scanGroup:SetTree(scans)
+    scanGroup:SetTree(scans or {})
     scanGroup:SetCallback("OnGroupSelected", SelectScan)
     guildGroup:AddChild(scanGroup)
     scanGroup:SelectByPath(private.selectedScan or sel)

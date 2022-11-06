@@ -87,9 +87,14 @@ end
 
 function private:GetScansTree(guildKey)
     local scanList, sel = {}
+    local guild = private.db.global.guilds[guildKey]
+    local scans = guild and guild.scans
+    if not scans then
+        return
+    end
 
     for scanID, _ in
-        addon.pairs(private.db.global.guilds[guildKey].scans, function(a, b)
+        addon.pairs(scans, function(a, b)
             return a > b
         end)
     do
