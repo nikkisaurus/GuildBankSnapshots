@@ -28,4 +28,4 @@ body:
     - type: textarea
       attributes:
           label: Please supply a copy of your saved variables.
-          description: (/WTF/Account/YOURACCOUNTNAME/SavedVariables)
+          description: ./WTF/Account/YOURACCOUNTNAME/SavedVariables
