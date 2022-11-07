@@ -5,6 +5,11 @@ labels: ["bug"]
 assignees:
     - nikkisaurus
 body:
+    - type: input
+      id: version
+      attributes:
+          label: Interface Version
+          placeholder: 10.0.0
     # - type: markdown
     #   attributes:
     #       value: |
