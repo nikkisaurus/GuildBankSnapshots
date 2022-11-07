@@ -3,12 +3,7 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 local function BackupDatabase()
-    local backup = {}
-
-    for k, v in pairs(GuildBankSnapshotsDB) do
-        backup[k] = v
-    end
-
+    local backup = addon.CloneTable(GuildBankSnapshotsDB)
     wipe(GuildBankSnapshotsDB)
 
     return backup
@@ -191,7 +186,11 @@ function private:InitializeDatabase()
         ConvertDatabase(backup, version)
     end
 
-    private.db.global.version = 5
+    if private.db.global.version == 5 then
+        private:ConvertDB5_6()
+    end
+
+    private.db.global.version = 6
 end
 
 function private:UpdateGuildDatabase()

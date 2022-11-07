@@ -50,7 +50,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
                 copyBox.parent:DoLayout()
             end
 
-            if private.db.global.guilds[private.selectedExportGuild].scans[scanID] then
+            if private.db.global.guilds[private.selectedExportGuild] and private.db.global.guilds[private.selectedExportGuild].scans[scanID] then
                 local guild = private.db.global.guilds[private.selectedExportGuild]
                 local guildName = private:GetGuildDisplayName(private.selectedExportGuild)
                 local scanDate = date(private.db.global.settings.preferences.dateFormat, scanID)
