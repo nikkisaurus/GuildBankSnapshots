@@ -5,6 +5,9 @@ labels: ["bug"]
 assignees:
     - nikkisaurus
 body:
+    - type: markdown
+      attributes:
+          value: Thank you for taking the time to fill out this bug report. To help expediate the process, please fill out the entire form thoroughly, and include as much information as possible.
     - type: input
       attributes:
           label: Interface Version
@@ -14,7 +17,7 @@ body:
     - type: input
       attributes:
           label: AddOn Version
-          placeholder: e.g. v3.0.0
+          placeholder: e.g. v3.0.0 or v3.0.0-wrath
       validations:
           required: true
     - type: dropdown
