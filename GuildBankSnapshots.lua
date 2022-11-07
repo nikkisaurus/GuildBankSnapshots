@@ -29,7 +29,6 @@ function addon:OnInitialize()
                 addon:HookScript(_G["BagnonBankFrame1"], "OnShow", addon.GUILDBANKFRAME_OPENED)
                 addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
             end
-
             private:UpdateGuildDatabase()
         end)
     else
