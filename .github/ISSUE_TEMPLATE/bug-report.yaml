@@ -22,3 +22,6 @@ body:
           label: What steps did you take leading up to this issue?
       validations:
           required: true
+    - type: textarea
+      attributes:
+          label: Please supply any screenshots relevant to this issue.
