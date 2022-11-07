@@ -36,5 +36,5 @@ body:
           label: Please supply any screenshots relevant to this issue.
     - type: textarea
       attributes:
-          label: Please supply a copy of your saved variables.
+          label: Please supply a copy of your saved variables to help expediate the troubleshooting process.
           description: ./WTF/Account/YOURACCOUNTNAME/SavedVariables
