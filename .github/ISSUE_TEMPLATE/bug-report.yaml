@@ -10,6 +10,10 @@ body:
       attributes:
           label: Interface Version
           placeholder: 10.0.0
+    - type: input
+      id: addon_version
+      attributes:
+          label: AddOn Version
     # - type: markdown
     #   attributes:
     #       value: |
