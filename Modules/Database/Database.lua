@@ -3,19 +3,14 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 local function BackupDatabase()
-    local backup = {}
-
-    for k, v in pairs(GuildBankSnapshotsDB) do
-        backup[k] = v
-    end
-
+    local backup = addon.CloneTable(GuildBankSnapshotsDB)
     wipe(GuildBankSnapshotsDB)
 
     return backup
 end
 
 local function ConvertDatabase(backup, version)
-    if version == 4 then
+    if version == 4 or version == 3 then
         private:ConvertDB4_5(backup)
     end
 end
@@ -60,8 +55,9 @@ function private:DeleteCorruptedScans(lastScan)
             local empty = 0
 
             -- Count empty transactions
-            for _, tabInfo in pairs(scan.tabs) do
-                if addon.tcount(tabInfo.transactions) == 0 then
+            for i = 1, guildInfo.numTabs or MAX_GUILDBANK_TABS do
+                local tabInfo = scan.tabs[i]
+                if not tabInfo or (addon.tcount(tabInfo.items) == 0 and addon.tcount(tabInfo.transactions) == 0) then
                     empty = empty + 1
                 else
                     for _, transaction in pairs(tabInfo.transactions) do
@@ -86,7 +82,7 @@ function private:DeleteCorruptedScans(lastScan)
             end
 
             -- Delete corrupt scan
-            if empty == guildInfo.numTabs + 1 then
+            if empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon.tcount(scan.tabs) == 0 and addon.tcount(scan.moneyTransactions) == 0) then
                 lastScanCorrupted = scanID == lastScan
                 private.db.global.guilds[guildID].scans[scanID] = nil
             end
@@ -95,6 +91,18 @@ function private:DeleteCorruptedScans(lastScan)
 
     return lastScanCorrupted
 end
+
+private.defaults = {
+    guild = {
+        guildName = "",
+        faction = "",
+        realm = "",
+        numTabs = 0,
+        tabs = {},
+        masterScan = {},
+        scans = {},
+    },
+}
 
 function private:InitializeDatabase()
     local db, backup, version = GuildBankSnapshotsDB
@@ -109,17 +117,7 @@ function private:InitializeDatabase()
     local defaults = {
         global = {
             -- debug = true,
-            guilds = {
-                ["**"] = { -- guildID: "Guild Name (F) - Realm Name"
-                    guildName = "",
-                    faction = "",
-                    realm = "",
-                    numTabs = 0,
-                    tabs = {},
-                    masterScan = {},
-                    scans = {},
-                },
-            },
+            guilds = {},
             commands = {
                 gbs = {
                     enabled = true,
@@ -188,16 +186,23 @@ function private:InitializeDatabase()
         ConvertDatabase(backup, version)
     end
 
-    private.db.global.version = 5
+    if not private.db.global.version or private.db.global.version < 6 then
+        private:ConvertDB5_6()
+    end
+
+    private.db.global.version = 6
 end
 
 function private:UpdateGuildDatabase()
     local guildID, guildName, faction, realm = private:GetGuildID()
+    private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.defaults.guild)
     local db = private.db.global.guilds[guildID]
 
     db.guildName = guildName
     db.faction = faction
     db.realm = realm
+    db.masterScan = db.masterScan or {}
+    db.scans = db.scans or {}
 
     local numTabs = GetNumGuildBankTabs()
     db.numTabs = numTabs

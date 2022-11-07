@@ -50,7 +50,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
                 copyBox.parent:DoLayout()
             end
 
-            if private.db.global.guilds[private.selectedExportGuild].scans[scanID] then
+            if private.db.global.guilds[private.selectedExportGuild] and private.db.global.guilds[private.selectedExportGuild].scans[scanID] then
                 local guild = private.db.global.guilds[private.selectedExportGuild]
                 local guildName = private:GetGuildDisplayName(private.selectedExportGuild)
                 local scanDate = date(private.db.global.settings.preferences.dateFormat, scanID)
@@ -152,6 +152,9 @@ local function SelectGuild(guildGroup, _, guildKey)
     guildGroup:ReleaseChildren()
 
     local guild = private.db.global.guilds[guildKey]
+    if not guild then
+        return
+    end
     local numScans = addon.tcount(guild.scans)
     local numSelected = addon.tcount(private.selectedScans)
 
@@ -246,4 +249,5 @@ function private:GetExportOptions(content)
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
     guildGroup:SetGroup(private.selectedExportGuild or private.db.global.settings.preferences.defaultGuild)
+    private.frame:SetUserData("guildGroup", guildGroup)
 end

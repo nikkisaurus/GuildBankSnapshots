@@ -9,6 +9,10 @@ function private:GetFilterNames(guildKey, scanID, none)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local names, sorting = {}, {}
 
+    if not scan then
+        return names, sorting
+    end
+
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
             local info = private:GetTransactionInfo(transaction)
@@ -37,10 +41,14 @@ function private:GetFilterItems(guildKey, scanID, none)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local items, sorting = {}, {}
 
+    if not scan then
+        return items, sorting
+    end
+
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
             local info = private:GetTransactionInfo(transaction)
-            items[info.itemLink] = info.itemLink
+            items[info.itemLink or "1"] = info.itemLink
         end
     end
 
@@ -66,6 +74,10 @@ end
 function private:GetFilterTypes(guildKey, scanID)
     local scan = private.db.global.guilds[guildKey].scans[scanID]
     local types, sorting = {}, {}
+
+    if not scan then
+        return types, sorting
+    end
 
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
@@ -98,7 +110,7 @@ function private:GetMoneyTransactionInfo(transaction)
 
     local info = {
         transactionType = transactionType,
-        name = name,
+        name = name or UNKNOWN,
         amount = amount,
         year = year,
         month = month,
@@ -165,7 +177,7 @@ function private:GetTransactionInfo(transaction)
 
     local info = {
         transactionType = transactionType,
-        name = name,
+        name = name or UNKNOWN,
         itemLink = itemLink,
         count = count,
         moveOrigin = moveOrigin,

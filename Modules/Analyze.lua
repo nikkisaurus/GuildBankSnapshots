@@ -174,7 +174,9 @@ local function SelectMoneyTab(tabGroup)
         local transactionInfo = private:GetMoneyTransactionInfo(transaction)
         transactionInfo.name = transactionInfo.name or L["Unknown"]
 
-        moneyInfo[transactionInfo.transactionType][transactionInfo.name] = transactionInfo.amount + (moneyInfo[transactionInfo.transactionType][transactionInfo.name] or 0)
+        if moneyInfo[transactionInfo.transactionType] then
+            moneyInfo[transactionInfo.transactionType][transactionInfo.name] = transactionInfo.amount + (moneyInfo[transactionInfo.transactionType][transactionInfo.name] or 0)
+        end
     end
 
     local moneyTabGroup = AceGUI:Create("TabGroup")

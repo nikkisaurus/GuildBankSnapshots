@@ -1,0 +1,43 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug"]
+assignees:
+    - nikkisaurus
+body:
+    - type: markdown
+      attributes:
+          value: Thank you for taking the time to fill out this bug report. To help expediate the process, please fill out the entire form thoroughly, and include as much information as possible.
+    - type: input
+      attributes:
+          label: Interface Version
+          placeholder: e.g. 10.0.0
+      validations:
+          required: true
+    - type: input
+      attributes:
+          label: AddOn Version
+          placeholder: e.g. v3.0.0 or v3.0.0-wrath
+      validations:
+          required: true
+    - type: dropdown
+      attributes:
+          label: Have you replicated this error without any other addons loaded?
+          multiple: false
+          options:
+              - "Yes"
+              - "No"
+      validations:
+          required: true
+    - type: textarea
+      attributes:
+          label: What steps did you take leading up to this issue?
+      validations:
+          required: true
+    - type: textarea
+      attributes:
+          label: Please supply any screenshots relevant to this issue.
+    - type: textarea
+      attributes:
+          label: Please supply a copy of your saved variables.
+          description: ./WTF/Account/YOURACCOUNTNAME/SavedVariables

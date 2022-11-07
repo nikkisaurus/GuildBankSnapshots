@@ -30,7 +30,10 @@ function addon:OnInitialize()
                 addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
             end
 
-            private:UpdateGuildDatabase()
+            C_Timer.After(5, function()
+                -- Added delay because it seems some addons may be loading the guild bank UI before I have the data I need
+                private:UpdateGuildDatabase()
+            end)
         end)
     else
         local _, _, _, loadable = GetAddOnInfo("Blizzard_GuildBankUI")

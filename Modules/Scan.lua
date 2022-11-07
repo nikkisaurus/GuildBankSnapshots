@@ -61,20 +61,12 @@ local function ValidateScan(db, override)
         if private:DeleteCorruptedScans(scanTime) then
             addon:Print(L.CorruptScan)
         else
-            -- LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                -- private:RefreshOptions()
-                -- if scanSettings.reviewPath == "export" then
-                --     ACD:Close(addonName)
-                --     private:SelectExportScans()
-                -- else
-                --     ACD:Open(addonName)
-                --     ACD:SelectGroup(addonName, scanSettings.reviewPath, (private:GetGuildID()), tostring(scanTime))
-                -- end
-                -- elseif ACD.OpenFrames[addonName] then
-                -- private:RefreshOptions()
+                private:LoadFrame(addon.StringToTitle(scanSettings.reviewPath), private:GetGuildID(), scanTime)
+                if scanSettings.reviewPath == "analyze" then
+                    private.frame:GetUserData("reviewTabGroup"):SelectTab("Analyze")
+                end
             end
         end
     end
@@ -101,7 +93,7 @@ local function ValidateScanFrequency(autoScanSettings)
             return b < a
         end)
     do
-        return (scanID < time() - frequency)
+        return (time() > (scanID + frequency))
     end
 
     return true

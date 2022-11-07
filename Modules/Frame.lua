@@ -43,25 +43,48 @@ function private:InitializeFrame()
         content:ReleaseChildren()
         private["Get" .. group .. "Options"](private, content)
     end)
+    addon:HookScript(menu.frame, "OnShow", function()
+        menu:SelectTab("Review")
+        addon:Unhook(menu.frame, "OnShow")
+    end)
     frame:AddChild(menu)
-    menu:SelectTab("Review")
+    frame:SetUserData("menu", menu)
 
     LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName .. "Settings", private:GetSettingsOptionsTable())
     LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName .. "Help", private:GetHelpOptionsTable())
 end
 
-function private:LoadFrame()
+function private:LoadFrame(tab, guild, scanID)
     private.frame:Show()
+
+    if tab then
+        private.frame:GetUserData("menu"):SelectTab(tab)
+    end
+
+    if guild then
+        private.frame:GetUserData("guildGroup"):SetGroupList(private:GetGuildList())
+        private.frame:GetUserData("guildGroup"):SetGroup(guild)
+        local scans, sel = private:GetScansTree(guild)
+        private.frame:GetUserData("scanGroup"):SetTree(scans or {})
+    end
+
+    if scanID then
+        private.frame:GetUserData("scanGroup"):SelectByPath(scanID)
+    end
 end
 
 function private:GetGuildList()
+    private:UpdateGuildDatabase()
+
     local guilds, sorting = {}, {}
 
-    for guildID, guildInfo in addon.pairs(private.db.global.guilds) do
-        if addon.tcount(guildInfo.scans) > 0 then
-            guilds[guildID] = private:GetGuildDisplayName(guildID)
-            tinsert(sorting, guildID)
-        end
+    for guildID, guildInfo in
+        addon.pairs(private.db.global.guilds, function(a, b)
+            return tostring(a) < tostring(b)
+        end)
+    do
+        guilds[guildID] = private:GetGuildDisplayName(guildID)
+        tinsert(sorting, guildID)
     end
 
     return guilds, sorting
@@ -69,9 +92,14 @@ end
 
 function private:GetScansTree(guildKey)
     local scanList, sel = {}
+    local guild = private.db.global.guilds[guildKey]
+    local scans = guild and guild.scans
+    if not scans then
+        return
+    end
 
     for scanID, _ in
-        addon.pairs(private.db.global.guilds[guildKey].scans, function(a, b)
+        addon.pairs(scans, function(a, b)
             return a > b
         end)
     do
@@ -88,17 +116,21 @@ function private:GetScansTree(guildKey)
     return scanList, sel
 end
 
-function private:GetGuildTabs(guildKey)
+function private:GetGuildTabs(guildKey, scanID)
     local tabs, sel = {}
 
-    for tab, tabInfo in pairs(private.db.global.guilds[guildKey].tabs) do
+    if not private.db.global.guilds[guildKey].scans[scanID] then
+        return
+    end
+
+    for tab, tabInfo in pairs(private.db.global.guilds[guildKey].scans[scanID].tabs) do
         if not sel then
             sel = tab
         end
 
         tinsert(tabs, {
             value = tab,
-            text = tabInfo.name or L["Tab"] .. " " .. tab,
+            text = private.db.global.guilds[guildKey].tabs[tab] and private.db.global.guilds[guildKey].tabs[tab].name or L["Tab"] .. " " .. tab,
         })
     end
 

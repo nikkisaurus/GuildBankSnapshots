@@ -3,6 +3,20 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
+StaticPopupDialogs["GBS_CONFIRM_DELETE"] = {
+    text = L["Are you sure you want to delete this scan?"],
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function()
+        private.db.global.guilds[private.selectedGuild].scans[private.selectedScan] = nil
+        private.frame:GetUserData("guildGroup"):SetGroup(private.selectedGuild)
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3, -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+}
+
 local tabGroupList = {
     {
         value = "Review",
@@ -44,7 +58,7 @@ local function GetTab(reviewTabGroup, _, tab)
     end
 
     local scan = private.db.global.guilds[private.selectedGuild].scans[private.selectedScan]
-    local transactions = tab < moneyTab and scan.tabs[private.selectedBankTab].transactions or scan.moneyTransactions
+    local transactions = tab < moneyTab and (scan.tabs[private.selectedBankTab] and scan.tabs[private.selectedBankTab].transactions or {}) or scan.moneyTransactions
     local text = ""
     for _, transaction in
         addon.pairs(transactions, function(a, b)
@@ -84,6 +98,9 @@ local function GetTab(reviewTabGroup, _, tab)
 end
 
 local function SelectReviewTab(tabGroup)
+    if not private.selectedGuild or not private.selectedScan then
+        return
+    end
     tabGroup:SetLayout("Flow")
 
     local filterNames = AceGUI:Create("Dropdown")
@@ -122,7 +139,14 @@ local function SelectReviewTab(tabGroup)
     tabGroup:AddChild(copyText)
     copyText:SetValue(private.selectedCopyText)
 
-    local tabs, sel = private:GetGuildTabs(private.selectedGuild)
+    local delete = AceGUI:Create("Button")
+    delete:SetText(DELETE)
+    tabGroup:AddChild(delete)
+    delete:SetCallback("OnClick", function()
+        StaticPopup_Show("GBS_CONFIRM_DELETE")
+    end)
+
+    local tabs, sel = private:GetGuildTabs(private.selectedGuild, private.selectedScan)
     local reviewTabGroup = AceGUI:Create("TabGroup")
     reviewTabGroup:SetLayout("Fill")
     reviewTabGroup:SetFullWidth(true)
@@ -196,12 +220,17 @@ local function SelectScan(scanGroup, _, scanID)
     private.selectedScan = scanID
     scanGroup:ReleaseChildren()
 
+    if not private.selectedGuild or not scanID then
+        return
+    end
+
     local tabGroup = AceGUI:Create("TabGroup")
     tabGroup:SetLayout("Flow")
     tabGroup:SetTabs(tabGroupList)
     tabGroup:SetCallback("OnGroupSelected", SelectTab)
     scanGroup:AddChild(tabGroup)
     tabGroup:SelectTab(private.selectedReviewTab or "Review")
+    private.frame:SetUserData("reviewTabGroup", tabGroup)
 end
 
 local function SelectGuild(guildGroup, _, guildKey)
@@ -216,10 +245,11 @@ local function SelectGuild(guildGroup, _, guildKey)
     local scans, sel = private:GetScansTree(guildKey)
     local scanGroup = AceGUI:Create("TreeGroup")
     scanGroup:SetLayout("Fill")
-    scanGroup:SetTree(scans)
+    scanGroup:SetTree(scans or {})
     scanGroup:SetCallback("OnGroupSelected", SelectScan)
     guildGroup:AddChild(scanGroup)
     scanGroup:SelectByPath(private.selectedScan or sel)
+    private.frame:SetUserData("scanGroup", scanGroup)
 end
 
 function private:GetReviewOptions(content)
@@ -231,4 +261,5 @@ function private:GetReviewOptions(content)
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
     guildGroup:SetGroup(private.selectedGuild or private.db.global.settings.preferences.defaultGuild)
+    private.frame:SetUserData("guildGroup", guildGroup)
 end
