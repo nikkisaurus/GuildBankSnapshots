@@ -29,8 +29,13 @@ body:
       attributes:
           label: Please copy and paste the entire contents of your saved variables.
           description: (/WTF/Account/YOURACCOUNTNAME/SavedVariables)
-          value: "```lua
+          value: "<details>
+              <summary>Saved Variables</summary>
+
+              ```lua
               -- Select this line and paste your contents here.
-              ```"
+              ```
+
+              </SavedVariables>"
       validations:
           required: true
