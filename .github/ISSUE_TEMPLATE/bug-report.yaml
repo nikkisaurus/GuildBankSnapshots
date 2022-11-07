@@ -25,3 +25,8 @@ body:
     - type: textarea
       attributes:
           label: Please supply any screenshots relevant to this issue.
+    - type: textarea
+      attributes:
+          label: Please copy and paste the entire contents of your saved variables (/WTF/Account/YOURACCOUNTNAME/SavedVariables).
+      validations:
+          required: true
