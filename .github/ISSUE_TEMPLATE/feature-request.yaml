@@ -1,0 +1,23 @@
+name: Feature Request
+description: Suggest an idea for this project
+title: "[REQUEST]: "
+labels: ["enhancement"]
+assignees:
+    - nikkisaurus
+body:
+    - type: textarea
+      attributes:
+          label: Describe what you want to be implemented?
+      validations:
+          required: true
+    - type: textarea
+      attributes:
+          label: Explain why you want this feature implemented.
+      validations:
+          required: true
+    - type: textarea
+      attributes:
+          label: Describe any alternatives you've considered.
+    - type: textarea
+      attributes:
+          label: Please provide any additional context or screenshots relevant to this request.
