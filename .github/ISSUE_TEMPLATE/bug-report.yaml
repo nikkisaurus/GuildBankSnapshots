@@ -20,9 +20,12 @@ body:
     - type: dropdown
       attributes:
           label: Have you replicated this error without any other addons loaded?
+          multiple: false
           options:
               - "Yes"
               - "No"
+      validations:
+          required: true
     - type: textarea
       attributes:
           label: What steps did you take leading up to this issue?
