@@ -9,7 +9,6 @@ body:
       id: version
       attributes:
           label: Interface Version
-          placeholder: 10.0.0
     - type: input
       id: addon_version
       attributes:
