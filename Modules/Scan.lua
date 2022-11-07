@@ -61,8 +61,6 @@ local function ValidateScan(db, override)
         if private:DeleteCorruptedScans(scanTime) then
             addon:Print(L.CorruptScan)
         else
-            -- LibStub("AceConfigRegistry-3.0"):NotifyChange(addonName)
-
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
                 private:LoadFrame(addon.StringToTitle(scanSettings.reviewPath), private:GetGuildID(), scanTime)
@@ -95,7 +93,7 @@ local function ValidateScanFrequency(autoScanSettings)
             return b < a
         end)
     do
-        return (scanID < time() - frequency)
+        return (time() > (scanID + frequency))
     end
 
     return true
