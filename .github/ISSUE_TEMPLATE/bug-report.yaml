@@ -21,8 +21,8 @@ body:
       attributes:
           label: Have you replicated this error without any other addons loaded?
           options:
-              - label: Yes
-              - label: No
+              - label: "Yes"
+              - label: "No"
     - type: textarea
       attributes:
           label: What steps did you take leading up to this issue?
