@@ -6,15 +6,18 @@ assignees:
     - nikkisaurus
 body:
     - type: input
-      id: version
       attributes:
           label: Interface Version
       validations:
           required: true
     - type: input
-      id: addon_version
       attributes:
           label: AddOn Version
+      validations:
+          required: true
+    - type: textarea
+      attributes:
+          label: What steps did you take leading up to this issue?
       validations:
           required: true
     # - type: markdown
