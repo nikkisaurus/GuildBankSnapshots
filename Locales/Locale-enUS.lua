@@ -112,7 +112,7 @@ L.BankClosedError = "Please open your guild bank frame and try again."
 L.ConfirmDeleteScan = "Are you sure you want to delete this scan?"
 L.CorruptScan = "Scan corrupt. Please try again."
 
-L.ScanDelayDescription = "Determines the amount of time between querying the guild bank transaction logs and saving the scan. Increasing this delay may help reduce corrupt scans."
+L.ScanDelayDescription = "Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan. Increasing this delay may help reduce corrupt scans."
 L.ScanReviewDescription = "Shows the review frame after manually scanning the bank."
 L.ScanReviewPathDescription = "Determines which panel is opened when the review frame is shown."
 
