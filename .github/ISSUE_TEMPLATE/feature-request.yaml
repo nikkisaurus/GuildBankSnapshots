@@ -20,4 +20,4 @@ body:
           label: Describe any alternatives you've considered.
     - type: textarea
       attributes:
-          label: Please provide any additional context or screenshots relevant to this request.
+          label: Please provide screenshots or relevant context to support your request.
