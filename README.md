@@ -16,4 +16,4 @@ All feature requests and issue reports should be addressed through the [issue tr
 
 ## **Donate**
 
-Any [donations](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=NYN3WUR4A68SE¤cy_code=USD&source=url) are much appreciated!
+Any [donations](https://www.paypal.com/donate/?business=NYN3WUR4A68SE&no_recurring=0&currency_code=USD) are much appreciated!
