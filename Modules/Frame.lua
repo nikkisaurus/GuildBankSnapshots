@@ -109,7 +109,8 @@ function private:GetScansTree(guildKey)
 
         tinsert(scanList, {
             value = scanID,
-            text = date(private.db.global.settings.preferences.dateFormat, scanID) .. " " .. scanID,
+            -- text = date(private.db.global.settings.preferences.dateFormat, scanID) .. " " .. scanID,
+            text = date(private.db.global.settings.preferences.dateFormat, scanID),
         })
     end
 
