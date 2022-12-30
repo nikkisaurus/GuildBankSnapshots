@@ -146,8 +146,16 @@ function addon:ScanGuildBank(isAutoScan, override)
     for tab = 1, numTabs do
         QueryGuildBankTab(tab)
         QueryGuildBankLog(tab)
+        -- Query transactions
+        for index = 1, GetNumGuildBankTransactions(tab) do
+            GetGuildBankTransaction(tab, index)
+        end
     end
+
     QueryGuildBankLog(MAX_GUILDBANK_TABS + 1)
+    for i = 1, GetNumGuildBankMoneyTransactions() do
+        GetGuildBankMoneyTransaction(i)
+    end
 
     -- Scan bank
     C_Timer.After(private.db.global.settings.scans.delay, function()

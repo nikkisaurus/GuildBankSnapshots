@@ -48,16 +48,18 @@ function private:GetFilterItems(guildKey, scanID, none)
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
             local info = private:GetTransactionInfo(transaction)
-            items[info.itemLink or "1"] = info.itemLink
+            if info.itemLink and info.itemLink ~= "" then
+                items[info.itemLink] = info.itemLink
+            end
         end
     end
 
     for itemLink, _ in
         addon.pairs(items, function(a, b)
-            local _, _, itemA = strfind(select(3, strfind(a or UNKNOWN, "|H(.+)|h")) or UNKNOWN, "%[(.+)%]") or UNKNOWN
-            local _, _, itemB = strfind(select(3, strfind(b or UNKNOWN, "|H(.+)|h")) or UNKNOWN, "%[(.+)%]") or UNKNOWN
+            local _, _, itemA = strfind(select(3, strfind(a, "|H(.+)|h")) or format("[%s]", UNKNOWN), "%[(.+)%]")
+            local _, _, itemB = strfind(select(3, strfind(b, "|H(.+)|h")) or format("[%s]", UNKNOWN), "%[(.+)%]")
 
-            return (itemA or UNKNOWN) < (itemB or UNKNOWN)
+            return itemA < itemB
         end)
     do
         tinsert(sorting, itemLink)
@@ -178,7 +180,7 @@ function private:GetTransactionInfo(transaction)
     local info = {
         transactionType = transactionType,
         name = name or UNKNOWN,
-        itemLink = itemLink,
+        itemLink = (itemLink and itemLink ~= "" and itemLink) or UNKNOWN,
         count = count,
         moveOrigin = moveOrigin,
         moveDestination = moveDestination,
