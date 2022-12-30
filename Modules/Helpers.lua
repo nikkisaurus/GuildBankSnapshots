@@ -54,10 +54,10 @@ function private:GetFilterItems(guildKey, scanID, none)
 
     for itemLink, _ in
         addon.pairs(items, function(a, b)
-            local _, _, itemA = strfind(select(3, strfind(a, "|H(.+)|h")), "%[(.+)%]")
-            local _, _, itemB = strfind(select(3, strfind(b, "|H(.+)|h")), "%[(.+)%]")
+            local _, _, itemA = strfind(select(3, strfind(a or UNKNOWN, "|H(.+)|h")) or UNKNOWN, "%[(.+)%]") or UNKNOWN
+            local _, _, itemB = strfind(select(3, strfind(b or UNKNOWN, "|H(.+)|h")) or UNKNOWN, "%[(.+)%]") or UNKNOWN
 
-            return itemA < itemB
+            return (itemA or UNKNOWN) < (itemB or UNKNOWN)
         end)
     do
         tinsert(sorting, itemLink)
