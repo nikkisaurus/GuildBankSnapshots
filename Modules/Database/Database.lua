@@ -51,12 +51,14 @@ function private:DeleteCorruptedScans(lastScan)
 
     local lastScanCorrupted
     for guildID, guildInfo in pairs(private.db.global.guilds) do
-        for scanID, scan in pairs(guildInfo.scans) do
+        for scanID, scan in addon.pairs(guildInfo.scans) do
             local empty = 0
+            local corruptItems
 
             -- Count empty transactions
             for i = 1, guildInfo.numTabs or MAX_GUILDBANK_TABS do
                 local tabInfo = scan.tabs[i]
+                -- Can't guarantee all corrupt logs will be cleaned up because we can't know that if either items or transactions are empty that it's corrupt rather than a new bank
                 if not tabInfo or (addon.tcount(tabInfo.items) == 0 and addon.tcount(tabInfo.transactions) == 0) then
                     empty = empty + 1
                 else
@@ -64,6 +66,12 @@ function private:DeleteCorruptedScans(lastScan)
                         local info = private:GetTransactionInfo(transaction)
                         if not info.name then
                             info.name = UNKNOWN
+                        end
+
+                        -- Delete corrupted scans with missing itemLink info
+                        if not info.itemLink or info.itemLink == "" or info.itemLink == UNKNOWN then
+                            corruptItems = true
+                            break
                         end
                     end
                 end
@@ -82,7 +90,7 @@ function private:DeleteCorruptedScans(lastScan)
             end
 
             -- Delete corrupt scan
-            if empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon.tcount(scan.tabs) == 0 and addon.tcount(scan.moneyTransactions) == 0) then
+            if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon.tcount(scan.tabs) == 0 and addon.tcount(scan.moneyTransactions) == 0) or addon.tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
                 lastScanCorrupted = scanID == lastScan
                 private.db.global.guilds[guildID].scans[scanID] = nil
             end
