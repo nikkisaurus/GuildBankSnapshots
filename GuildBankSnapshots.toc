@@ -1,11 +1,11 @@
-## Interface: 100000
+## Interface: 100002
 ## Interface-Wrath: 30400
 
 ## Title: Guild Bank Snapshots
-## Notes: Creates snapshots of guild bank logs.
+## Notes: Tool for analyzing and reviewing guild bank logs.
 ## Author: Nikketa-Hyjal-US
 ## Version: @project-version@
-## SavedVariables: GuildBankSnapshotsDB
+## SavedVariables: GuildBankSnapshotsDB, GuildBankSnapshotsDevDB
 
 ## X-Curse-Project-ID: 82308
 ## X-WoWI-ID: 22913
@@ -14,4 +14,4 @@
 libs.xml
 Locales\embeds.xml
 GuildBankSnapshots.lua
-Modules\embeds.xml
+Core\embeds.xml

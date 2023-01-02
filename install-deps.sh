@@ -14,3 +14,4 @@ svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0 .
 svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceSerializer-3.0 ./Libs/AceSerializer-3.0
 # svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceTimer-3.0 ./Libs/AceTimer-3.0
 git clone https://github.com/niketa-wow/libaddonutils ./Libs/LibAddonUtils
+git clone https://github.com/casualshammy/LibRedDropdown ./Libs/LibRedDropdown

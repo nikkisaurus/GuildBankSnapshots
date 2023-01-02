@@ -12,4 +12,5 @@
     <Include file="Libs\AceSerializer-3.0\AceSerializer-3.0.xml"/>
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
+    <Include file="Libs\LibRedDropdown\LibRedDropdown-1.0.xml"/>
 </Ui>
