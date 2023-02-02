@@ -76,6 +76,9 @@ function private:GetGuildID()
     local guildName = GetGuildInfo("player")
     local faction = UnitFactionGroup("player")
     local realm = GetRealmName()
+    if not guildName then
+        return
+    end
     local guildID = format("%s - %s (%s)", guildName, realm, faction)
 
     return guildID, guildName, faction, realm
