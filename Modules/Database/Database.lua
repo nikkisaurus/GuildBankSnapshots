@@ -195,6 +195,9 @@ end
 
 function private:UpdateGuildDatabase()
     local guildID, guildName, faction, realm = private:GetGuildID()
+    if not guildID then
+        return
+    end
     private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.defaults.guild)
     local db = private.db.global.guilds[guildID]
 
