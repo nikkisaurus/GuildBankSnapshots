@@ -6,6 +6,7 @@
 ## Author: Nikketa-Hyjal-US
 ## Version: @project-version@
 ## SavedVariables: GuildBankSnapshotsDB, GuildBankSnapshotsDevDB
+## OptionalDeps: LibStub, !LibUIDropDownMenu
 
 ## X-Curse-Project-ID: 82308
 ## X-WoWI-ID: 22913
@@ -14,4 +15,5 @@
 libs.xml
 Locales\embeds.xml
 GuildBankSnapshots.lua
+Database\embeds.xml
 Core\embeds.xml
