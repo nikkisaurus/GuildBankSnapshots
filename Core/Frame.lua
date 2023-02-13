@@ -6,96 +6,102 @@ local AceSerializer = LibStub("AceSerializer-3.0")
 
 local cols = {
     [1] = {
-        header = "",
-        width = 0.25,
-        text = function(data)
-            -- frame:SetScript("OnEnter", function()
-            --     GameTooltip:SetOwner(frame, "ANCHOR_RIGHT")
-            --     GameTooltip:AddDoubleLine("Scan Date", date(private.db.global.settings.preferences.dateFormat, data.scanID))
-            --     GameTooltip:AddDoubleLine("Tab", data.tabID)
-            --     GameTooltip:AddDoubleLine("Transaction ID", data.transactionID)
-            --     GameTooltip:Show()
-            -- end)
-
-            -- frame:SetScript("OnLeave", function()
-            --     GameTooltip:ClearLines()
-            --     GameTooltip:Hide()
-            -- end)
-
-            return ""
-        end,
-    },
-    [2] = {
         header = "Date",
         width = 1,
         text = function(data)
             return date(private.db.global.settings.preferences.dateFormat, data.scanID)
         end,
     },
-    [3] = {
+    [2] = {
         header = "Tab",
         width = 1,
         text = function(data)
-            return data.tabID
+            return private:GetTabName(private.frame.guildDropdown.selected, data.tabID)
         end,
     },
-    [4] = {
+    [3] = {
         header = "Type",
         width = 1,
         text = function(data)
             return data.transactionType
         end,
     },
-    [5] = {
+    [4] = {
         header = "Name",
         width = 1,
         text = function(data)
             return data.name
         end,
     },
-    [6] = {
+    [5] = {
         header = "Item",
-        width = 2,
+        width = 1.5,
         text = function(data)
             return data.itemLink
         end,
+        icon = function(tex, data)
+            tex:SetPoint("TOPLEFT")
+            tex:SetTexture(GetItemIcon(data.itemLink))
+            tex:SetSize(12, 12)
+        end,
+        tooltip = function(data)
+            GameTooltip:SetHyperlink(data.itemLink)
+        end,
     },
-    [7] = {
+    [6] = {
         header = "Quantity",
         width = 1,
         text = function(data)
             return data.count
         end,
     },
-    [8] = {
+    [7] = {
         header = "Comments",
         width = 1,
         text = function(data)
             return ""
         end,
     },
+    [8] = {
+        header = "",
+        width = 0.25,
+        text = function(data)
+            return ""
+        end,
+        icon = function(tex)
+            tex:SetPoint("TOP")
+            tex:SetTexture(374216)
+            tex:SetSize(12, 12)
+        end,
+        tooltip = function(data)
+            GameTooltip:AddDoubleLine("Scan Date", date(private.db.global.settings.preferences.dateFormat, data.scanID))
+            GameTooltip:AddDoubleLine("Tab", data.tabID)
+            GameTooltip:AddDoubleLine("Transaction ID", data.transactionID)
+        end,
+    },
 }
 
+local function ClearTooltip()
+    GameTooltip:ClearLines()
+    GameTooltip:Hide()
+end
+
 local function CreateRow(row, data)
-    -- Background
-    if not row.Bg then
-        row.Bg = row:CreateTexture(nil, "BACKGROUND")
-        row.Bg:SetAllPoints(row)
+    -- [[ Background ]]
+    if not row.bg then
+        row.bg = row:CreateTexture(nil, "BACKGROUND")
+        row.bg:SetAllPoints(row)
     end
 
-    local isEvenRow = mod(row:GetOrderIndex(), 2) == 0
-    row.Bg:SetColorTexture(0, 0, 0, isEvenRow and 0.75 or 0.5)
+    row.bgAlpha = mod(row:GetOrderIndex(), 2) == 0 and 0.75 or 0.5
+    row.bg:SetColorTexture(0, 0, 0, row.bgAlpha)
 
-    -- Create cells
+    -- [[ Create cells ]]
     row.cells = row.cells or {}
 
     for id, col in addon:pairs(cols) do
-        local cell = row.cells[id] or row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        local cell = row.cells[id] or CreateFrame("Button", nil, row)
         row.cells[id] = cell
-
-        -- Update text
-        cell:SetJustifyH("LEFT")
-        cell:SetText(col.text(data))
 
         -- Set points
         if id == 1 then
@@ -107,7 +113,60 @@ local function CreateRow(row, data)
         -- Set width
         function cell:DoLayout()
             cell:SetWidth(private.frame.scrollBox.colWidth * col.width)
+            cell:SetHeight(cell.text:GetStringHeight())
         end
+
+        -- Update text
+        cell:SetPushedTextOffset(0, 0)
+        cell.text = cell.text or cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        cell.text:SetPoint("LEFT")
+        cell.text:SetPoint("RIGHT")
+        cell.text:SetJustifyH("LEFT")
+        cell.text:SetJustifyV("TOP")
+        cell.text:SetText(col.text(data))
+
+        -- Icon
+        cell.icon = cell.icon or cell:CreateTexture(nil, "BACKGROUND")
+        cell.icon:SetTexture()
+        if col.icon then
+            col.icon(cell.icon, data)
+            cell.text:SetPoint("LEFT", cell.icon, "RIGHT", 1, 0)
+        end
+
+        -- Tooltips
+        cell:SetScript("OnEnter", function(self)
+            row.bg:SetColorTexture(1, 1, 1, 0.25)
+            if col.tooltip then
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                col.tooltip(data)
+                GameTooltip:Show()
+            end
+        end)
+
+        cell:SetScript("OnLeave", function()
+            row.bg:SetColorTexture(0, 0, 0, row.bgAlpha)
+            if col.tooltip then
+                ClearTooltip()
+            end
+        end)
+
+        -- Hyperlinks
+        cell:SetHyperlinksEnabled(true)
+        cell:SetScript("OnHyperlinkClick", function(self, link, text, button)
+            SetItemRef(link, text, button, self)
+        end)
+        cell:SetScript("OnHyperLinkEnter", function(self, link)
+            row.bg:SetColorTexture(1, 1, 1, 0.25)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetHyperlink(link)
+            GameTooltip:Show()
+        end)
+        cell:SetScript("OnHyperLinkLeave", function()
+            row.bg:SetColorTexture(0, 0, 0, row.bgAlpha)
+            if col.tooltip then
+                ClearTooltip()
+            end
+        end)
 
         -- Initialize width
         cell:DoLayout()
@@ -217,12 +276,6 @@ function private:InitializeFrame()
         end
     end
 
-    frame:SetScript("OnSizeChanged", function(self, width)
-        for _, header in pairs(frame.headers) do
-            header:DoLayout()
-        end
-    end)
-
     -- Create scrollBox
     local scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
     scrollBox:SetScript("OnSizeChanged", function(self, width)
@@ -240,26 +293,34 @@ function private:InitializeFrame()
     -- Create scrollView
     local scrollView = CreateScrollBoxListLinearView()
     local extentCalcFrame = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    scrollView:SetElementExtentCalculator(function(dataIndex, elementData)
-        local height = 0
-        for _, col in pairs(cols) do
-            extentCalcFrame:SetWidth(scrollBox.colWidth * col.width)
-            extentCalcFrame:SetText(col.text(elementData))
-            height = max(height, extentCalcFrame:GetStringHeight())
-        end
+    scrollView:SetElementExtent(20)
+    -- scrollView:SetElementExtentCalculator(function(dataIndex, elementData)
+    --     local height = 0
+    --     for _, col in pairs(cols) do
+    --         extentCalcFrame:SetWidth(scrollBox.colWidth * col.width)
+    --         extentCalcFrame:SetText(col.text(elementData))
+    --         height = max(height, extentCalcFrame:GetStringHeight())
+    --     end
 
-        print("Updating height", height)
+    --     print("Updating height", height)
 
-        return height
-    end)
+    --     return height
+    -- end)
     scrollView:SetElementInitializer("Frame", CreateRow)
 
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, scrollView)
 
     -- [[ Post layout ]]
+    frame.guildDropdown = guildDropdown
     frame.scrollBox = scrollBox
     scrollBox.scrollBar = scrollBar
     scrollBox.scrollView = scrollView
+
+    frame:SetScript("OnSizeChanged", function(self, width)
+        for _, header in pairs(frame.headers) do
+            header:DoLayout()
+        end
+    end)
 
     -- Select default guild
     guildDropdown:SetValue(private.db.global.settings.preferences.defaultGuild)

@@ -25,3 +25,7 @@ function private:GetGuildDisplayName(guildID)
 
     return guildFormat
 end
+
+function private:GetTabName(guildID, tabID)
+    return private.db.global.guilds[guildID].tabs[tabID] and private.db.global.guilds[guildID].tabs[tabID].name or L["Tab"] .. " " .. tabID
+end
