@@ -68,8 +68,7 @@ local cols = {
         tooltip = function(data)
             if data.itemLink then
                 GameTooltip:SetHyperlink(data.itemLink)
-            else
-                GameTooltip:AddLine(GetCoinTextureString(data.amount))
+                return true
             end
         end,
         sortValue = function(data)
@@ -479,11 +478,17 @@ function private:InitializeFrame()
                 frame:SetHighlighted(true)
                 GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
                 if col.tooltip then
-                    col.tooltip(data, frame:GetOrderIndex())
-                else
-                    GameTooltip:AddLine(cell.text:GetText(), 1, 1, 1)
+                    local success = col.tooltip(data, frame:GetOrderIndex())
+                    GameTooltip:Show()
+                    if success then
+                        return
+                    end
                 end
-                GameTooltip:Show()
+
+                if cell.text:GetWidth() < cell.text:GetStringWidth() then
+                    GameTooltip:AddLine(cell.text:GetText(), 1, 1, 1)
+                    GameTooltip:Show()
+                end
             end)
 
             cell:SetScript("OnLeave", function()
