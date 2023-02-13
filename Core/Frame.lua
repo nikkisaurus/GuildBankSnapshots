@@ -271,6 +271,7 @@ function private:InitializeFrame()
     frame:SetPoint("CENTER")
     frame:Hide()
     private.frame = frame
+    tinsert(UISpecialFrames, addonName .. "Frame")
 
     -- Set movable
     frame:EnableMouse(true)
@@ -504,10 +505,10 @@ function private:InitializeFrame()
                 cell:SetPoint("TOP")
                 if id == 1 then
                     cell:SetPoint("LEFT", 0, 0)
-                    cell:SetPoint("RIGHT", frame, "LEFT", scrollBox.colWidth * col.width, 0)
+                    cell:SetPoint("RIGHT", frame, "LEFT", (scrollBox.colWidth or 0) * col.width, 0)
                 else
                     cell:SetPoint("LEFT", frame.cells[id - 1], "RIGHT", 0, 0)
-                    cell:SetPoint("RIGHT", frame.cells[id - 1], "RIGHT", scrollBox.colWidth * col.width, 0)
+                    cell:SetPoint("RIGHT", frame.cells[id - 1], "RIGHT", (scrollBox.colWidth or 0) * col.width, 0)
                 end
                 cell:SetPoint("BOTTOM")
             end
@@ -603,7 +604,7 @@ function private:InitializeFrame()
     scrollBox.scrollView = scrollView
 
     -- Select default guild
-    -- guildDropdown:SetValue(private.db.global.settings.preferences.defaultGuild)
+    guildDropdown:SetValue(private.db.global.settings.preferences.defaultGuild)
 end
 
 function private:LoadTransactions(guildID)
@@ -688,4 +689,8 @@ function private:LoadTransactions(guildID)
     end)
 
     scrollBox:SetDataProvider(DataProvider)
+end
+
+function private:LoadFrame()
+    private.frame:Show()
 end

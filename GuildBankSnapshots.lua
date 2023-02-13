@@ -5,11 +5,12 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 function addon:OnInitialize()
     private:InitializeDatabase()
     private:InitializeFrame()
+    private:InitializeSlashCommands()
 end
 
 function addon:OnEnable()
     -- MOVE TO SLASH COMMAND
-    private.frame:Show()
+    -- private.frame:Show()
     -- private:LoadTransactions()
 end
 
@@ -36,4 +37,23 @@ end
 function private:GetTransactionDate(scanTime, year, month, day, hour)
     local sec = (hour * 60 * 60) + (day * 60 * 60 * 24) + (month * 60 * 60 * 24 * 31) + (year * 60 * 60 * 24 * 31 * 12)
     return scanTime - sec
+end
+
+function private:InitializeSlashCommands()
+    for command, commandInfo in pairs(private.db.global.commands) do
+        if commandInfo.enabled then
+            addon:RegisterChatCommand(command, commandInfo.func)
+        else
+            addon:UnregisterChatCommand(command)
+        end
+    end
+end
+
+function addon:SlashCommandFunc(input)
+    local cmd, arg = strsplit(" ", strlower(input))
+    if cmd == "scan" then
+        addon:ScanGuildBank(nil, arg == "o")
+    else
+        private:LoadFrame()
+    end
 end
