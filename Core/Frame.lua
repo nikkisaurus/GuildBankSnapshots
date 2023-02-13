@@ -115,9 +115,15 @@ local cols = {
         end,
         tooltip = function(data, order)
             GameTooltip:AddLine(format("%s %d", L["Entry"], order))
-            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID))
-            GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID)
-            GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID)
+            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID, nil, nil, nil, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID, nil, nil, nil, 1, 1, 1)
+            if data.moveOrigin and data.moveOrigin > 0 then
+                GameTooltip:AddDoubleLine(L["Move Origin ID"], data.moveOrigin, nil, nil, nil, 1, 1, 1)
+            end
+            if data.moveDestination and data.moveDestination > 0 then
+                GameTooltip:AddDoubleLine(L["Move Destination ID"], data.moveDestination, nil, nil, nil, 1, 1, 1)
+            end
         end,
     },
 }
@@ -212,7 +218,23 @@ function private:InitializeFrame()
     -- Headers
     frame.headers = {}
     for id, col in addon:pairs(cols) do
-        local header = frame.headers[id] or CreateFrame("Button", nil, frame)
+        local header = frame.headers[id] or CreateFrame("Button", nil, frame, "BackdropTemplate")
+
+        header:SetBackdrop({
+            bgFile = [[Interface\Buttons\WHITE8x8]],
+            edgeFile = [[Interface\Buttons\WHITE8x8]],
+            edgeSize = 1,
+        })
+        header:SetBackdropBorderColor(0, 0, 0)
+        header:SetBackdropColor(0, 0, 0, 0.5)
+
+        header:SetScript("OnEnter", function()
+            header.text:SetFontObject("GameFontHighlight")
+        end)
+        header:SetScript("OnLeave", function()
+            header.text:SetFontObject("GameFontNormal")
+        end)
+
         header:SetHeight(20)
         frame.headers[id] = header
 
@@ -221,24 +243,9 @@ function private:InitializeFrame()
         header.debugTex:SetColorTexture(fastrandom(), fastrandom(), fastrandom(), 1)
         header.debugTex:Hide()
 
-        header:SetResizable(true)
-        header:SetResizeBounds(20, 20)
-        header.resize = header.resize or header:CreateTexture(nil, "BACKGROUND")
-        header.resize:SetSize(5, header:GetHeight())
-        header.resize:SetPoint("RIGHT")
-        header.resize:SetColorTexture(0, 0, 0, 0.5)
-        header.resize:EnableMouse(true)
-        header.resize:SetScript("OnMouseDown", function()
-            header:StartSizing("RIGHT")
-        end)
-        header.resize:SetScript("OnMouseUp", function()
-            header:StopMovingOrSizing()
-        end)
-        header.resize:Hide()
-
         header.text = header.text or header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        header.text:SetPoint("TOPLEFT", 2, -2)
-        header.text:SetPoint("BOTTOMRIGHT", -2, 2)
+        header.text:SetPoint("TOPLEFT", 4, -4)
+        header.text:SetPoint("BOTTOMRIGHT", -4, 4)
         header.text:SetJustifyH("LEFT")
         header.text:SetJustifyV("BOTTOM")
         header.text:SetText(col.header)
@@ -282,8 +289,11 @@ function private:InitializeFrame()
     end)
 
     scrollView:SetElementInitializer("Frame", function(frame, data)
+        local order = frame:GetOrderIndex()
+        local bgAlpha = mod(order, 2) == 0 and 0.5 or 0.25
         frame.bg = frame.bg or frame:CreateTexture(nil, "BACKGROUND")
         frame.bg:SetAllPoints(frame)
+        frame.bg:SetColorTexture(0, 0, 0, bgAlpha)
 
         frame.cells = frame.cells or {}
 
@@ -297,9 +307,9 @@ function private:InitializeFrame()
             end
 
             if isHighlighted then
-                frame.bg:SetColorTexture(0, 0, 0, 0.5)
+                frame.bg:SetColorTexture(1, 1, 1, 0.25)
             else
-                frame.bg:SetTexture()
+                frame.bg:SetColorTexture(0, 0, 0, bgAlpha)
             end
         end
 
@@ -309,6 +319,7 @@ function private:InitializeFrame()
 
         frame:SetScript("OnLeave", function()
             frame:SetHighlighted()
+            ClearTooltip()
         end)
 
         for id, col in pairs(cols) do
@@ -354,18 +365,16 @@ function private:InitializeFrame()
                 frame:SetHighlighted(true)
                 GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
                 if col.tooltip then
-                    col.tooltip(data, frame:GetOrderIndex())
+                    col.tooltip(data, order)
                 else
-                    GameTooltip:AddLine(cell.text:GetText())
+                    GameTooltip:AddLine(cell.text:GetText(), 1, 1, 1)
                 end
                 GameTooltip:Show()
             end)
 
             cell:SetScript("OnLeave", function()
                 frame:SetHighlighted()
-                if col.tooltip then
-                    ClearTooltip()
-                end
+                ClearTooltip()
             end)
         end
 
@@ -388,7 +397,7 @@ function private:InitializeFrame()
         end
     end
 
-    frame:SetScript("OnSizeChanged", frame.ArrangeHeaders)
+    -- frame:SetScript("OnSizeChanged", frame.ArrangeHeaders)
 
     scrollBox:SetScript("OnSizeChanged", function(self, width)
         self.width = width

@@ -11,6 +11,8 @@ L["Money Tab"] = true
 L["Scan Date"] = true
 L["Tab ID"] = true
 L["Transaction ID"] = true
+L["Move Origin ID"] = true
+L["Move Destination ID"] = true
 
 -- -- TODO: sort
 -- L["Buy Tab"] = true
