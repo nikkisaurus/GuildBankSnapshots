@@ -13,7 +13,6 @@ local cols = {
     [1] = {
         header = "Date",
         width = 1,
-        des = true,
         text = function(data)
             return date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour))
         end,
@@ -137,35 +136,53 @@ local cols = {
     },
 }
 
-local function creationFunc()
-    local frame = CreateFrame("Frame", nil, private.frame.sorters, "BackdropTemplate")
-    frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
+local function CreateSorter()
+    local sorter = CreateFrame("Frame", nil, private.frame.sorters, "BackdropTemplate")
+    sorter:EnableMouse(true)
+    sorter:RegisterForDrag("LeftButton")
 
-    frame:SetBackdrop({
+    sorter:SetBackdrop({
         bgFile = [[Interface\Buttons\WHITE8x8]],
         edgeFile = [[Interface\Buttons\WHITE8x8]],
         edgeSize = 1,
     })
-    frame:SetBackdropBorderColor(0, 0, 0)
-    frame:SetBackdropColor(1, 1, 1, 0.1)
+    sorter:SetBackdropBorderColor(0, 0, 0)
+    sorter:SetBackdropColor(0, 0, 0, 0.5)
 
-    frame:SetHeight(20)
+    sorter:SetHeight(20)
 
-    frame:SetScript("OnDragStart", function()
-        private.frame.sorters.moving = frame.sorterID
-        frame:SetBackdropColor(1, 0.82, 0, 0.5)
+    sorter:SetScript("OnMouseUp", function()
+        local header = cols[sorter.id].header
+        if private.db.global.settings.preferences.sortDirections[sorter.id] == "des" then
+            private.db.global.settings.preferences.sortDirections[sorter.id] = "asc"
+        else
+            private.db.global.settings.preferences.sortDirections[sorter.id] = "des"
+        end
+
+        local sorting = private.db.global.settings.preferences.sortDirections[sorter.id] == "des" and "▼" or "▲"
+        sorter.textString = format("%s %s", sorting, header)
+        sorter.text:SetText(sorter.textString)
+
+        local DataProvider = private.frame.scrollBox:GetDataProvider()
+        if DataProvider then
+            DataProvider:Sort()
+        end
     end)
 
-    frame:SetScript("OnDragStop", function()
+    sorter:SetScript("OnDragStart", function()
+        private.frame.sorters.moving = sorter.sorterID
+        sorter:SetBackdropColor(1, 0.82, 0, 0.5)
+    end)
+
+    sorter:SetScript("OnDragStop", function()
         C_Timer.After(1, function()
             private.frame.sorters.moving = nil
         end)
-        frame:SetBackdropColor(1, 1, 1, 0.1)
+        sorter:SetBackdropColor(0, 0, 0, 0.5)
     end)
 
-    frame:SetScript("OnReceiveDrag", function()
-        local sorterID = frame.sorterID
+    sorter:SetScript("OnReceiveDrag", function()
+        local sorterID = sorter.sorterID
         local movingID = private.frame.sorters.moving
 
         if sorterID == movingID or not movingID then
@@ -186,49 +203,65 @@ local function creationFunc()
         private.frame.sorters:Acquire()
     end)
 
-    frame:EnableMouse(true)
-    frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    frame.text:SetAllPoints(frame)
-    frame.text:SetHeight(20)
-    frame:SetScript("OnEnter", function()
-        frame.text:SetFontObject("GameFontNormal")
-        if private.frame.sorters.moving and frame.sorterID ~= private.frame.sorters.moving then
-            frame:SetBackdropColor(1, 0.82, 0, 0.25)
+    sorter:EnableMouse(true)
+    sorter.text = sorter:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+    sorter.text:SetPoint("TOPLEFT", 4, -4)
+    sorter.text:SetPoint("BOTTOMRIGHT", -4, 4)
+    sorter.text:SetJustifyH("LEFT")
+    sorter.text:SetHeight(20)
+    sorter:SetScript("OnEnter", function()
+        sorter.text:SetTextColor(1, 0.82, 0, 1)
+        if private.frame.sorters.moving and sorter.sorterID ~= private.frame.sorters.moving then
+            local sorterID = sorter.sorterID
+            local movingID = private.frame.sorters.moving
+
+            if sorterID < movingID then
+                -- Before
+                sorter.text:SetText(sorter.textString .. " <")
+            else
+                -- After
+                sorter.text:SetText(sorter.textString .. " >")
+            end
+            sorter:SetBackdropColor(1, 1, 1, 0.25)
         end
-        if frame.text:GetWidth() > frame.text:GetStringWidth() then
+        if sorter.text:GetWidth() > sorter.text:GetStringWidth() then
             return
         end
 
-        GameTooltip:SetOwner(frame, "ANCHOR_RIGHT")
-        GameTooltip:AddLine(frame.text:GetText(), 1, 1, 1)
+        GameTooltip:SetOwner(sorter, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(cols[sorter.id].header, 1, 1, 1)
         GameTooltip:Show()
     end)
-    frame:SetScript("OnLeave", function()
-        frame.text:SetFontObject("GameFontHighlight")
-        if frame.sorterID ~= private.frame.sorters.moving then
-            frame:SetBackdropColor(1, 1, 1, 0.1)
+    sorter:SetScript("OnLeave", function()
+        sorter.text:SetTextColor(1, 1, 1, 1)
+        sorter.text:SetText(sorter.textString)
+        if sorter.sorterID ~= private.frame.sorters.moving then
+            sorter:SetBackdropColor(0, 0, 0, 0.5)
         end
         ClearTooltip()
     end)
 
-    function frame:SetID(sorterID, id)
-        frame.sorterID = sorterID
-        frame.id = id
-        frame.text:SetText(cols[id].header)
+    function sorter:SetID(sorterID, id)
+        sorter.sorterID = sorterID
+        sorter.id = id
+        local header = cols[id].header
+        local sorting = private.db.global.settings.preferences.sortDirections[id] == "des" and "▼" or "▲"
+        sorter.textString = format("%s %s", sorting, header)
+        sorter.text:SetText(sorter.textString)
     end
 
-    function frame:UpdateWidth()
-        frame:SetWidth((private.frame.sorters:GetWidth() - 10) / addon:tcount(cols))
+    function sorter:UpdateWidth()
+        sorter:SetWidth((private.frame.sorters:GetWidth() - 10) / addon:tcount(cols))
     end
 
-    return frame
+    return sorter
 end
 
-local function resetterFunc(__, frame)
+local function ResetSorter(__, frame)
     frame:Hide()
 end
 
-local sorterPool = CreateObjectPool(creationFunc, resetterFunc)
+local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
 
 function private:InitializeFrame()
     -- [[ Frame ]]
@@ -309,14 +342,14 @@ function private:InitializeFrame()
     frame.sorters:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT", 0, -15)
     frame.sorters:SetPoint("RIGHT", -10, 0)
     frame.sorters:SetHeight(30)
-    frame.sorters:SetBackdrop({
-        bgFile = [[Interface\Buttons\WHITE8x8]],
-        edgeFile = [[Interface\Buttons\WHITE8x8]],
-        edgeSize = 1,
-    })
-    frame.sorters:SetBackdropBorderColor(0, 0, 0)
-    frame.sorters:SetBackdropColor(0, 0, 0, 0.5)
-    frame.sorters.text = frame.sorters:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    -- frame.sorters:SetBackdrop({
+    --     bgFile = [[Interface\Buttons\WHITE8x8]],
+    --     edgeFile = [[Interface\Buttons\WHITE8x8]],
+    --     edgeSize = 1,
+    -- })
+    -- frame.sorters:SetBackdropBorderColor(0, 0, 0)
+    -- frame.sorters:SetBackdropColor(0, 0, 0, 0.5)
+    frame.sorters.text = frame.sorters:CreateFontString(nil, "OVERLAY", "NumberFontNormalYellow")
     frame.sorters.text:SetJustifyH("LEFT")
     frame.sorters.text:SetText(L["Sort By Header"])
     frame.sorters.text:SetPoint("BOTTOMLEFT", frame.sorters, "TOPLEFT", 0, 2)
@@ -348,7 +381,7 @@ function private:InitializeFrame()
         header.debugTex:SetColorTexture(fastrandom(), fastrandom(), fastrandom(), 1)
         header.debugTex:Hide()
 
-        header.text = header.text or header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        header.text = header.text or header:CreateFontString(nil, "OVERLAY", "NumberFontNormalYellow")
         header.text:SetPoint("TOPLEFT", 4, -4)
         header.text:SetPoint("BOTTOMRIGHT", -4, 4)
         header.text:SetJustifyH("LEFT")
@@ -356,25 +389,30 @@ function private:InitializeFrame()
         header.text:SetText(col.header)
 
         header:SetScript("OnEnter", function()
-            header.text:SetFontObject("GameFontHighlight")
-        end)
-        header:SetScript("OnLeave", function()
-            header.text:SetFontObject("GameFontNormal")
-        end)
-
-        header:SetScript("OnClick", function()
-            local DataProvider = scrollBox:GetDataProvider()
-            if DataProvider then
-                if col.des then
-                    col.des = nil
-                else
-                    col.des = true
-                end
-
-                DataProvider:Sort()
-                scrollBox:Update()
+            if header.text:GetWidth() < header.text:GetStringWidth() then
+                GameTooltip:SetOwner(header, "ANCHOR_RIGHT")
+                GameTooltip:AddLine(header.text:GetText(), 1, 1, 1)
+                GameTooltip:Show()
             end
         end)
+
+        header:SetScript("OnLeave", function()
+            ClearTooltip()
+        end)
+
+        -- header:SetScript("OnClick", function()
+        --     local DataProvider = scrollBox:GetDataProvider()
+        --     if DataProvider then
+        --         if col.des then
+        --             col.des = nil
+        --         else
+        --             col.des = true
+        --         end
+
+        --         DataProvider:Sort()
+        --         scrollBox:Update()
+        --     end
+        -- end)
 
         function header:DoLayout()
             header:SetPoint("TOP", frame.sorters, "BOTTOM", 0, -10)
@@ -448,7 +486,7 @@ function private:InitializeFrame()
             cell.icon:ClearAllPoints()
             cell.icon:SetTexture()
 
-            cell.text = cell.text or cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            cell.text = cell.text or cell:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
             cell.text:SetPoint("TOPLEFT", 2, -2)
             cell.text:SetPoint("BOTTOMRIGHT", -2, 2)
             cell.text:SetJustifyH("LEFT")
@@ -513,16 +551,15 @@ function private:InitializeFrame()
 
     function frame.sorters:Acquire()
         for _, child in pairs(frame.sorters.children) do
-            sorterPool:Release(child)
+            Sorter:Release(child)
         end
 
         for id = 1, addon:tcount(cols) do
-            local sorter = sorterPool:Acquire()
+            local sorter = Sorter:Acquire()
             sorter:SetID(id, private.db.global.settings.preferences.sortHeaders[id])
             frame.sorters.children[id] = sorter
 
             sorter:Show()
-            sorter:UpdateWidth()
             if id == 1 then
                 sorter:SetPoint("LEFT", frame.sorters, "LEFT", 5, 0)
             else
@@ -548,6 +585,7 @@ function private:InitializeFrame()
             header:DoLayout()
         end
     end
+    frame:ArrangeHeaders()
 
     scrollBox:SetScript("OnSizeChanged", function(self, width)
         self.width = width
@@ -621,8 +659,9 @@ function private:LoadTransactions(guildID)
 
     DataProvider:SetSortComparator(function(a, b)
         for i = 1, addon:tcount(private.db.global.settings.preferences.sortHeaders) do
-            local sortValue = cols[private.db.global.settings.preferences.sortHeaders[i]].sortValue
-            local des = cols[private.db.global.settings.preferences.sortHeaders[i]].des
+            local id = private.db.global.settings.preferences.sortHeaders[i]
+            local sortValue = cols[id].sortValue
+            local des = private.db.global.settings.preferences.sortDirections[id] == "des"
 
             local sortA = sortValue(a)
             local sortB = sortValue(b)
