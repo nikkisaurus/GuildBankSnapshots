@@ -8,14 +8,21 @@ local cols = {
     [1] = {
         header = "Date",
         width = 1,
+        des = true,
         text = function(data)
-            return date(private.db.global.settings.preferences.dateFormat, data.scanID)
+            return date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour))
+        end,
+        sortValue = function(data)
+            return private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour)
         end,
     },
     [2] = {
         header = "Tab",
         width = 1,
         text = function(data)
+            return private:GetTabName(private.frame.guildDropdown.selected, data.tabID)
+        end,
+        sortValue = function(data)
             return private:GetTabName(private.frame.guildDropdown.selected, data.tabID)
         end,
     },
@@ -25,6 +32,9 @@ local cols = {
         text = function(data)
             return data.transactionType
         end,
+        sortValue = function(data)
+            return data.transactionType
+        end,
     },
     [4] = {
         header = "Name",
@@ -32,51 +42,82 @@ local cols = {
         text = function(data)
             return data.name
         end,
+        sortValue = function(data)
+            return data.name
+        end,
     },
     [5] = {
-        header = "Item",
-        width = 1.5,
+        header = "Item/Amount",
+        width = 2.25,
         text = function(data)
-            return data.itemLink
+            return data.itemLink or GetCoinTextureString(data.amount)
         end,
-        icon = function(tex, data)
-            tex:SetPoint("TOPLEFT")
-            tex:SetTexture(GetItemIcon(data.itemLink))
-            tex:SetSize(12, 12)
+        icon = function(icon, data)
+            if data.itemLink then
+                icon:SetPoint("TOPLEFT")
+                icon:SetTexture(GetItemIcon(data.itemLink))
+                icon:SetSize(12, 12)
+                return true
+            end
         end,
         tooltip = function(data)
-            GameTooltip:SetHyperlink(data.itemLink)
+            if data.itemLink then
+                GameTooltip:SetHyperlink(data.itemLink)
+            else
+                GameTooltip:AddLine(GetCoinTextureString(data.amount))
+            end
+        end,
+        sortValue = function(data)
+            return data.itemLink or data.amount
         end,
     },
     [6] = {
         header = "Quantity",
-        width = 1,
+        width = 0.5,
         text = function(data)
-            return data.count
+            return data.count or ""
+        end,
+        sortValue = function(data)
+            return data.count or 0
         end,
     },
     [7] = {
-        header = "Comments",
+        header = "Move Origin",
         width = 1,
         text = function(data)
-            return ""
+            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(private.frame.guildDropdown.selected, data.moveOrigin) or ""
+        end,
+        sortValue = function(data)
+            return data.moveOrigin or 0
         end,
     },
     [8] = {
+        header = "Move Destination",
+        width = 1,
+        text = function(data)
+            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(private.frame.guildDropdown.selected, data.moveDestination) or ""
+        end,
+        sortValue = function(data)
+            return data.moveDestination or 0
+        end,
+    },
+    [9] = {
         header = "",
         width = 0.25,
         text = function(data)
             return ""
         end,
-        icon = function(tex)
-            tex:SetPoint("TOP")
-            tex:SetTexture(374216)
-            tex:SetSize(12, 12)
+        icon = function(icon)
+            icon:SetPoint("TOP")
+            icon:SetTexture(374216)
+            icon:SetSize(12, 12)
+            return true
         end,
-        tooltip = function(data)
-            GameTooltip:AddDoubleLine("Scan Date", date(private.db.global.settings.preferences.dateFormat, data.scanID))
-            GameTooltip:AddDoubleLine("Tab", data.tabID)
-            GameTooltip:AddDoubleLine("Transaction ID", data.transactionID)
+        tooltip = function(data, order)
+            GameTooltip:AddLine(format("%s %d", L["Entry"], order))
+            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID))
+            GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID)
+            GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID)
         end,
     },
 }
@@ -84,100 +125,6 @@ local cols = {
 local function ClearTooltip()
     GameTooltip:ClearLines()
     GameTooltip:Hide()
-end
-
-local function CreateRow(row, data)
-    -- [[ Background ]]
-    if not row.bg then
-        row.bg = row:CreateTexture(nil, "BACKGROUND")
-        row.bg:SetAllPoints(row)
-    end
-
-    row.bgAlpha = mod(row:GetOrderIndex(), 2) == 0 and 0.75 or 0.5
-    row.bg:SetColorTexture(0, 0, 0, row.bgAlpha)
-
-    -- [[ Create cells ]]
-    row.cells = row.cells or {}
-
-    for id, col in addon:pairs(cols) do
-        local cell = row.cells[id] or CreateFrame("Button", nil, row)
-        row.cells[id] = cell
-
-        -- Set points
-        if id == 1 then
-            cell:SetPoint("TOPLEFT")
-        else
-            cell:SetPoint("TOPLEFT", row.cells[id - 1], "TOPRIGHT", 0, 0)
-        end
-
-        -- Set width
-        function cell:DoLayout()
-            cell:SetWidth(private.frame.scrollBox.colWidth * col.width)
-            cell:SetHeight(cell.text:GetStringHeight())
-        end
-
-        -- Update text
-        cell:SetPushedTextOffset(0, 0)
-        cell.text = cell.text or cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        cell.text:SetPoint("LEFT")
-        cell.text:SetPoint("RIGHT")
-        cell.text:SetJustifyH("LEFT")
-        cell.text:SetJustifyV("TOP")
-        cell.text:SetText(col.text(data))
-
-        -- Icon
-        cell.icon = cell.icon or cell:CreateTexture(nil, "BACKGROUND")
-        cell.icon:SetTexture()
-        if col.icon then
-            col.icon(cell.icon, data)
-            cell.text:SetPoint("LEFT", cell.icon, "RIGHT", 1, 0)
-        end
-
-        -- Tooltips
-        cell:SetScript("OnEnter", function(self)
-            row.bg:SetColorTexture(1, 1, 1, 0.25)
-            if col.tooltip then
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                col.tooltip(data)
-                GameTooltip:Show()
-            end
-        end)
-
-        cell:SetScript("OnLeave", function()
-            row.bg:SetColorTexture(0, 0, 0, row.bgAlpha)
-            if col.tooltip then
-                ClearTooltip()
-            end
-        end)
-
-        -- Hyperlinks
-        cell:SetHyperlinksEnabled(true)
-        cell:SetScript("OnHyperlinkClick", function(self, link, text, button)
-            SetItemRef(link, text, button, self)
-        end)
-        cell:SetScript("OnHyperLinkEnter", function(self, link)
-            row.bg:SetColorTexture(1, 1, 1, 0.25)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetHyperlink(link)
-            GameTooltip:Show()
-        end)
-        cell:SetScript("OnHyperLinkLeave", function()
-            row.bg:SetColorTexture(0, 0, 0, row.bgAlpha)
-            if col.tooltip then
-                ClearTooltip()
-            end
-        end)
-
-        -- Initialize width
-        cell:DoLayout()
-    end
-
-    -- Update cells OnSizeChanged
-    row:SetScript("OnSizeChanged", function(self)
-        for _, cell in pairs(self.cells) do
-            cell:DoLayout()
-        end
-    end)
 end
 
 function private:InitializeFrame()
@@ -254,61 +201,203 @@ function private:InitializeFrame()
         guildDropdown:Initialize()
     end)
 
+    -- Sorting
+    frame.sorting = { 1, 2, 4, 3, 5, 6, 7, 8 }
+
     -- [[ Table ]]
     ---------------------
+    local scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
+    local scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+
     -- Headers
     frame.headers = {}
     for id, col in addon:pairs(cols) do
-        local header = frame.headers[id] or frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        local header = frame.headers[id] or CreateFrame("Button", nil, frame)
+        header:SetHeight(20)
         frame.headers[id] = header
-        header:SetJustifyH("LEFT")
-        header:SetText(col.header)
-        if id == 1 then
-            header:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT", 0, -10) -- ! Change anchor here when elements are added
-        else
-            header:SetPoint("LEFT", frame.headers[id - 1], "RIGHT", 0, 0)
-        end
+
+        header.debugTex = header.debugTex or header:CreateTexture(nil, "BACKGROUND")
+        header.debugTex:SetAllPoints(header)
+        header.debugTex:SetColorTexture(fastrandom(), fastrandom(), fastrandom(), 1)
+        header.debugTex:Hide()
+
+        header:SetResizable(true)
+        header:SetResizeBounds(20, 20)
+        header.resize = header.resize or header:CreateTexture(nil, "BACKGROUND")
+        header.resize:SetSize(5, header:GetHeight())
+        header.resize:SetPoint("RIGHT")
+        header.resize:SetColorTexture(0, 0, 0, 0.5)
+        header.resize:EnableMouse(true)
+        header.resize:SetScript("OnMouseDown", function()
+            header:StartSizing("RIGHT")
+        end)
+        header.resize:SetScript("OnMouseUp", function()
+            header:StopMovingOrSizing()
+        end)
+        header.resize:Hide()
+
+        header.text = header.text or header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        header.text:SetPoint("TOPLEFT", 2, -2)
+        header.text:SetPoint("BOTTOMRIGHT", -2, 2)
+        header.text:SetJustifyH("LEFT")
+        header.text:SetJustifyV("BOTTOM")
+        header.text:SetText(col.header)
+
+        header:SetScript("OnClick", function()
+            local DataProvider = scrollBox:GetDataProvider()
+            if DataProvider then
+                if col.des then
+                    col.des = nil
+                else
+                    col.des = true
+                end
+
+                DataProvider:Sort()
+            end
+        end)
 
         function header:DoLayout()
-            local contentWidth = frame:GetWidth() - 68
-            local colWidth = (contentWidth / addon:tcount(cols)) * col.width
-            header:SetWidth(colWidth)
+            header:SetPoint("TOP", guildDropdown, "BOTTOM", 0, -10)
+            if id == 1 then
+                header:SetPoint("LEFT", guildDropdown, "LEFT", 0, 0)
+            else
+                header:SetPoint("LEFT", frame.headers[id - 1], "RIGHT", 0, 0)
+            end
+            header:SetWidth((scrollBox.colWidth or 0) * col.width)
         end
     end
-
-    -- Create scrollBox
-    local scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
-    scrollBox:SetScript("OnSizeChanged", function(self, width)
-        self.colWidth = width / addon:tcount(cols)
-    end)
-
-    local scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
 
     -- Set scrollBox/scrollBar points
     scrollBar:SetPoint("BOTTOMRIGHT", -10, 10)
     scrollBar:SetPoint("TOP", frame.headers[1] or guildDropdown, "BOTTOM", 0, -10)
     scrollBox:SetPoint("TOPLEFT", frame.headers[1] or guildDropdown, "BOTTOMLEFT", 0, -10)
-    scrollBox:SetPoint("BOTTOMRIGHT", scrollBar, "BOTTOMLEFT", -10, 0)
+    scrollBox:SetPoint("RIGHT", scrollBar, "LEFT", -10, 0)
+    scrollBox:SetPoint("BOTTOM", frame, "BOTTOM", 0, 10)
 
     -- Create scrollView
     local scrollView = CreateScrollBoxListLinearView()
-    local extentCalcFrame = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    scrollView:SetElementExtent(20)
-    -- scrollView:SetElementExtentCalculator(function(dataIndex, elementData)
-    --     local height = 0
-    --     for _, col in pairs(cols) do
-    --         extentCalcFrame:SetWidth(scrollBox.colWidth * col.width)
-    --         extentCalcFrame:SetText(col.text(elementData))
-    --         height = max(height, extentCalcFrame:GetStringHeight())
-    --     end
 
-    --     print("Updating height", height)
+    scrollView:SetElementExtentCalculator(function()
+        return 20
+    end)
 
-    --     return height
-    -- end)
-    scrollView:SetElementInitializer("Frame", CreateRow)
+    scrollView:SetElementInitializer("Frame", function(frame, data)
+        frame.bg = frame.bg or frame:CreateTexture(nil, "BACKGROUND")
+        frame.bg:SetAllPoints(frame)
+
+        frame.cells = frame.cells or {}
+
+        function frame:SetHighlighted(isHighlighted)
+            for _, cell in pairs(frame.cells) do
+                if isHighlighted then
+                    cell.text:SetTextColor(1, 0.82, 0, 1)
+                else
+                    cell.text:SetTextColor(1, 1, 1, 1)
+                end
+            end
+
+            if isHighlighted then
+                frame.bg:SetColorTexture(0, 0, 0, 0.5)
+            else
+                frame.bg:SetTexture()
+            end
+        end
+
+        frame:SetScript("OnEnter", function()
+            frame:SetHighlighted(true)
+        end)
+
+        frame:SetScript("OnLeave", function()
+            frame:SetHighlighted()
+        end)
+
+        for id, col in pairs(cols) do
+            local cell = frame.cells[id] or CreateFrame("Button", nil, frame)
+            frame.cells[id] = cell
+
+            cell.debugTex = cell.debugTex or cell:CreateTexture(nil, "BACKGROUND")
+            cell.debugTex:SetAllPoints(cell)
+            cell.debugTex:SetColorTexture(fastrandom(), fastrandom(), fastrandom(), 1)
+            cell.debugTex:Hide()
+
+            cell.icon = cell.icon or cell:CreateTexture(nil, "ARTWORK")
+            cell.icon:ClearAllPoints()
+            cell.icon:SetTexture()
+
+            cell.text = cell.text or cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            cell.text:SetPoint("TOPLEFT", 2, -2)
+            cell.text:SetPoint("BOTTOMRIGHT", -2, 2)
+            cell.text:SetJustifyH("LEFT")
+            cell.text:SetJustifyV("TOP")
+            cell.text:SetText(col.text(data))
+
+            if col.icon then
+                local success = col.icon(cell.icon, data)
+                if success then
+                    cell.text:SetPoint("TOPLEFT", cell.icon, "TOPRIGHT", 2, 0)
+                end
+            end
+
+            function cell:SetPoints()
+                cell:SetPoint("TOP")
+                if id == 1 then
+                    cell:SetPoint("LEFT", 0, 0)
+                    cell:SetPoint("RIGHT", frame, "LEFT", scrollBox.colWidth * col.width, 0)
+                else
+                    cell:SetPoint("LEFT", frame.cells[id - 1], "RIGHT", 0, 0)
+                    cell:SetPoint("RIGHT", frame.cells[id - 1], "RIGHT", scrollBox.colWidth * col.width, 0)
+                end
+                cell:SetPoint("BOTTOM")
+            end
+
+            cell:SetScript("OnEnter", function()
+                frame:SetHighlighted(true)
+                GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
+                if col.tooltip then
+                    col.tooltip(data, frame:GetOrderIndex())
+                else
+                    GameTooltip:AddLine(cell.text:GetText())
+                end
+                GameTooltip:Show()
+            end)
+
+            cell:SetScript("OnLeave", function()
+                frame:SetHighlighted()
+                if col.tooltip then
+                    ClearTooltip()
+                end
+            end)
+        end
+
+        function frame:ArrangeCells()
+            for _, cell in pairs(frame.cells) do
+                cell:SetPoints()
+            end
+        end
+
+        frame:SetScript("OnSizeChanged", frame.ArrangeCells)
+        frame:ArrangeCells()
+    end)
 
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, scrollView)
+
+    -- OnSizeChanged scripts
+    function frame:ArrangeHeaders()
+        for _, header in pairs(frame.headers) do
+            header:DoLayout()
+        end
+    end
+
+    frame:SetScript("OnSizeChanged", frame.ArrangeHeaders)
+
+    scrollBox:SetScript("OnSizeChanged", function(self, width)
+        self.width = width
+        self.colWidth = width / addon:tcount(cols)
+        frame:ArrangeHeaders()
+
+        -- Need this to populate new entries when scrollBox gains height
+        scrollBox:Update()
+    end)
 
     -- [[ Post layout ]]
     frame.guildDropdown = guildDropdown
@@ -316,14 +405,8 @@ function private:InitializeFrame()
     scrollBox.scrollBar = scrollBar
     scrollBox.scrollView = scrollView
 
-    frame:SetScript("OnSizeChanged", function(self, width)
-        for _, header in pairs(frame.headers) do
-            header:DoLayout()
-        end
-    end)
-
     -- Select default guild
-    guildDropdown:SetValue(private.db.global.settings.preferences.defaultGuild)
+    -- guildDropdown:SetValue(private.db.global.settings.preferences.defaultGuild)
 end
 
 function private:LoadTransactions(guildID)
@@ -358,7 +441,44 @@ function private:LoadTransactions(guildID)
                 })
             end
         end
+
+        for transactionID, transaction in pairs(scan.moneyTransactions) do
+            local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+
+            DataProvider:Insert({
+                scanID = scanID,
+                tabID = MAX_GUILDBANK_TABS + 1,
+                transactionID = transactionID,
+                transactionType = transactionType,
+                name = name,
+                amount = amount,
+                year = year,
+                month = month,
+                day = day,
+                hour = hour,
+            })
+        end
     end
+
+    DataProvider:SetSortComparator(function(a, b)
+        for i = 1, #private.frame.sorting do
+            local sortValue = cols[private.frame.sorting[i]].sortValue
+            local des = cols[private.frame.sorting[i]].des
+            if sortValue(a) > sortValue(b) then
+                if des then
+                    return true
+                else
+                    return false
+                end
+            elseif sortValue(a) < sortValue(b) then
+                if des then
+                    return false
+                else
+                    return true
+                end
+            end
+        end
+    end)
 
     scrollBox:SetDataProvider(DataProvider)
 end

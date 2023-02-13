@@ -5,6 +5,12 @@ LibStub("LibAddonUtils-2.0"):Embed(addon)
 
 L["Add Filter"] = true
 L["Filters"] = true
+L["Tab"] = true
+L["Entry"] = true
+L["Money Tab"] = true
+L["Scan Date"] = true
+L["Tab ID"] = true
+L["Transaction ID"] = true
 
 -- -- TODO: sort
 -- L["Buy Tab"] = true

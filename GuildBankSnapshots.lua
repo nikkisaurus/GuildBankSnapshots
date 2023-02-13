@@ -27,5 +27,13 @@ function private:GetGuildDisplayName(guildID)
 end
 
 function private:GetTabName(guildID, tabID)
+    if tabID == MAX_GUILDBANK_TABS + 1 then
+        return L["Money Tab"]
+    end
     return private.db.global.guilds[guildID].tabs[tabID] and private.db.global.guilds[guildID].tabs[tabID].name or L["Tab"] .. " " .. tabID
+end
+
+function private:GetTransactionDate(scanTime, year, month, day, hour)
+    local sec = (hour * 60 * 60) + (day * 60 * 60 * 24) + (month * 60 * 60 * 24 * 31) + (year * 60 * 60 * 24 * 31 * 12)
+    return scanTime - sec
 end
