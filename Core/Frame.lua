@@ -209,7 +209,7 @@ local function CreateSorter()
             private.frame.sorters.dragging = nil
         end)
 
-        sorter:SetBackdropColor(unpack(private.defaults.gui.bgColor))
+        sorter:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
     end)
 
     sorter:SetScript("OnEnter", function(self)
@@ -251,7 +251,7 @@ local function CreateSorter()
         self:UpdateText()
         if self.sorterID ~= private.frame.sorters.dragging then
             -- Don't reset backdrop on dragging frame; this is done in OnDragStop
-            self:SetBackdropColor(unpack(private.defaults.gui.bgColor))
+            self:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
         end
 
         -- Hide tooltips
@@ -272,6 +272,8 @@ local function CreateSorter()
         if not draggingID or draggingID == sorterID then
             return
         end
+
+        private.frame.sorters.dragging = nil
 
         -- Get the colID to be inserted and remove the col from the sorting table
         -- The insert will go before/after by default because of the removed entry
@@ -294,98 +296,65 @@ local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
 
 -- [[ Frame ]]
 --------------
+local function InitializeGuildDropdown(self, level, menuList)
+    local info = self.info
+
+    local sortKeys = function(a, b)
+        return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
+    end
+
+    for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
+        info.value = guildID
+        info.text = private:GetGuildDisplayName(guildID)
+        info.checked = self.selected == guildID
+        info.func = function()
+            self:SetValue(self, guildID)
+        end
+
+        self:AddButton()
+    end
+end
+
+local function SetGuildDropdown(self, guildID)
+    self.selected = guildID
+    self:SetText(private:GetGuildDisplayName(guildID))
+    private:LoadTransactions(guildID)
+end
+
 function private:InitializeFrame()
-    -- [[ Frame ]]
     local frame = CreateFrame("Frame", addonName .. "Frame", UIParent, "SettingsFrameTemplate")
+    frame.NineSlice.Text:SetFont(unpack(private.defaults.gui.fontLarge))
     frame.NineSlice.Text:SetText(L.addonName)
     frame:SetSize(1000, 500)
     frame:SetPoint("CENTER")
     frame:Hide()
+
+    private:SetFrameSizing(frame, 500, 300, GetScreenWidth() - 400, GetScreenHeight() - 200)
+    private:AddSpecialFrame(frame)
     private.frame = frame
-    tinsert(UISpecialFrames, addonName .. "Frame")
-
-    -- Set movable
-    frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetMovable(true)
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-
-    -- Set resizable
-    frame:SetResizable(true)
-    frame:SetResizeBounds(500, 300, GetScreenWidth() - 400, GetScreenHeight() - 200)
-
-    local resize = CreateFrame("Button", nil, frame)
-    resize:SetPoint("BOTTOMRIGHT", -2, 2)
-    resize:SetNormalTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down]])
-    resize:SetHighlightTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight]])
-    resize:SetPushedTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up]])
-    resize:SetSize(16, 16)
-    resize:EnableMouse(true)
-
-    resize:SetScript("OnMouseDown", function()
-        frame:StartSizing("BOTTOMRIGHT")
-    end)
-
-    resize:SetScript("OnMouseUp", function()
-        frame:StopMovingOrSizing()
-    end)
 
     -- [[ Ribbon ]]
     ----------------
-    local guildDropdown = LibDD:Create_UIDropDownMenu(addonName .. "GuildDropdown", frame)
-    LibDD:UIDropDownMenu_SetWidth(guildDropdown, 150)
-    guildDropdown:SetPoint("TOPLEFT", frame.Bg, "TOPLEFT", 10, -10)
-
-    function guildDropdown:SetValue(guildID)
-        self.selected = guildID
-        LibDD:UIDropDownMenu_SetText(self, private:GetGuildDisplayName(guildID))
-        private:LoadTransactions(guildID)
-    end
-
-    guildDropdown.info = LibDD:UIDropDownMenu_CreateInfo()
-    function guildDropdown:Initialize()
-        LibDD:UIDropDownMenu_Initialize(guildDropdown, function(self, level, menuList)
-            local info = self.info
-
-            local sortKeys = function(a, b)
-                return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
-            end
-
-            for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
-                info.value = guildID
-                info.text = private:GetGuildDisplayName(guildID)
-                info.checked = self.selected == guildID
-                info.func = function()
-                    self:SetValue(guildID)
-                end
-
-                LibDD:UIDropDownMenu_AddButton(info)
-            end
-        end)
-    end
-
-    guildDropdown:SetScript("OnShow", function()
-        guildDropdown:Initialize()
+    -- Guild dropdown
+    frame.guildDD = private:CreateDropdown(frame, addonName .. "GuildDropdown", SetGuildDropdown, InitializeGuildDropdown)
+    frame.guildDD:SetDropdownWidth(200)
+    frame.guildDD:SetPoint("TOPLEFT", frame.Bg, "TOPLEFT", 10, -10)
+    frame.guildDD:SetScript("OnShow", function(self)
+        self:Initialize()
     end)
 
-    -- Sorting
+    -- Sorters
     frame.sorters = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.sorters:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT", 0, -15)
-    frame.sorters:SetPoint("RIGHT", -10, 0)
     frame.sorters:SetHeight(30)
-    -- frame.sorters:SetBackdrop({
-    --     bgFile = [[Interface\Buttons\WHITE8x8]],
-    --     edgeFile = [[Interface\Buttons\WHITE8x8]],
-    --     edgeSize = 1,
-    -- })
-    -- frame.sorters:SetBackdropBorderColor(0, 0, 0)
-    -- frame.sorters:SetBackdropColor(0, 0, 0, 0.5)
+    frame.sorters.children = {}
+
     frame.sorters.text = frame.sorters:CreateFontString(nil, "OVERLAY", "NumberFontNormalYellow")
     frame.sorters.text:SetJustifyH("LEFT")
     frame.sorters.text:SetText(L["Sort By Header"])
-    frame.sorters.text:SetPoint("BOTTOMLEFT", frame.sorters, "TOPLEFT", 0, 2)
-    frame.sorters.children = {}
+
+    frame.sorters.text:SetPoint("TOPLEFT", frame.guildDD, "BOTTOMLEFT", 0, -10)
+    frame.sorters:SetPoint("TOPLEFT", frame.sorters.text, "BOTTOMLEFT", 0, -2)
+    frame.sorters:SetPoint("RIGHT", -10, 0)
 
     -- [[ Table ]]
     ---------------------
@@ -636,15 +605,21 @@ function private:InitializeFrame()
     end)
 
     -- [[ Post layout ]]
-    frame.guildDropdown = guildDropdown
+    frame.guildDropdown = frame.guildDD
     frame.scrollBox = scrollBox
     scrollBox.scrollBar = scrollBar
     scrollBox.scrollView = scrollView
 
     -- Select default guild
-    guildDropdown:SetValue(private.db.global.settings.preferences.defaultGuild)
+    -- guildDD:SetValue(private.db.global.settings.preferences.defaultGuild)
 end
 
+function private:LoadFrame()
+    private.frame:Show()
+end
+
+-- [[ Data Provider ]]
+----------------------
 function private:LoadTransactions(guildID)
     local scrollBox = private.frame.scrollBox
     -- Clear transactions if no guildID is provided
@@ -727,8 +702,4 @@ function private:LoadTransactions(guildID)
     end)
 
     scrollBox:SetDataProvider(DataProvider)
-end
-
-function private:LoadFrame()
-    private.frame:Show()
 end
