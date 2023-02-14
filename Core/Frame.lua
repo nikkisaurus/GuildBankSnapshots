@@ -4,11 +4,8 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 local AceSerializer = LibStub("AceSerializer-3.0")
 
-local function ClearTooltip()
-    GameTooltip:ClearLines()
-    GameTooltip:Hide()
-end
-
+-- [[ Col/Headers ]]
+-------------
 local cols = {
     [1] = {
         header = "Date",
@@ -136,123 +133,155 @@ local cols = {
     },
 }
 
+-- [[ Sorter ]]
+---------------
 local function CreateSorter()
     local sorter = CreateFrame("Frame", nil, private.frame.sorters, "BackdropTemplate")
     sorter:EnableMouse(true)
     sorter:RegisterForDrag("LeftButton")
-
-    sorter:SetBackdrop({
-        bgFile = [[Interface\Buttons\WHITE8x8]],
-        edgeFile = [[Interface\Buttons\WHITE8x8]],
-        edgeSize = 1,
-    })
-    sorter:SetBackdropBorderColor(0, 0, 0)
-    sorter:SetBackdropColor(0, 0, 0, 0.5)
-
     sorter:SetHeight(20)
 
-    sorter:SetScript("OnMouseUp", function()
-        local header = cols[sorter.id].header
-        if private.db.global.settings.preferences.sortDirections[sorter.id] == "des" then
-            private.db.global.settings.preferences.sortDirections[sorter.id] = "asc"
-        else
-            private.db.global.settings.preferences.sortDirections[sorter.id] = "des"
-        end
+    -- Textures
+    private:AddBackdrop(sorter)
 
-        local sorting = private.db.global.settings.preferences.sortDirections[sorter.id] == "des" and "▼" or "▲"
-        sorter.textString = format("%s %s", sorting, header)
-        sorter.text:SetText(sorter.textString)
+    -- Text
+    sorter.orderText = private:CreateFontString(sorter)
+    sorter.orderText:SetSize(20, 20)
+    sorter.orderText:SetPoint("RIGHT", -4, 0)
 
-        local DataProvider = private.frame.scrollBox:GetDataProvider()
-        if DataProvider then
-            DataProvider:Sort()
-        end
-    end)
-
-    sorter:SetScript("OnDragStart", function()
-        private.frame.sorters.moving = sorter.sorterID
-        sorter:SetBackdropColor(1, 0.82, 0, 0.5)
-    end)
-
-    sorter:SetScript("OnDragStop", function()
-        C_Timer.After(1, function()
-            private.frame.sorters.moving = nil
-        end)
-        sorter:SetBackdropColor(0, 0, 0, 0.5)
-    end)
-
-    sorter:SetScript("OnReceiveDrag", function()
-        local sorterID = sorter.sorterID
-        local movingID = private.frame.sorters.moving
-
-        if sorterID == movingID or not movingID then
-            return
-        end
-
-        local value = private.frame.sorters.children[movingID].id
-        tremove(private.db.global.settings.preferences.sortHeaders, movingID)
-
-        if sorterID < movingID then
-            -- Before
-            tinsert(private.db.global.settings.preferences.sortHeaders, sorterID, value)
-        else
-            -- After
-            tinsert(private.db.global.settings.preferences.sortHeaders, sorterID, value)
-        end
-
-        private.frame.sorters:Acquire()
-    end)
-
-    sorter:EnableMouse(true)
-    sorter.text = sorter:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
-    sorter.text:SetPoint("TOPLEFT", 4, -4)
-    sorter.text:SetPoint("BOTTOMRIGHT", -4, 4)
-    sorter.text:SetJustifyH("LEFT")
+    sorter.text = private:CreateFontString(sorter)
     sorter.text:SetHeight(20)
-    sorter:SetScript("OnEnter", function()
-        sorter.text:SetTextColor(1, 0.82, 0, 1)
-        if private.frame.sorters.moving and sorter.sorterID ~= private.frame.sorters.moving then
-            local sorterID = sorter.sorterID
-            local movingID = private.frame.sorters.moving
+    sorter.text:SetPoint("TOPLEFT", 4, -4)
+    sorter.text:SetPoint("RIGHT", sorter.orderText, "LEFT", -4, 0)
+    sorter.text:SetPoint("BOTTOM", 0, 4)
 
-            if sorterID < movingID then
-                -- Before
-                sorter.text:SetText(sorter.textString .. " <")
-            else
-                -- After
-                sorter.text:SetText(sorter.textString .. " >")
-            end
-            sorter:SetBackdropColor(1, 1, 1, 0.25)
-        end
-        if sorter.text:GetWidth() > sorter.text:GetStringWidth() then
+    -- Methods
+    function sorter:IsDescending()
+        if not self.colID then
             return
         end
 
-        GameTooltip:SetOwner(sorter, "ANCHOR_RIGHT")
-        GameTooltip:AddLine(cols[sorter.id].header, 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    sorter:SetScript("OnLeave", function()
-        sorter.text:SetTextColor(1, 1, 1, 1)
-        sorter.text:SetText(sorter.textString)
-        if sorter.sorterID ~= private.frame.sorters.moving then
-            sorter:SetBackdropColor(0, 0, 0, 0.5)
-        end
-        ClearTooltip()
-    end)
+        return private.db.global.settings.preferences.descendingHeaders[self.colID]
+    end
 
-    function sorter:SetID(sorterID, id)
+    function sorter:SetColID(sorterID, colID)
         sorter.sorterID = sorterID
-        sorter.id = id
-        local header = cols[id].header
-        local sorting = private.db.global.settings.preferences.sortDirections[id] == "des" and "▼" or "▲"
-        sorter.textString = format("%s %s", sorting, header)
-        sorter.text:SetText(sorter.textString)
+        sorter.colID = colID
+        self:UpdateText()
+    end
+
+    function sorter:SetDescending(bool)
+        if not self.colID then
+            return
+        end
+
+        private.db.global.settings.preferences.descendingHeaders[self.colID] = bool
+    end
+
+    function sorter:UpdateText(insertSorter)
+        if not self.colID then
+            self.orderText:SetText("")
+            self.text:SetText("")
+            return
+        end
+
+        local order = self:IsDescending() and "▼" or "▲"
+        self.orderText:SetText(order)
+
+        local header = cols[self.colID].header
+        self.text:SetText(format("%s%s%s", insertSorter or "", insertSorter and " " or "", header))
     end
 
     function sorter:UpdateWidth()
-        sorter:SetWidth((private.frame.sorters:GetWidth() - 10) / addon:tcount(cols))
+        self:SetWidth((self:GetParent():GetWidth() - 10) / addon:tcount(cols))
     end
+
+    -- Scripts
+    sorter:SetScript("OnDragStart", function(self)
+        private.frame.sorters.dragging = self.sorterID
+        self:SetBackdropColor(unpack(private.defaults.gui.emphasizeBgColor))
+    end)
+
+    sorter:SetScript("OnDragStop", function(self)
+        -- Must reset dragging ID in this script in addition to the receiving sorter in case it isn't dropped on a valid sorter
+        -- Need to delay to make sure the ID is still accessible to the receiving sorter
+        C_Timer.After(1, function()
+            private.frame.sorters.dragging = nil
+        end)
+
+        sorter:SetBackdropColor(unpack(private.defaults.gui.bgColor))
+    end)
+
+    sorter:SetScript("OnEnter", function(self)
+        -- Emphasize highlighted text
+        self.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
+
+        -- Add indicator for sorting insertion
+        local sorterID = self.sorterID
+        local draggingID = private.frame.sorters.dragging
+
+        if draggingID and draggingID ~= sorterID then
+            if sorterID < draggingID then
+                -- Insert before
+                self:UpdateText("<")
+            else
+                -- Insert after
+                self:UpdateText(">")
+            end
+
+            -- Highlight frame to indicate where dragged header is moving
+            sorter:SetBackdropColor(unpack(private.defaults.gui.highlightBgColor))
+        end
+
+        -- Show tooltip if text is truncated
+        if not self.colID or self.text:GetWidth() > self.text:GetStringWidth() then
+            return
+        end
+
+        private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, cols)
+            GameTooltip:AddLine(cols[self.colID].header, 1, 1, 1)
+        end, self, cols)
+    end)
+
+    sorter:SetScript("OnLeave", function(self)
+        -- Restore default text color
+        sorter.text:SetTextColor(unpack(private.defaults.gui.fontColor))
+
+        -- Remove sorting indicator
+        self:UpdateText()
+        if self.sorterID ~= private.frame.sorters.dragging then
+            -- Don't reset backdrop on dragging frame; this is done in OnDragStop
+            self:SetBackdropColor(unpack(private.defaults.gui.bgColor))
+        end
+
+        -- Hide tooltips
+        private:ClearTooltip()
+    end)
+
+    sorter:SetScript("OnMouseUp", function(self)
+        -- Changes sorting order
+        self:SetDescending(not private.db.global.settings.preferences.descendingHeaders[sorter.colID])
+        self:UpdateText()
+        private.frame.scrollBox.Sort()
+    end)
+
+    sorter:SetScript("OnReceiveDrag", function(self)
+        local sorterID = self.sorterID
+        local draggingID = private.frame.sorters.dragging
+
+        if not draggingID or draggingID == sorterID then
+            return
+        end
+
+        -- Get the colID to be inserted and remove the col from the sorting table
+        -- The insert will go before/after by default because of the removed entry
+        local colID = private.frame.sorters.children[draggingID].colID
+        tremove(private.db.global.settings.preferences.sortHeaders, draggingID)
+        tinsert(private.db.global.settings.preferences.sortHeaders, sorterID, colID)
+
+        -- Reset sorters based on new order
+        self:GetParent():LoadSorters()
+    end)
 
     return sorter
 end
@@ -263,6 +292,8 @@ end
 
 local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
 
+-- [[ Frame ]]
+--------------
 function private:InitializeFrame()
     -- [[ Frame ]]
     local frame = CreateFrame("Frame", addonName .. "Frame", UIParent, "SettingsFrameTemplate")
@@ -359,6 +390,13 @@ function private:InitializeFrame()
     -- [[ Table ]]
     ---------------------
     local scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
+    function scrollBox:Sort()
+        local DataProvider = scrollBox:GetDataProvider()
+        if DataProvider then
+            DataProvider:Sort()
+        end
+    end
+
     local scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
 
     -- Headers
@@ -398,7 +436,7 @@ function private:InitializeFrame()
         end)
 
         header:SetScript("OnLeave", function()
-            ClearTooltip()
+            private:ClearTooltip()
         end)
 
         -- header:SetScript("OnClick", function()
@@ -471,7 +509,7 @@ function private:InitializeFrame()
 
         frame:SetScript("OnLeave", function()
             frame:SetHighlighted()
-            ClearTooltip()
+            private:ClearTooltip()
         end)
 
         for id, col in pairs(cols) do
@@ -532,7 +570,7 @@ function private:InitializeFrame()
 
             cell:SetScript("OnLeave", function()
                 frame:SetHighlighted()
-                ClearTooltip()
+                private:ClearTooltip()
             end)
         end
 
@@ -550,14 +588,14 @@ function private:InitializeFrame()
 
     -- OnSizeChanged scripts
 
-    function frame.sorters:Acquire()
+    function frame.sorters:LoadSorters()
         for _, child in pairs(frame.sorters.children) do
             Sorter:Release(child)
         end
 
         for id = 1, addon:tcount(cols) do
             local sorter = Sorter:Acquire()
-            sorter:SetID(id, private.db.global.settings.preferences.sortHeaders[id])
+            sorter:SetColID(id, private.db.global.settings.preferences.sortHeaders[id])
             frame.sorters.children[id] = sorter
 
             sorter:Show()
@@ -575,7 +613,7 @@ function private:InitializeFrame()
         end
     end
 
-    frame.sorters:Acquire()
+    frame.sorters:LoadSorters()
 
     function frame:ArrangeHeaders()
         for _, sorter in pairs(frame.sorters.children) do
@@ -662,7 +700,7 @@ function private:LoadTransactions(guildID)
         for i = 1, addon:tcount(private.db.global.settings.preferences.sortHeaders) do
             local id = private.db.global.settings.preferences.sortHeaders[i]
             local sortValue = cols[id].sortValue
-            local des = private.db.global.settings.preferences.sortDirections[id] == "des"
+            local des = private.db.global.settings.preferences.descendingHeaders[id]
 
             local sortA = sortValue(a)
             local sortB = sortValue(b)
