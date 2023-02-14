@@ -9,12 +9,21 @@ function addon:OnInitialize()
 end
 
 function addon:OnEnable()
-    C_Timer.After(5, function()
-        private:LoadFrame()
-    end)
+    -- C_Timer.After(5, function()
+    --     private:LoadFrame()
+    -- end)
 end
 
 function addon:OnDisable() end
+
+function addon:SlashCommandFunc(input)
+    local cmd, arg = strsplit(" ", strlower(input))
+    if cmd == "scan" then
+        addon:ScanGuildBank(nil, arg == "o")
+    else
+        private:LoadFrame()
+    end
+end
 
 function private:InitializeSlashCommands()
     for command, commandInfo in pairs(private.db.global.commands) do
@@ -23,14 +32,5 @@ function private:InitializeSlashCommands()
         else
             addon:UnregisterChatCommand(command)
         end
-    end
-end
-
-function addon:SlashCommandFunc(input)
-    local cmd, arg = strsplit(" ", strlower(input))
-    if cmd == "scan" then
-        addon:ScanGuildBank(nil, arg == "o")
-    else
-        private:LoadFrame()
     end
 end

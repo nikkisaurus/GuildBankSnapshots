@@ -101,14 +101,14 @@ function private:CreateDropdown(parent, name, setter, initializer)
     return dropdown
 end
 
-function private:CreateFontString(parent, justifyH, justifyV)
+function private:CreateFontString(parent, justifyH, justifyV, isHeader)
     if not parent or not parent.CreateFontString then
         return
     end
 
     local text = parent:CreateFontString(nil, "OVERLAY")
-    text:SetFont(unpack(private.defaults.gui.font))
-    text:SetTextColor(unpack(private.defaults.gui.fontColor))
+    text:SetFont(unpack(private.defaults.gui[isHeader and "fontLarge" or "font"]))
+    text:SetTextColor(unpack(private.defaults.gui[isHeader and "emphasizeFontColor" or "fontColor"]))
     text:SetJustifyH(justifyH or "LEFT")
     text:SetJustifyV(justifyV or "MIDDLE")
     return text
@@ -141,11 +141,11 @@ function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
     frame.resizer:SetSize(16, 16)
     frame.resizer:EnableMouse(true)
 
-    frame.resizer:SetScript("OnMouseDown", function()
-        frame:StartSizing("BOTTOMRIGHT")
+    frame.resizer:SetScript("OnMouseDown", function(self)
+        self:GetParent():StartSizing("BOTTOMRIGHT")
     end)
 
-    frame.resizer:SetScript("OnMouseUp", function()
-        frame:StopMovingOrSizing()
+    frame.resizer:SetScript("OnMouseUp", function(self)
+        self:GetParent():StopMovingOrSizing()
     end)
 end

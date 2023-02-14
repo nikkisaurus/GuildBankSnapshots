@@ -583,9 +583,9 @@ function private:InitializeFrame()
     frame.sorters:SetHeight(30)
     frame.sorters.children = {}
 
-    frame.sorters.text = frame.sorters:CreateFontString(nil, "OVERLAY", "NumberFontNormalYellow")
-    frame.sorters.text:SetJustifyH("LEFT")
+    frame.sorters.text = private:CreateFontString(frame.sorters)
     frame.sorters.text:SetText(L["Sort By Header"])
+    frame.sorters.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
 
     frame.sorters.text:SetPoint("TOPLEFT", frame.guildDD, "BOTTOMLEFT", 0, -10)
     frame.sorters:SetPoint("TOPLEFT", frame.sorters.text, "BOTTOMLEFT", 0, -2)
