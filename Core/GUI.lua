@@ -2,17 +2,23 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function private:AddBackdrop(frame)
+function private:AddBackdrop(frame, lightBg)
     if not frame or not frame.SetBackdrop then
         return
     end
 
     frame:SetBackdrop(private.defaults.gui.backdrop)
     frame:SetBackdropBorderColor(unpack(private.defaults.gui.borderColor))
-    frame:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
+    frame:SetBackdropColor(unpack(private.defaults.gui[lightBg and "bgColor" or "darkBgColor"]))
 end
 
-function private:AddBackdropTexture(frame) end
+function private:AddBackdropTexture(frame, lightBg)
+    local bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(frame)
+    bg:SetColorTexture(unpack(private.defaults.gui[lightBg and "bgColor" or "darkBgColor"]))
+
+    return bg
+end
 
 function private:AddSpecialFrame(frame)
     tinsert(UISpecialFrames, frame:GetName())

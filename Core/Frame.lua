@@ -9,50 +9,46 @@ local AceSerializer = LibStub("AceSerializer-3.0")
 local cols = {
     [1] = {
         header = "Date",
-        width = 1,
-        text = function(data)
-            return date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour))
-        end,
         sortValue = function(data)
             return private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour)
         end,
+        text = function(data)
+            return date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour))
+        end,
+        width = 1,
     },
     [2] = {
         header = "Tab",
-        width = 1,
-        text = function(data)
-            return private:GetTabName(private.frame.guildDropdown.selected, data.tabID)
-        end,
         sortValue = function(data)
-            return private:GetTabName(private.frame.guildDropdown.selected, data.tabID)
+            return private:GetTabName(private.frame.guildDD.selected, data.tabID)
         end,
+        text = function(data)
+            return private:GetTabName(private.frame.guildDD.selected, data.tabID)
+        end,
+        width = 1,
     },
     [3] = {
         header = "Type",
-        width = 1,
-        text = function(data)
-            return data.transactionType
-        end,
         sortValue = function(data)
             return data.transactionType
         end,
+        text = function(data)
+            return data.transactionType
+        end,
+        width = 1,
     },
     [4] = {
         header = "Name",
-        width = 1,
-        text = function(data)
-            return data.name
-        end,
         sortValue = function(data)
             return data.name
         end,
+        text = function(data)
+            return data.name
+        end,
+        width = 1,
     },
     [5] = {
         header = "Item/Amount",
-        width = 2.25,
-        text = function(data)
-            return data.itemLink or GetCoinTextureString(data.amount)
-        end,
         icon = function(icon, data)
             if data.itemLink then
                 icon:SetPoint("TOPLEFT")
@@ -61,75 +57,83 @@ local cols = {
                 return true
             end
         end,
+        sortValue = function(data)
+            local itemString = select(3, strfind(data.itemLink or "", "|H(.+)|h"))
+            local itemName = select(3, strfind(itemString or "", "%[(.+)%]"))
+            return itemName or data.amount
+        end,
+        text = function(data)
+            return data.itemLink or GetCoinTextureString(data.amount)
+        end,
         tooltip = function(data)
             if data.itemLink then
                 GameTooltip:SetHyperlink(data.itemLink)
                 return true
             end
         end,
-        sortValue = function(data)
-            local itemString = select(3, strfind(data.itemLink or "", "|H(.+)|h"))
-            local itemName = select(3, strfind(itemString or "", "%[(.+)%]"))
-            return itemName or data.amount
-        end,
+        width = 2.25,
     },
     [6] = {
         header = "Quantity",
-        width = 0.5,
-        text = function(data)
-            return data.count or ""
-        end,
         sortValue = function(data)
             return data.count or 0
         end,
+        text = function(data)
+            return data.count or ""
+        end,
+        width = 0.5,
     },
     [7] = {
         header = "Move Origin",
-        width = 1,
-        text = function(data)
-            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(private.frame.guildDropdown.selected, data.moveOrigin) or ""
-        end,
         sortValue = function(data)
             return data.moveOrigin or 0
         end,
+        text = function(data)
+            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(private.frame.guildDD.selected, data.moveOrigin) or ""
+        end,
+        width = 1,
     },
     [8] = {
         header = "Move Destination",
-        width = 1,
-        text = function(data)
-            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(private.frame.guildDropdown.selected, data.moveDestination) or ""
-        end,
         sortValue = function(data)
             return data.moveDestination or 0
         end,
+        text = function(data)
+            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(private.frame.guildDD.selected, data.moveDestination) or ""
+        end,
+        width = 1,
     },
     [9] = {
         header = "Scan ID",
-        width = 0.25,
-        text = function(data)
-            return ""
-        end,
         icon = function(icon)
             icon:SetPoint("TOP")
             icon:SetTexture(374216)
             icon:SetSize(12, 12)
             return true
         end,
+        sortValue = function(data)
+            return data.scanID
+        end,
+        text = function(data)
+            return ""
+        end,
         tooltip = function(data, order)
             GameTooltip:AddLine(format("%s %d", L["Entry"], order))
             GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
             GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID, nil, nil, nil, 1, 1, 1)
             GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID, nil, nil, nil, 1, 1, 1)
+
             if data.moveOrigin and data.moveOrigin > 0 then
                 GameTooltip:AddDoubleLine(L["Move Origin ID"], data.moveOrigin, nil, nil, nil, 1, 1, 1)
             end
+
             if data.moveDestination and data.moveDestination > 0 then
                 GameTooltip:AddDoubleLine(L["Move Destination ID"], data.moveDestination, nil, nil, nil, 1, 1, 1)
             end
+
+            return true
         end,
-        sortValue = function(data)
-            return data.scanID
-        end,
+        width = 0.25,
     },
 }
 
@@ -165,8 +169,8 @@ local function CreateSorter()
     end
 
     function sorter:SetColID(sorterID, colID)
-        sorter.sorterID = sorterID
-        sorter.colID = colID
+        self.sorterID = sorterID
+        self.colID = colID
         self:UpdateText()
     end
 
@@ -282,17 +286,185 @@ local function CreateSorter()
         tinsert(private.db.global.settings.preferences.sortHeaders, sorterID, colID)
 
         -- Reset sorters based on new order
-        self:GetParent():LoadSorters()
+        self:GetParent():AcquireSorters()
     end)
 
     return sorter
 end
 
-local function ResetSorter(__, frame)
-    frame:Hide()
+local function ResetSorter(__, sorter)
+    sorter.sorterID = nil
+    sorter.colID = nil
+    sorter:Hide()
 end
 
 local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
+
+-- [[ Header ]]
+---------------
+local function CreateHeader()
+    local header = CreateFrame("Frame", nil, private.frame, "BackdropTemplate")
+    header:EnableMouse(true)
+    header:SetHeight(20)
+
+    -- Textures
+    private:AddBackdrop(header, true)
+
+    -- Text
+    header.text = private:CreateFontString(header, nil, "BOTTOM")
+    header.text:SetPoint("TOPLEFT", 4, -4)
+    header.text:SetPoint("BOTTOMRIGHT", -4, 4)
+
+    -- Methods
+    function header:SetColID(colID)
+        self.colID = colID
+        self:UpdateText()
+    end
+
+    function header:UpdateText(insertSorter)
+        if not self.colID then
+            self.text:SetText("")
+            return
+        end
+
+        self.text:SetText(cols[self.colID].header)
+    end
+
+    function header:UpdateWidth()
+        header:SetWidth((private.frame.scrollBox.colWidth or 1) * cols[self.colID].width)
+    end
+
+    -- Scripts
+    header:SetScript("OnEnter", function(self)
+        -- Show tooltip if text is truncated
+        if not self.colID or self.text:GetWidth() > self.text:GetStringWidth() then
+            return
+        end
+
+        private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, cols)
+            GameTooltip:AddLine(cols[self.colID].header, 1, 1, 1)
+        end, self, cols)
+    end)
+
+    header:SetScript("OnLeave", function()
+        -- Hide tooltips
+        private:ClearTooltip()
+    end)
+
+    return header
+end
+
+local function ResetHeader(_, header)
+    header.colID = nil
+    header:Hide()
+end
+
+local Header = CreateObjectPool(CreateHeader, ResetHeader)
+
+-- [[ Cell ]]
+local function CreateCell()
+    local cell = CreateFrame("Frame")
+
+    -- Textures
+    cell.icon = cell:CreateTexture(nil, "ARTWORK")
+    cell.icon:SetTexture()
+    cell.icon:ClearAllPoints()
+
+    -- Text
+    cell.text = private:CreateFontString(cell, nil, "TOP")
+    cell.text:SetPoint("TOPLEFT", 2, -2)
+    cell.text:SetPoint("BOTTOMRIGHT", -2, 2)
+
+    -- Methods
+    function cell:SetColID(frame, data, colID)
+        self:SetParent(frame)
+        self.data = data
+        self.colID = colID
+        self:UpdateIcon()
+        self:UpdateText()
+    end
+
+    function cell:UpdateIcon()
+        self.icon:SetTexture()
+        self.icon:ClearAllPoints()
+        self.text:SetPoint("TOPLEFT", 2, -2)
+
+        if not self.colID then
+            return
+        end
+
+        local icon = cols[self.colID].icon
+
+        if not icon then
+            return
+        end
+
+        local success = icon(self.icon, self.data)
+        if success then
+            self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
+        end
+    end
+
+    function cell:UpdateText()
+        self.text:SetText("")
+
+        if not self.colID then
+            return
+        end
+
+        self.text:SetText(cols[self.colID].text(self.data))
+    end
+
+    function cell:UpdateSize()
+        self:SetSize((private.frame.scrollBox.colWidth or 1) * cols[self.colID].width, self:GetParent():GetHeight())
+    end
+
+    -- Scripts
+    cell:SetScript("OnEnter", function(self)
+        self:GetParent():SetHighlighted(true)
+
+        if not self.colID then
+            return
+        end
+
+        private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, cols)
+            local tooltip = cols[self.colID].tooltip
+
+            if tooltip then
+                local success = tooltip(self.data, self:GetParent():GetOrderIndex())
+
+                if success then
+                    -- All tooltips should return true to prevent them from being auto-cleared; or I could probably just return for all?
+                    return
+                end
+            end
+
+            if self.text:GetWidth() < self.text:GetStringWidth() then
+                GameTooltip:AddLine(self.text:GetText(), 1, 1, 1)
+            else
+                -- Hide tooltip if not truncated
+                private:ClearTooltip()
+            end
+        end, self, cols)
+    end)
+
+    cell:SetScript("OnLeave", function(self)
+        self:GetParent():SetHighlighted()
+
+        -- Hide tooltips
+        private:ClearTooltip()
+    end)
+
+    return cell
+end
+
+local function ResetCell(_, cell)
+    cell.data = nil
+    cell.colID = nil
+    cell:Hide()
+end
+
+local Cell = CreateObjectPool(CreateCell, ResetCell)
 
 -- [[ Frame ]]
 --------------
@@ -319,6 +491,69 @@ local function SetGuildDropdown(self, guildID)
     self.selected = guildID
     self:SetText(private:GetGuildDisplayName(guildID))
     private:LoadTransactions(guildID)
+end
+
+local function CreateScrollView(frame, data)
+    frame.bg = frame.bg or private:AddBackdropTexture(frame)
+    frame.cells = frame.cells or {}
+
+    -- Methods
+    function frame:AcquireCells()
+        for _, cell in pairs(self.cells) do
+            Cell:Release(cell)
+        end
+
+        for colID, col in addon:pairs(cols) do
+            local cell = Cell:Acquire()
+            cell:SetColID(self, data, colID)
+            cell:Show()
+
+            self.cells[colID] = cell
+
+            if colID == 1 then
+                cell:SetPoint("LEFT", self, "LEFT")
+            else
+                cell:SetPoint("LEFT", self.cells[colID - 1], "RIGHT")
+            end
+        end
+
+        self:ArrangeCells()
+    end
+
+    function frame:ArrangeCells()
+        for _, cell in pairs(self.cells) do
+            cell:UpdateSize()
+        end
+    end
+
+    function frame:SetHighlighted(isHighlighted)
+        for _, cell in pairs(self.cells) do
+            if isHighlighted then
+                cell.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
+            else
+                cell.text:SetTextColor(unpack(private.defaults.gui.fontColor))
+            end
+        end
+
+        if isHighlighted then
+            self.bg:SetColorTexture(unpack(private.defaults.gui.bgColor))
+        else
+            self.bg:SetColorTexture(unpack(private.defaults.gui.darkBgColor))
+        end
+    end
+
+    -- Scripts
+    frame:SetScript("OnEnter", function(self)
+        self:SetHighlighted(true)
+    end)
+
+    frame:SetScript("OnLeave", function(self)
+        self:SetHighlighted()
+        private:ClearTooltip()
+    end)
+
+    frame:SetScript("OnSizeChanged", frame.ArrangeCells)
+    frame:AcquireCells()
 end
 
 function private:InitializeFrame()
@@ -357,261 +592,95 @@ function private:InitializeFrame()
     frame.sorters:SetPoint("RIGHT", -10, 0)
 
     -- [[ Table ]]
-    ---------------------
-    local scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
-    function scrollBox:Sort()
-        local DataProvider = scrollBox:GetDataProvider()
-        if DataProvider then
-            DataProvider:Sort()
-        end
-    end
-
-    local scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+    --------------
+    frame.scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
+    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+    frame.scrollView = CreateScrollBoxListLinearView()
 
     -- Headers
     frame.headers = {}
-    for id, col in addon:pairs(cols) do
-        -- [[ Header ]]
-        local header = frame.headers[id] or CreateFrame("Button", nil, frame, "BackdropTemplate")
-        header:SetBackdrop({
-            bgFile = [[Interface\Buttons\WHITE8x8]],
-            edgeFile = [[Interface\Buttons\WHITE8x8]],
-            edgeSize = 1,
-        })
-        header:SetBackdropBorderColor(0, 0, 0)
-        header:SetBackdropColor(0, 0, 0, 0.5)
+    for colID, col in addon:pairs(cols) do
+        local header = Header:Acquire()
+        header:SetColID(colID)
+        header:Show()
 
-        header:SetHeight(20)
-        frame.headers[id] = header
+        frame.headers[colID] = header
 
-        header.debugTex = header.debugTex or header:CreateTexture(nil, "BACKGROUND")
-        header.debugTex:SetAllPoints(header)
-        header.debugTex:SetColorTexture(fastrandom(), fastrandom(), fastrandom(), 1)
-        header.debugTex:Hide()
-
-        header.text = header.text or header:CreateFontString(nil, "OVERLAY", "NumberFontNormalYellow")
-        header.text:SetPoint("TOPLEFT", 4, -4)
-        header.text:SetPoint("BOTTOMRIGHT", -4, 4)
-        header.text:SetJustifyH("LEFT")
-        header.text:SetJustifyV("BOTTOM")
-        header.text:SetText(col.header)
-
-        header:SetScript("OnEnter", function()
-            if header.text:GetWidth() < header.text:GetStringWidth() then
-                GameTooltip:SetOwner(header, "ANCHOR_RIGHT")
-                GameTooltip:AddLine(header.text:GetText(), 1, 1, 1)
-                GameTooltip:Show()
-            end
-        end)
-
-        header:SetScript("OnLeave", function()
-            private:ClearTooltip()
-        end)
-
-        -- header:SetScript("OnClick", function()
-        --     local DataProvider = scrollBox:GetDataProvider()
-        --     if DataProvider then
-        --         if col.des then
-        --             col.des = nil
-        --         else
-        --             col.des = true
-        --         end
-
-        --         DataProvider:Sort()
-        --         scrollBox:Update()
-        --     end
-        -- end)
-
-        function header:DoLayout()
-            header:SetPoint("TOP", frame.sorters, "BOTTOM", 0, -10)
-            if id == 1 then
-                header:SetPoint("LEFT", frame.sorters, "LEFT", 0, 0)
-            else
-                header:SetPoint("LEFT", frame.headers[id - 1], "RIGHT", 0, 0)
-            end
-            header:SetWidth((scrollBox.colWidth or 0) * col.width)
+        header:SetPoint("TOP", frame.sorters, "BOTTOM", 0, -10)
+        if colID == 1 then
+            header:SetPoint("LEFT", frame.sorters, "LEFT")
+        else
+            header:SetPoint("LEFT", frame.headers[colID - 1], "RIGHT")
         end
-
-        header:DoLayout()
     end
 
     -- Set scrollBox/scrollBar points
-    scrollBar:SetPoint("BOTTOMRIGHT", -10, 10)
-    scrollBar:SetPoint("TOP", frame.headers[1], "BOTTOM", 0, -10)
-    scrollBox:SetPoint("TOPLEFT", frame.headers[1], "BOTTOMLEFT", 0, 0)
-    scrollBox:SetPoint("RIGHT", scrollBar, "LEFT", -10, 0)
-    scrollBox:SetPoint("BOTTOM", frame, "BOTTOM", 0, 10)
+    frame.scrollBar:SetPoint("BOTTOMRIGHT", -10, 10)
+    frame.scrollBar:SetPoint("TOP", frame.headers[1], "BOTTOM", 0, -10)
+    frame.scrollBox:SetPoint("TOPLEFT", frame.headers[1], "BOTTOMLEFT")
+    frame.scrollBox:SetPoint("RIGHT", frame.scrollBar, "LEFT", -10, 0)
+    frame.scrollBox:SetPoint("BOTTOM", frame, "BOTTOM", 0, 10)
 
-    -- Create scrollView
-    local scrollView = CreateScrollBoxListLinearView()
+    -- Create view
+    frame.scrollView:SetElementExtent(20)
+    frame.scrollView:SetElementInitializer("Frame", CreateScrollView)
+    ScrollUtil.InitScrollBoxListWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
 
-    scrollView:SetElementExtentCalculator(function()
-        return 20
-    end)
-
-    scrollView:SetElementInitializer("Frame", function(frame, data)
-        frame.bg = frame.bg or frame:CreateTexture(nil, "BACKGROUND")
-        frame.bg:SetAllPoints(frame)
-        frame.bg:SetColorTexture(0, 0, 0, 0.5)
-
-        frame.cells = frame.cells or {}
-
-        function frame:SetHighlighted(isHighlighted)
-            for _, cell in pairs(frame.cells) do
-                if isHighlighted then
-                    cell.text:SetTextColor(1, 0.82, 0, 1)
-                else
-                    cell.text:SetTextColor(1, 1, 1, 1)
-                end
-            end
-
-            if isHighlighted then
-                frame.bg:SetColorTexture(0, 0, 0, 0.25)
-            else
-                frame.bg:SetColorTexture(0, 0, 0, 0.5)
-            end
-        end
-
-        frame:SetScript("OnEnter", function()
-            frame:SetHighlighted(true)
-        end)
-
-        frame:SetScript("OnLeave", function()
-            frame:SetHighlighted()
-            private:ClearTooltip()
-        end)
-
-        for id, col in pairs(cols) do
-            local cell = frame.cells[id] or CreateFrame("Button", nil, frame)
-            frame.cells[id] = cell
-
-            cell.debugTex = cell.debugTex or cell:CreateTexture(nil, "BACKGROUND")
-            cell.debugTex:SetAllPoints(cell)
-            cell.debugTex:SetColorTexture(fastrandom(), fastrandom(), fastrandom(), 1)
-            cell.debugTex:Hide()
-
-            cell.icon = cell.icon or cell:CreateTexture(nil, "ARTWORK")
-            cell.icon:ClearAllPoints()
-            cell.icon:SetTexture()
-
-            cell.text = cell.text or cell:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-            cell.text:SetPoint("TOPLEFT", 2, -2)
-            cell.text:SetPoint("BOTTOMRIGHT", -2, 2)
-            cell.text:SetJustifyH("LEFT")
-            cell.text:SetJustifyV("TOP")
-            cell.text:SetText(col.text(data))
-
-            if col.icon then
-                local success = col.icon(cell.icon, data)
-                if success then
-                    cell.text:SetPoint("TOPLEFT", cell.icon, "TOPRIGHT", 2, 0)
-                end
-            end
-
-            function cell:SetPoints()
-                cell:SetPoint("TOP")
-                if id == 1 then
-                    cell:SetPoint("LEFT", 0, 0)
-                    cell:SetPoint("RIGHT", frame, "LEFT", (scrollBox.colWidth or 0) * col.width, 0)
-                else
-                    cell:SetPoint("LEFT", frame.cells[id - 1], "RIGHT", 0, 0)
-                    cell:SetPoint("RIGHT", frame.cells[id - 1], "RIGHT", (scrollBox.colWidth or 0) * col.width, 0)
-                end
-                cell:SetPoint("BOTTOM")
-            end
-
-            cell:SetScript("OnEnter", function()
-                frame:SetHighlighted(true)
-                GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
-                if col.tooltip then
-                    local success = col.tooltip(data, frame:GetOrderIndex())
-                    GameTooltip:Show()
-                    if success then
-                        return
-                    end
-                end
-
-                if cell.text:GetWidth() < cell.text:GetStringWidth() then
-                    GameTooltip:AddLine(cell.text:GetText(), 1, 1, 1)
-                    GameTooltip:Show()
-                end
-            end)
-
-            cell:SetScript("OnLeave", function()
-                frame:SetHighlighted()
-                private:ClearTooltip()
-            end)
-        end
-
-        function frame:ArrangeCells()
-            for _, cell in pairs(frame.cells) do
-                cell:SetPoints()
-            end
-        end
-
-        frame:SetScript("OnSizeChanged", frame.ArrangeCells)
-        frame:ArrangeCells()
-    end)
-
-    ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, scrollView)
-
-    -- OnSizeChanged scripts
-
-    function frame.sorters:LoadSorters()
+    -- Methods
+    function frame.sorters:AcquireSorters()
+        -- Release children
         for _, child in pairs(frame.sorters.children) do
             Sorter:Release(child)
         end
 
-        for id = 1, addon:tcount(cols) do
+        for sorterID = 1, addon:tcount(cols) do
             local sorter = Sorter:Acquire()
-            sorter:SetColID(id, private.db.global.settings.preferences.sortHeaders[id])
-            frame.sorters.children[id] = sorter
-
+            sorter:SetColID(sorterID, private.db.global.settings.preferences.sortHeaders[sorterID])
             sorter:Show()
-            if id == 1 then
+
+            frame.sorters.children[sorterID] = sorter
+
+            if sorterID == 1 then
                 sorter:SetPoint("LEFT", frame.sorters, "LEFT", 5, 0)
             else
-                sorter:SetPoint("LEFT", frame.sorters.children[id - 1], "RIGHT", 0, 0)
+                sorter:SetPoint("LEFT", frame.sorters.children[sorterID - 1], "RIGHT")
             end
         end
 
-        local DataProvider = scrollBox:GetDataProvider()
-        if DataProvider then
-            DataProvider:Sort()
-            scrollBox:Update()
-        end
+        frame.scrollBox:Sort()
     end
 
-    frame.sorters:LoadSorters()
-
-    function frame:ArrangeHeaders()
+    function frame:UpdateHeaders()
         for _, sorter in pairs(frame.sorters.children) do
-            sorter:UpdateWidth(frame.sorters)
+            sorter:UpdateWidth()
         end
 
         for _, header in pairs(frame.headers) do
-            header:DoLayout()
+            header:UpdateWidth()
         end
     end
-    frame:ArrangeHeaders()
 
-    scrollBox:SetScript("OnSizeChanged", function(self, width)
+    function frame.scrollBox:Sort()
+        local DataProvider = frame.scrollBox:GetDataProvider()
+        if DataProvider then
+            DataProvider:Sort()
+        end
+    end
+
+    -- Scripts
+    frame.scrollBox:SetScript("OnSizeChanged", function(self, width)
         self.width = width
         self.colWidth = width / addon:tcount(cols)
-        frame:ArrangeHeaders()
+        frame:UpdateHeaders()
 
         -- Need this to populate new entries when scrollBox gains height
-        scrollBox:Update()
+        frame.scrollBox:Update()
     end)
 
     -- [[ Post layout ]]
-    frame.guildDropdown = frame.guildDD
-    frame.scrollBox = scrollBox
-    scrollBox.scrollBar = scrollBar
-    scrollBox.scrollView = scrollView
-
-    -- Select default guild
-    -- guildDD:SetValue(private.db.global.settings.preferences.defaultGuild)
+    frame.sorters:AcquireSorters()
+    frame:UpdateHeaders()
+    frame.guildDD:SetValue(frame.guildDD, private.db.global.settings.preferences.defaultGuild)
 end
 
 function private:LoadFrame()
@@ -622,6 +691,7 @@ end
 ----------------------
 function private:LoadTransactions(guildID)
     local scrollBox = private.frame.scrollBox
+
     -- Clear transactions if no guildID is provided
     if not guildID then
         scrollBox:Flush()
