@@ -295,6 +295,7 @@ end
 local function ResetSorter(__, sorter)
     sorter.sorterID = nil
     sorter.colID = nil
+    sorter:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
     sorter:Hide()
 end
 
