@@ -2,20 +2,20 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function private:AddBackdrop(frame, lightBg)
+function private:AddBackdrop(frame, bgColor)
     if not frame or not frame.SetBackdrop then
         return
     end
 
-    frame:SetBackdrop(private.defaults.gui.backdrop)
-    frame:SetBackdropBorderColor(unpack(private.defaults.gui.borderColor))
-    frame:SetBackdropColor(unpack(private.defaults.gui[lightBg and "bgColor" or "darkBgColor"]))
+    frame:SetBackdrop(private.defaults.backdrop)
+    frame:SetBackdropBorderColor(private.defaults.colors.borderColor:GetRGBA())
+    frame:SetBackdropColor(private.defaults.colors[bgColor or "bgColorDark"]:GetRGBA())
 end
 
-function private:AddBackdropTexture(frame, lightBg)
+function private:AddBackdropTexture(frame, bgColor)
     local bg = frame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(frame)
-    bg:SetColorTexture(unpack(private.defaults.gui[lightBg and "bgColor" or "darkBgColor"]))
+    bg:SetColorTexture(private.defaults.colors[bgColor or "bgColorDark"]:GetRGBA())
 
     return bg
 end
@@ -30,35 +30,21 @@ function private:ClearTooltip()
 end
 
 function private:CreateDropdown(parent, name, setter, initializer)
-    local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
-    local dropdown = LibDD:Create_UIDropDownMenu(name, parent)
-    dropdown.info = LibDD:UIDropDownMenu_CreateInfo()
+    local LDD = LibStub("LibDropDown")
+    local dropdown = LDD:NewButton(parent, "LibDropDownTest")
+    dropdown:SetStyle(addonName) -- can be omitted, defaults to 'DEFAULT'
+    dropdown:SetJustifyH("RIGHT")
+    dropdown:SetText("TestDropDown")
+    dropdown:SetCheckAlignment("LEFT")
 
     -- Methods
-    function dropdown:AddButton()
-        LibDD:UIDropDownMenu_AddButton(self.info)
-    end
-
-    function dropdown:SetText(text)
-        LibDD:UIDropDownMenu_SetText(self, text)
-    end
-
-    function dropdown:SetDropdownWidth(width)
-        LibDD:UIDropDownMenu_SetWidth(self, width)
+    function dropdown:Initialize()
+        initializer(self)
     end
 
     function dropdown:SetValue(...)
         setter(...)
     end
-
-    function dropdown:Initialize()
-        LibDD:UIDropDownMenu_Initialize(self, function(...)
-            -- local self, level, menuList = ...
-            initializer(...)
-        end)
-    end
-
-    dropdown:Initialize()
 
     -- Strip and redraw background textures
     dropdown.Left:SetTexture()
@@ -66,11 +52,10 @@ function private:CreateDropdown(parent, name, setter, initializer)
     dropdown.Right:SetTexture()
 
     dropdown.border = dropdown:CreateTexture(nil, "BACKGROUND")
-    dropdown.border:SetColorTexture(unpack(private.defaults.gui.borderColor))
-    dropdown.border:SetPoint("TOPLEFT", 4, -4)
-    dropdown.border:SetPoint("BOTTOMRIGHT", -4, 4)
+    dropdown.border:SetColorTexture(private.defaults.colors.borderColor:GetRGBA())
+    dropdown.border:SetAllPoints(dropdown)
 
-    local r, g, b = unpack(private.defaults.gui.bgColor)
+    local r, g, b = private.defaults.colors.bgColorLight:GetRGBA()
     dropdown.background = dropdown:CreateTexture(nil, "ARTWORK")
     dropdown.background:SetColorTexture(r, g, b, 0.75)
     dropdown.background:SetPoint("TOPLEFT", dropdown.border, "TOPLEFT", 1, -1)
@@ -89,14 +74,14 @@ function private:CreateDropdown(parent, name, setter, initializer)
 
     -- Realign elements
     dropdown.Button:ClearAllPoints()
-    dropdown.Button:SetPoint("RIGHT", -5, 0)
+    dropdown.Button:SetPoint("RIGHT", 0, 0)
     dropdown.Text:ClearAllPoints()
-    dropdown.Text:SetPoint("LEFT", 2, 0)
+    dropdown.Text:SetPoint("LEFT", 4, 0)
     dropdown.Text:SetPoint("TOPRIGHT", dropdown.Button, "TOPLEFT", -2, 0)
     dropdown.Text:SetPoint("BOTTOM", dropdown.Button, "BOTTOM", 0, 0)
 
     -- Update font
-    dropdown.Text:SetFont(unpack(private.defaults.gui.font))
+    dropdown.Text:SetFontObject(private.defaults.fonts.normalFont)
 
     return dropdown
 end
@@ -107,8 +92,7 @@ function private:CreateFontString(parent, justifyH, justifyV, isHeader)
     end
 
     local text = parent:CreateFontString(nil, "OVERLAY")
-    text:SetFont(unpack(private.defaults.gui[isHeader and "fontLarge" or "font"]))
-    text:SetTextColor(unpack(private.defaults.gui[isHeader and "emphasizeFontColor" or "fontColor"]))
+    text:SetFontObject(private.defaults.fonts[isHeader and "headerFont" or "normalFont"])
     text:SetJustifyH(justifyH or "LEFT")
     text:SetJustifyV(justifyV or "MIDDLE")
     return text

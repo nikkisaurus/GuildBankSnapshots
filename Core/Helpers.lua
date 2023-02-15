@@ -2,24 +2,46 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-private.defaults = {
-    gui = {
+function private:InitializeDefaults()
+    private.defaults = {
         backdrop = {
             bgFile = [[Interface\Buttons\WHITE8x8]],
             edgeFile = [[Interface\Buttons\WHITE8x8]],
             edgeSize = 1,
         },
-        borderColor = { 0, 0, 0, 1 },
-        bgColor = { 0.1, 0.1, 0.1, 1 },
-        darkBgColor = { 0, 0, 0, 0.5 },
-        highlightBgColor = { 0.3, 0.3, 0.3, 1 },
-        emphasizeBgColor = { 1, 0.82, 0, 0.5 },
-        font = { "Fonts\\2002.TTF", 10, "OUTLINE" },
-        fontLarge = { "Fonts\\2002.TTF", 12, "OUTLINE" },
-        fontColor = { 1, 1, 1, 1 },
-        emphasizeFontColor = { 1, 0.82, 0, 1 },
-    },
-}
+        colors = {
+            borderColor = CreateColor(0, 0, 0, 1),
+            bgColorLight = CreateColor(0.1, 0.1, 0.1, 1),
+            bgColorDark = CreateColor(0, 0, 0, 0.5),
+            highlightColor = CreateColor(0.3, 0.3, 0.3, 1),
+            emphasizeColor = CreateColor(1, 0.82, 0, 0.5),
+        },
+    }
+
+    local normalFont = CreateFont(addonName .. "NormalFont")
+    normalFont:SetFont("Fonts\\2002.TTF", 10, "OUTLINE")
+    normalFont:SetTextColor(1, 1, 1, 1)
+
+    local emphasizedFont = CreateFont(addonName .. "EmphasizedFont")
+    emphasizedFont:SetFont("Fonts\\2002.TTF", 10, "OUTLINE")
+    emphasizedFont:SetTextColor(1, 0.82, 0, 1)
+
+    local headerFont = CreateFont(addonName .. "HeaderFont")
+    headerFont:SetFont("Fonts\\2002.TTF", 12, "OUTLINE")
+    headerFont:SetTextColor(1, 0.82, 0, 1)
+
+    private.defaults.fonts = {
+        normalFont = normalFont,
+        emphasizedFont = emphasizedFont,
+        headerFont = headerFont,
+    }
+
+    LibStub("LibDropDown"):RegisterStyle(addonName, {
+        backdrop = private.defaults.backdrop,
+        backdropColor = private.defaults.colors.bgColorLight,
+        backdropBorderColor = private.defaults.colors.borderColor,
+    })
+end
 
 function private:GetGuildDisplayName(guildID)
     local guild, realm, faction = string.match(guildID, "(.+)%s%-%s(.*)%s%((.+)%)")

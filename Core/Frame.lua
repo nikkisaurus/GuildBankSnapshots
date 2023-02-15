@@ -1,7 +1,6 @@
 local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
-local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 local AceSerializer = LibStub("AceSerializer-3.0")
 
 -- [[ Col/Headers ]]
@@ -203,7 +202,7 @@ local function CreateSorter()
     -- Scripts
     sorter:SetScript("OnDragStart", function(self)
         private.frame.sorters.dragging = self.sorterID
-        self:SetBackdropColor(unpack(private.defaults.gui.emphasizeBgColor))
+        self:SetBackdropColor(private.defaults.colors.emphasizeColor:GetRGBA())
     end)
 
     sorter:SetScript("OnDragStop", function(self)
@@ -213,12 +212,12 @@ local function CreateSorter()
             private.frame.sorters.dragging = nil
         end)
 
-        sorter:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
+        sorter:SetBackdropColor(private.defaults.colors.bgColorDark:GetRGBA())
     end)
 
     sorter:SetScript("OnEnter", function(self)
         -- Emphasize highlighted text
-        self.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
+        self.text:SetFontObject(private.defaults.fonts.emphasizedFont)
 
         -- Add indicator for sorting insertion
         local sorterID = self.sorterID
@@ -234,7 +233,7 @@ local function CreateSorter()
             end
 
             -- Highlight frame to indicate where dragged header is moving
-            sorter:SetBackdropColor(unpack(private.defaults.gui.highlightBgColor))
+            sorter:SetBackdropColor(private.defaults.colors.highlightColor:GetRGBA())
         end
 
         -- Show tooltip if text is truncated
@@ -249,13 +248,13 @@ local function CreateSorter()
 
     sorter:SetScript("OnLeave", function(self)
         -- Restore default text color
-        sorter.text:SetTextColor(unpack(private.defaults.gui.fontColor))
+        sorter.text:SetFontObject(private.defaults.fonts.normalFont)
 
         -- Remove sorting indicator
         self:UpdateText()
         if self.sorterID ~= private.frame.sorters.dragging then
             -- Don't reset backdrop on dragging frame; this is done in OnDragStop
-            self:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
+            self:SetBackdropColor(private.defaults.colors.bgColorDark:GetRGBA())
         end
 
         -- Hide tooltips
@@ -295,7 +294,7 @@ end
 local function ResetSorter(__, sorter)
     sorter.sorterID = nil
     sorter.colID = nil
-    sorter:SetBackdropColor(unpack(private.defaults.gui.darkBgColor))
+    sorter:SetBackdropColor(private.defaults.colors.bgColorDark:GetRGBA())
     sorter:Hide()
 end
 
@@ -309,7 +308,7 @@ local function CreateHeader()
     header:SetHeight(20)
 
     -- Textures
-    private:AddBackdrop(header, true)
+    private:AddBackdrop(header, "bgColorLight")
 
     -- Text
     header.text = private:CreateFontString(header, nil, "BOTTOM")
@@ -469,22 +468,21 @@ local Cell = CreateObjectPool(CreateCell, ResetCell)
 
 -- [[ Frame ]]
 --------------
-local function InitializeGuildDropdown(self, level, menuList)
-    local info = self.info
-
+local function InitializeGuildDropdown(self)
     local sortKeys = function(a, b)
         return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
     end
 
     for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
-        info.value = guildID
-        info.text = private:GetGuildDisplayName(guildID)
-        info.checked = self.selected == guildID
-        info.func = function()
-            self:SetValue(self, guildID)
-        end
-
-        self:AddButton()
+        self:Add({
+            text = private:GetGuildDisplayName(guildID),
+            checked = function()
+                return self.selected == guildID
+            end,
+            func = function()
+                self:SetValue(self, guildID)
+            end,
+        })
     end
 end
 
@@ -530,16 +528,16 @@ local function CreateScrollView(frame, data)
     function frame:SetHighlighted(isHighlighted)
         for _, cell in pairs(self.cells) do
             if isHighlighted then
-                cell.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
+                cell.text:SetFontObject(private.defaults.fonts.emphasizedFont)
             else
-                cell.text:SetTextColor(unpack(private.defaults.gui.fontColor))
+                cell.text:SetFontObject(private.defaults.fonts.normalFont)
             end
         end
 
         if isHighlighted then
-            self.bg:SetColorTexture(unpack(private.defaults.gui.bgColor))
+            self.bg:SetColorTexture(private.defaults.colors.highlightColor:GetRGBA())
         else
-            self.bg:SetColorTexture(unpack(private.defaults.gui.darkBgColor))
+            self.bg:SetColorTexture(private.defaults.colors.bgColorDark:GetRGBA())
         end
     end
 
@@ -559,7 +557,7 @@ end
 
 function private:InitializeFrame()
     local frame = CreateFrame("Frame", addonName .. "Frame", UIParent, "SettingsFrameTemplate")
-    frame.NineSlice.Text:SetFont(unpack(private.defaults.gui.fontLarge))
+    frame.NineSlice.Text:SetFontObject(private.defaults.fonts.headerFont)
     frame.NineSlice.Text:SetText(L.addonName)
     frame:SetSize(1000, 500)
     frame:SetPoint("CENTER")
@@ -573,7 +571,7 @@ function private:InitializeFrame()
     ----------------
     -- Guild dropdown
     frame.guildDD = private:CreateDropdown(frame, addonName .. "GuildDropdown", SetGuildDropdown, InitializeGuildDropdown)
-    frame.guildDD:SetDropdownWidth(200)
+    frame.guildDD:SetWidth(200)
     frame.guildDD:SetPoint("TOPLEFT", frame.Bg, "TOPLEFT", 10, -10)
     frame.guildDD:SetScript("OnShow", function(self)
         self:Initialize()
@@ -586,7 +584,7 @@ function private:InitializeFrame()
 
     frame.sorters.text = private:CreateFontString(frame.sorters)
     frame.sorters.text:SetText(L["Sort By Header"])
-    frame.sorters.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
+    frame.sorters.text:SetFontObject(private.defaults.fonts.emphasizedFont)
 
     frame.sorters.text:SetPoint("TOPLEFT", frame.guildDD, "BOTTOMLEFT", 0, -10)
     frame.sorters:SetPoint("TOPLEFT", frame.sorters.text, "BOTTOMLEFT", 0, -2)

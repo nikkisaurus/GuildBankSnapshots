@@ -4,14 +4,15 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function addon:OnInitialize()
     private:InitializeDatabase()
+    private:InitializeDefaults()
     private:InitializeFrame()
     private:InitializeSlashCommands()
 end
 
 function addon:OnEnable()
-    -- C_Timer.After(5, function()
-    --     private:LoadFrame()
-    -- end)
+    C_Timer.After(5, function()
+        -- private:LoadFrame()
+    end)
 end
 
 function addon:OnDisable() end
