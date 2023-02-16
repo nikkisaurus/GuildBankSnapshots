@@ -4,8 +4,22 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local LibDD = LibStub("LibDropDown")
 
 local dropdownMenus = {}
+local pools = {}
 
-function private:MixinCollection(frame, parent)
+function private:GetPool(...)
+    local frameTemplate = select(3, ...)
+    if not frameTemplate then
+        return
+    end
+
+    if not pools[frameTemplate] then
+        pools[frameTemplate] = CreateFramePool(...)
+    end
+
+    return pools[frameTemplate]
+end
+
+function private:MixinCollection(frame, parent, ignoreRelease)
     local frameCollection = CreateFramePoolCollection()
     frame.frames = Mixin({}, frameCollection)
 
@@ -13,13 +27,16 @@ function private:MixinCollection(frame, parent)
         self.frames:ReleaseAll()
     end
 
-    frame:SetScript("OnHide", function(self)
-        self:ReleaseChildren()
-    end)
+    if not ignoreRelease then
+        frame:SetScript("OnHide", function(self)
+            self:ReleaseChildren()
+        end)
+    end
 
     frameCollection:CreatePool("Frame", parent or frame, addonName .. "CollectionFrame")
     frameCollection:CreatePool("Frame", parent or frame, addonName .. "FontFrame")
-    frameCollection:CreatePool("Frame", parent or frame, addonName .. "ScrollFrame")
+    frameCollection:CreatePool("Frame", parent or frame, addonName .. "LinearScrollFrame")
+    frameCollection:CreatePool("Frame", parent or frame, addonName .. "ListScrollFrame")
 
     frameCollection:CreatePool("Button", parent or frame, addonName .. "Button", function(_, button)
         button.onClick = nil
@@ -50,7 +67,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
     end
 end
 
-function GuildBankSnapshotsScrollFrame_OnLoad(frame)
+function GuildBankSnapshotsLinearScrollFrame_OnLoad(frame)
     -- scrollBar
     frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
     frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
@@ -88,6 +105,68 @@ function GuildBankSnapshotsScrollFrame_OnLoad(frame)
 
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
     ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
+end
+
+function GuildBankSnapshotsListScrollFrame_OnLoad(frame)
+    -- scrollBar
+    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
+    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+
+    -- scrollBox
+    frame.scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
+    frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+
+    -- scrollView
+    frame.scrollView = CreateScrollBoxListLinearView()
+    frame.scrollView:SetElementExtentCalculator(function()
+        return frame.extent or 20
+    end)
+    frame.scrollView:SetElementInitializer("Frame", function(element, data)
+        if frame.initializer then
+            frame.initializer(element, data)
+        end
+    end)
+
+    -- Content
+    frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
+    private:MixinCollection(frame, frame.content)
+    frame.content.scrollable = true
+    frame.content:SetAllPoints(frame.scrollBox)
+    frame.content:Show()
+
+    frame.content:SetScript("OnSizeChanged", function()
+        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+    end)
+
+    -- ScrollUtil
+    local anchorsWithBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
+        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -5, 5),
+    }
+
+    local anchorsWithoutBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
+        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 5),
+    }
+
+    ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
+    ScrollUtil.InitScrollBoxListWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
+
+    -- Methods and scripts
+    function frame:SetDataProvider(callback)
+        local DataProvider = CreateDataProvider()
+
+        callback(DataProvider)
+
+        self.scrollBox:SetDataProvider(DataProvider)
+    end
+
+    frame:SetScript("OnHide", function(self)
+        self.extent = nil
+        self.initializer = nil
+        self.scrollBox:Flush()
+    end)
 end
 
 function GuildBankSnapshotsButton_OnLoad(button)
@@ -185,5 +264,27 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     dropdown:SetScript("OnHide", function(self)
         LibDD:CloseAll()
         self.onClick = nil
+    end)
+end
+
+function GuildBankSnapshotsReviewCell_OnLoad(cell)
+    -- private:AddBackdrop(cell, "random")
+    cell:SetNormalFontObject("GuildBankSnapshotsNormalFont")
+    cell:SetHighlightFontObject("GuildBankSnapshotsEmphasizedFont")
+
+    cell:SetScript("OnEnter", function(self, ...)
+        -- Enable row highlight
+        local parent = self:GetParent()
+        parent:GetScript("OnEnter")(parent, ...)
+    end)
+
+    cell:SetScript("OnLeave", function(self, ...)
+        -- Disable row highlight
+        local parent = self:GetParent()
+        parent:GetScript("OnLeave")(parent, ...)
+    end)
+
+    cell:SetScript("OnHide", function(self)
+        self:SetText("")
     end)
 end

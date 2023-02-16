@@ -1,135 +1,5 @@
 -- [[ Col/Headers ]]
 -------------
-local cols = {
-    [1] = {
-        header = "Date",
-        sortValue = function(data)
-            return private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour)
-        end,
-        text = function(data)
-            return date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour))
-        end,
-        width = 1,
-    },
-    [2] = {
-        header = "Tab",
-        sortValue = function(data)
-            return private:GetTabName(private.frame.guildDD.selected, data.tabID)
-        end,
-        text = function(data)
-            return private:GetTabName(private.frame.guildDD.selected, data.tabID)
-        end,
-        width = 1,
-    },
-    [3] = {
-        header = "Type",
-        sortValue = function(data)
-            return data.transactionType
-        end,
-        text = function(data)
-            return data.transactionType
-        end,
-        width = 1,
-    },
-    [4] = {
-        header = "Name",
-        sortValue = function(data)
-            return data.name
-        end,
-        text = function(data)
-            return data.name
-        end,
-        width = 1,
-    },
-    [5] = {
-        header = "Item/Amount",
-        icon = function(icon, data)
-            if data.itemLink then
-                icon:SetPoint("TOPLEFT")
-                icon:SetTexture(GetItemIcon(data.itemLink))
-                icon:SetSize(12, 12)
-                return true
-            end
-        end,
-        sortValue = function(data)
-            local itemString = select(3, strfind(data.itemLink or "", "|H(.+)|h"))
-            local itemName = select(3, strfind(itemString or "", "%[(.+)%]"))
-            return itemName or data.amount
-        end,
-        text = function(data)
-            return data.itemLink or GetCoinTextureString(data.amount)
-        end,
-        tooltip = function(data)
-            if data.itemLink then
-                GameTooltip:SetHyperlink(data.itemLink)
-                return true
-            end
-        end,
-        width = 2.25,
-    },
-    [6] = {
-        header = "Quantity",
-        sortValue = function(data)
-            return data.count or 0
-        end,
-        text = function(data)
-            return data.count or ""
-        end,
-        width = 0.5,
-    },
-    [7] = {
-        header = "Move Origin",
-        sortValue = function(data)
-            return data.moveOrigin or 0
-        end,
-        text = function(data)
-            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(private.frame.guildDD.selected, data.moveOrigin) or ""
-        end,
-        width = 1,
-    },
-    [8] = {
-        header = "Move Destination",
-        sortValue = function(data)
-            return data.moveDestination or 0
-        end,
-        text = function(data)
-            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(private.frame.guildDD.selected, data.moveDestination) or ""
-        end,
-        width = 1,
-    },
-    [9] = {
-        header = "Scan ID",
-        icon = function(icon)
-            icon:SetPoint("TOP")
-            icon:SetTexture(374216)
-            icon:SetSize(12, 12)
-            return true
-        end,
-        sortValue = function(data)
-            return data.scanID
-        end,
-        text = function(data)
-            return ""
-        end,
-        tooltip = function(data, order)
-            GameTooltip:AddLine(format("%s %d", L["Entry"], order))
-            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
-            GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID, nil, nil, nil, 1, 1, 1)
-            GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID, nil, nil, nil, 1, 1, 1)
-
-            if data.moveOrigin and data.moveOrigin > 0 then
-                GameTooltip:AddDoubleLine(L["Move Origin ID"], data.moveOrigin, nil, nil, nil, 1, 1, 1)
-            end
-
-            if data.moveDestination and data.moveDestination > 0 then
-                GameTooltip:AddDoubleLine(L["Move Destination ID"], data.moveDestination, nil, nil, nil, 1, 1, 1)
-            end
-
-            return true
-        end,
-        width = 0.25,
-    },
-}
 
 -- [[ Sorter ]]
 ---------------
@@ -295,6 +165,170 @@ end
 
 local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
 
+frame.bg = frame.bg or private:AddBackdropTexture(frame)
+frame.cells = frame.cells or {}
+
+-- Methods
+function frame:AcquireCells()
+    for _, cell in pairs(self.cells) do
+        Cell:Release(cell)
+    end
+
+    for colID, col in addon:pairs(reviewData) do
+        local cell = Cell:Acquire()
+        cell:SetColID(self, data, colID)
+        cell:Show()
+
+        self.cells[colID] = cell
+
+        if colID == 1 then
+            cell:SetPoint("LEFT", self, "LEFT")
+        else
+            cell:SetPoint("LEFT", self.cells[colID - 1], "RIGHT")
+        end
+    end
+
+    self:ArrangeCells()
+end
+
+function frame:ArrangeCells()
+    for _, cell in pairs(self.cells) do
+        cell:UpdateSize()
+    end
+end
+
+function frame:SetHighlighted(isHighlighted)
+    for _, cell in pairs(self.cells) do
+        if isHighlighted then
+            cell.text:SetFontObject(private.defaults.fonts.emphasizedFont)
+        else
+            cell.text:SetFontObject(private.defaults.fonts.normalFont)
+        end
+    end
+
+    if isHighlighted then
+        self.bg:SetColorTexture(private.defaults.colors.highlightColor:GetRGBA())
+    else
+        self.bg:SetColorTexture(private.defaults.colors.bgColorDark:GetRGBA())
+    end
+end
+
+-- Scripts
+frame:SetScript("OnEnter", function(self)
+    self:SetHighlighted(true)
+end)
+
+frame:SetScript("OnLeave", function(self)
+    self:SetHighlighted()
+    private:ClearTooltip()
+end)
+
+frame:SetScript("OnSizeChanged", frame.ArrangeCells)
+frame:AcquireCells()
+-- -- [[ Cell ]]
+-- local function CreateCell()
+--     local cell = CreateFrame("Frame")
+
+--     -- Textures
+--     cell.icon = cell:CreateTexture(nil, "ARTWORK")
+--     cell.icon:SetTexture()
+--     cell.icon:ClearAllPoints()
+
+--     -- Text
+--     cell.text = private:CreateFontString(cell, nil, "TOP")
+--     cell.text:SetPoint("TOPLEFT", 2, -2)
+--     cell.text:SetPoint("BOTTOMRIGHT", -2, 2)
+
+--     -- Methods
+--     function cell:SetColID(frame, data, colID)
+--         self:SetParent(frame)
+--         self.data = data
+--         self.colID = colID
+--         self:UpdateIcon()
+--         self:UpdateText()
+--     end
+
+--     function cell:UpdateIcon()
+--         self.icon:SetTexture()
+--         self.icon:ClearAllPoints()
+--         self.text:SetPoint("TOPLEFT", 2, -2)
+
+--         if not self.colID then
+--             return
+--         end
+
+--         local icon = reviewData[self.colID].icon
+
+--         if not icon then
+--             return
+--         end
+
+--         local success = icon(self.icon, self.data)
+--         if success then
+--             self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
+--         end
+--     end
+
+--     function cell:UpdateText()
+--         self.text:SetText("")
+
+--         if not self.colID then
+--             return
+--         end
+
+--         self.text:SetText(reviewData[self.colID].text(self.data))
+--     end
+
+--     function cell:UpdateSize()
+--         self:SetSize((private.frame.scrollBox.colWidth or 1) * reviewData[self.colID].width, self:GetParent():GetHeight())
+--     end
+
+--     -- Scripts
+--     cell:SetScript("OnEnter", function(self)
+--         self:GetParent():SetHighlighted(true)
+
+--         if not self.colID then
+--             return
+--         end
+
+--         private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, reviewData)
+--             local tooltip = reviewData[self.colID].tooltip
+
+--             if tooltip then
+--                 local success = tooltip(self.data, self:GetParent():GetOrderIndex())
+
+--                 if success then
+--                     -- All tooltips should return true to prevent them from being auto-cleared; or I could probably just return for all?
+--                     return
+--                 end
+--             end
+
+--             if self.text:GetWidth() < self.text:GetStringWidth() then
+--                 GameTooltip:AddLine(self.text:GetText(), 1, 1, 1)
+--             else
+--                 -- Hide tooltip if not truncated
+--                 private:ClearTooltip()
+--             end
+--         end, self, reviewData)
+--     end)
+
+--     cell:SetScript("OnLeave", function(self)
+--         self:GetParent():SetHighlighted()
+
+--         -- Hide tooltips
+--         private:ClearTooltip()
+--     end)
+
+--     return cell
+-- end
+
+-- local function ResetCell(_, cell)
+--     cell.data = nil
+--     cell.colID = nil
+--     cell:Hide()
+-- end
+
+-- local Cell = CreateObjectPool(CreateCell, ResetCell)
 -- [[ Header ]]
 ---------------
 local function CreateHeader()
@@ -356,173 +390,7 @@ end
 
 local Header = CreateObjectPool(CreateHeader, ResetHeader)
 
--- [[ Cell ]]
-local function CreateCell()
-    local cell = CreateFrame("Frame")
-
-    -- Textures
-    cell.icon = cell:CreateTexture(nil, "ARTWORK")
-    cell.icon:SetTexture()
-    cell.icon:ClearAllPoints()
-
-    -- Text
-    cell.text = private:CreateFontString(cell, nil, "TOP")
-    cell.text:SetPoint("TOPLEFT", 2, -2)
-    cell.text:SetPoint("BOTTOMRIGHT", -2, 2)
-
-    -- Methods
-    function cell:SetColID(frame, data, colID)
-        self:SetParent(frame)
-        self.data = data
-        self.colID = colID
-        self:UpdateIcon()
-        self:UpdateText()
-    end
-
-    function cell:UpdateIcon()
-        self.icon:SetTexture()
-        self.icon:ClearAllPoints()
-        self.text:SetPoint("TOPLEFT", 2, -2)
-
-        if not self.colID then
-            return
-        end
-
-        local icon = cols[self.colID].icon
-
-        if not icon then
-            return
-        end
-
-        local success = icon(self.icon, self.data)
-        if success then
-            self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
-        end
-    end
-
-    function cell:UpdateText()
-        self.text:SetText("")
-
-        if not self.colID then
-            return
-        end
-
-        self.text:SetText(cols[self.colID].text(self.data))
-    end
-
-    function cell:UpdateSize()
-        self:SetSize((private.frame.scrollBox.colWidth or 1) * cols[self.colID].width, self:GetParent():GetHeight())
-    end
-
-    -- Scripts
-    cell:SetScript("OnEnter", function(self)
-        self:GetParent():SetHighlighted(true)
-
-        if not self.colID then
-            return
-        end
-
-        private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, cols)
-            local tooltip = cols[self.colID].tooltip
-
-            if tooltip then
-                local success = tooltip(self.data, self:GetParent():GetOrderIndex())
-
-                if success then
-                    -- All tooltips should return true to prevent them from being auto-cleared; or I could probably just return for all?
-                    return
-                end
-            end
-
-            if self.text:GetWidth() < self.text:GetStringWidth() then
-                GameTooltip:AddLine(self.text:GetText(), 1, 1, 1)
-            else
-                -- Hide tooltip if not truncated
-                private:ClearTooltip()
-            end
-        end, self, cols)
-    end)
-
-    cell:SetScript("OnLeave", function(self)
-        self:GetParent():SetHighlighted()
-
-        -- Hide tooltips
-        private:ClearTooltip()
-    end)
-
-    return cell
-end
-
-local function ResetCell(_, cell)
-    cell.data = nil
-    cell.colID = nil
-    cell:Hide()
-end
-
-local Cell = CreateObjectPool(CreateCell, ResetCell)
-
-local function CreateScrollView(frame, data)
-    frame.bg = frame.bg or private:AddBackdropTexture(frame)
-    frame.cells = frame.cells or {}
-
-    -- Methods
-    function frame:AcquireCells()
-        for _, cell in pairs(self.cells) do
-            Cell:Release(cell)
-        end
-
-        for colID, col in addon:pairs(cols) do
-            local cell = Cell:Acquire()
-            cell:SetColID(self, data, colID)
-            cell:Show()
-
-            self.cells[colID] = cell
-
-            if colID == 1 then
-                cell:SetPoint("LEFT", self, "LEFT")
-            else
-                cell:SetPoint("LEFT", self.cells[colID - 1], "RIGHT")
-            end
-        end
-
-        self:ArrangeCells()
-    end
-
-    function frame:ArrangeCells()
-        for _, cell in pairs(self.cells) do
-            cell:UpdateSize()
-        end
-    end
-
-    function frame:SetHighlighted(isHighlighted)
-        for _, cell in pairs(self.cells) do
-            if isHighlighted then
-                cell.text:SetFontObject(private.defaults.fonts.emphasizedFont)
-            else
-                cell.text:SetFontObject(private.defaults.fonts.normalFont)
-            end
-        end
-
-        if isHighlighted then
-            self.bg:SetColorTexture(private.defaults.colors.highlightColor:GetRGBA())
-        else
-            self.bg:SetColorTexture(private.defaults.colors.bgColorDark:GetRGBA())
-        end
-    end
-
-    -- Scripts
-    frame:SetScript("OnEnter", function(self)
-        self:SetHighlighted(true)
-    end)
-
-    frame:SetScript("OnLeave", function(self)
-        self:SetHighlighted()
-        private:ClearTooltip()
-    end)
-
-    frame:SetScript("OnSizeChanged", frame.ArrangeCells)
-    frame:AcquireCells()
-end
+local function CreateScrollView(frame, data) end
 
 -- ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
 

@@ -13,6 +13,8 @@
 
 libs.xml
 Locales\embeds.xml
-GuildBankSnapshots.lua
 Database\embeds.xml
 Core\embeds.xml
+Interface\embeds.xml
+Helpers.lua
+GuildBankSnapshots.lua

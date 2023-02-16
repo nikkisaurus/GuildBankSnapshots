@@ -2,20 +2,40 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function private:AddBackdrop(frame, bgColor)
-    if not frame or not frame.SetBackdrop then
+function private:SetColorTexture(texture, color)
+    if not texture then
         return
     end
 
-    frame:SetBackdrop(private.defaults.backdrop)
-    frame:SetBackdropBorderColor(private.defaults.colors.borderColor:GetRGBA())
-    frame:SetBackdropColor(private.defaults.colors[bgColor or "bgColorDark"]:GetRGBA())
+    local color = color == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.defaults.colors[color or "elementColor"]
+
+    texture:SetColorTexture(color:GetRGBA())
+end
+
+function private:AddBackdrop(frame, bgColor)
+    if not frame then
+        return
+    end
+
+    local color = bgColor == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.defaults.colors[bgColor or "bgColor"]
+
+    if frame.SetBackdrop then
+        frame:SetBackdrop(private.defaults.backdrop)
+        frame:SetBackdropBorderColor(private.defaults.colors.borderColor:GetRGBA())
+        frame:SetBackdropColor(color:GetRGBA())
+    else
+        local bg = frame:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints(frame)
+        bg:SetColorTexture(color:GetRGBA())
+
+        return bg
+    end
 end
 
 function private:AddBackdropTexture(frame, bgColor)
     local bg = frame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(frame)
-    bg:SetColorTexture(private.defaults.colors[bgColor or "bgColorDark"]:GetRGBA())
+    bg:SetColorTexture(private.defaults.colors[bgColor or "bgColor"]:GetRGBA())
 
     return bg
 end

@@ -74,3 +74,11 @@ function private:GetTransactionDate(scanTime, year, month, day, hour)
     local sec = (hour * 60 * 60) + (day * 60 * 60 * 24) + (month * 60 * 60 * 24 * 31) + (year * 60 * 60 * 24 * 31 * 12)
     return scanTime - sec
 end
+
+function private:InitializeDataProvider(scrollBox, callback)
+    scrollBox:SetDataProvider(function(provider)
+        if type(callback) == "function" then
+            callback(provider)
+        end
+    end)
+end
