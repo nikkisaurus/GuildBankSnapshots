@@ -458,7 +458,13 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
         -- Show tooltips
         if data.tooltip then
             private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, data)
-                GameTooltip:AddLine(data.tooltip(self.elementData, self.entryID), 1, 1, 1)
+                local line = data.tooltip(self.elementData, self.entryID)
+
+                if line then
+                    GameTooltip:AddLine(line, 1, 1, 1)
+                elseif self.text:GetStringWidth() > self:GetWidth() then
+                    GameTooltip:AddLine(data.text(self.elementData), 1, 1, 1)
+                end
             end, self, data)
         elseif cell.text:GetStringWidth() > cell:GetWidth() then
             -- Get truncated text
