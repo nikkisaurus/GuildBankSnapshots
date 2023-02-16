@@ -2,6 +2,46 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local selectedGuild
+local sections = {
+    {
+        header = "Sorting",
+        collapsed = false,
+        onLoad = function(sidebar, height, padding)
+            for i = 1, 50 do
+                local test = sidebar.frames:Acquire(addonName .. "FontFrame")
+                test:SetHeight(20)
+                test:SetPoint("TOPLEFT", padding, -height)
+                test:SetPoint("RIGHT", -padding, 0)
+                test:SetText("Sorting stuff " .. i)
+                test:SetJustifyH("LEFT")
+                test:Show()
+                height = height + test:GetHeight()
+            end
+
+            return height
+        end,
+    },
+    {
+        header = "Filters",
+        collapsed = true,
+        onLoad = function(sidebar, height, padding)
+            for i = 1, 50 do
+                local test = sidebar.frames:Acquire(addonName .. "FontFrame")
+                test:SetHeight(20)
+                test:SetPoint("TOPLEFT", padding, -height)
+                test:SetPoint("RIGHT", -padding, 0)
+                test:SetText("Filtering stuff " .. i)
+                test:SetJustifyH("LEFT")
+                test:Show()
+                height = height + test:GetHeight()
+            end
+
+            return height
+        end,
+    },
+}
+
 -- [[ Data ]]
 --------------
 local reviewData = {
@@ -18,10 +58,10 @@ local reviewData = {
     [2] = {
         header = "Tab",
         sortValue = function(data)
-            return private:GetTabName(data.selected, data.tabID)
+            return private:GetTabName(data.guildID, data.tabID)
         end,
         text = function(data)
-            return private:GetTabName(data.selected, data.tabID)
+            return private:GetTabName(data.guildID, data.tabID)
         end,
         width = 1,
     },
@@ -81,7 +121,7 @@ local reviewData = {
             return data.moveOrigin or 0
         end,
         text = function(data)
-            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(data.selected, data.moveOrigin) or ""
+            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(data.guildID, data.moveOrigin) or ""
         end,
         width = 1,
     },
@@ -91,7 +131,7 @@ local reviewData = {
             return data.moveDestination or 0
         end,
         text = function(data)
-            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(data.selected, data.moveDestination) or ""
+            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(data.guildID, data.moveDestination) or ""
         end,
         width = 1,
     },
@@ -123,10 +163,13 @@ local reviewData = {
 }
 
 function private:LoadReviewTab(content)
+    selectedGuild = selectedGuild or private.db.global.settings.preferences.defaultGuild
+
     local guildDD = content.frames:Acquire(addonName .. "DropdownButton")
     guildDD:SetPoint("TOPLEFT", 10, -10)
     guildDD:SetSize(200, 20)
-    guildDD:SetText(guildDD.selected or L["Select a guild"])
+    guildDD:SetText(selectedGuild or L["Select a guild"])
+
     guildDD.onClick = function()
         if addon:tcount(private.db.global.guilds) > 0 then
             guildDD:ToggleMenu(function()
@@ -138,15 +181,14 @@ function private:LoadReviewTab(content)
                     guildDD.menu:AddLine({
                         text = private:GetGuildDisplayName(guildID),
                         checked = function()
-                            return guildDD.selected == guildID
+                            return selectedGuild == guildID
                         end,
                         isRadio = true,
                         func = function()
                             guildDD:SetValue(guildID, function(dropdown, guildID)
+                                -- Update text
                                 dropdown:SetText(private:GetGuildDisplayName(guildID))
-                                private:InitializeDataProvider(guildDD.main, function(provider)
-                                    private:LoadTransactions(provider, guildID)
-                                end)
+                                private:ReviewGuild(dropdown)
                             end)
                         end,
                     })
@@ -154,35 +196,22 @@ function private:LoadReviewTab(content)
             end)
         end
     end
-    guildDD:SetScript("OnShow", function(self)
-        if self.selected then
-            private:InitializeDataProvider(self.main, function(provider)
-                private:LoadTransactions(provider, self.selected)
-            end)
-            -- TODO Update scrollbox
+
+    guildDD.onShow = function(self)
+        if selectedGuild then
+            private:ReviewGuild(guildDD)
         end
-    end)
+    end
 
     guildDD:Show()
 
     local sidebar = content.frames:Acquire(addonName .. "LinearScrollFrame")
-    sidebar:SetPoint("TOPLEFT", guildDD, "BOTTOMLEFT", 0, 0)
+    sidebar:SetPoint("TOPLEFT", guildDD, "BOTTOMLEFT")
     sidebar:SetPoint("RIGHT", guildDD, "RIGHT")
     sidebar:SetPoint("BOTTOM", 0, 10)
     private:AddBackdrop(sidebar, "bgColor")
     sidebar:Show()
-
-    -- for i = 1, 1000 do
-    --     local test = sidebar.frames:Acquire(addonName .. "FontFrame")
-    --     test:SetHeight(20)
-    --     test:SetPoint("TOPLEFT", 5, -(20 * (i - 1)))
-    --     test:SetPoint("RIGHT", -5, 0)
-    --     test:SetText("Testing cows and stuff and things and stuff " .. i)
-    --     test:SetJustifyH("LEFT")
-    --     test:Show()
-    -- end
-
-    -- sidebar.content:MarkDirty()
+    guildDD.sidebar = sidebar
 
     local headers = content.frames:Acquire(addonName .. "CollectionFrame")
     headers:SetPoint("TOPLEFT", guildDD, "TOPRIGHT", 5, 0)
@@ -280,6 +309,55 @@ function private:LoadReviewTab(content)
     end)
 end
 
+function private:LoadReviewSidebar(sidebar)
+    sidebar:ReleaseChildren()
+
+    local height = 0
+    local padding = 2
+    for sectionID, info in addon:pairs(sections) do
+        local button = sidebar.frames:Acquire(addonName .. "Button")
+        button:SetHeight(20)
+        button:SetText(info.header)
+        button:Show()
+        button.onClick = function(self)
+            local isCollapsed = info.collapsed
+            if isCollapsed then
+                sections[sectionID].collapsed = false
+            else
+                sections[sectionID].collapsed = true
+            end
+
+            private:LoadReviewSidebar(sidebar)
+        end
+
+        button:SetPoint("TOPLEFT", padding, -height)
+        button:SetPoint("RIGHT", -padding, 0)
+
+        height = height + button:GetHeight()
+
+        if not info.collapsed then
+            height = info.onLoad(sidebar, height, padding)
+        end
+    end
+
+    sidebar.content:MarkDirty()
+    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+end
+
+function private:ReviewGuild(dropdown)
+    -- Initialize sidebar
+    if dropdown.sidebar then
+        private:LoadReviewSidebar(dropdown.sidebar)
+    end
+
+    -- Initialize main
+    if dropdown.main then
+        private:InitializeDataProvider(dropdown.main, function(provider)
+            private:LoadTransactions(provider, selectedGuild)
+        end)
+    end
+end
+
 function private:LoadTransactions(provider, guildID)
     if not provider or not guildID then
         return
@@ -293,7 +371,7 @@ function private:LoadTransactions(provider, guildID)
                 local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
 
                 provider:Insert({
-                    selected = guildID,
+                    guildID = guildID,
                     scanID = scanID,
                     tabID = tabID,
                     transactionID = transactionID,
@@ -315,7 +393,7 @@ function private:LoadTransactions(provider, guildID)
             local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
 
             provider:Insert({
-                selected = guildID,
+                guildID = guildID,
                 scanID = scanID,
                 tabID = MAX_GUILDBANK_TABS + 1,
                 transactionID = transactionID,

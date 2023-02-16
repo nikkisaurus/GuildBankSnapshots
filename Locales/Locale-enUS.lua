@@ -7,7 +7,6 @@ L["Add Filter"] = true
 L["Filters"] = true
 L["Tab"] = true
 L["Entry"] = true
-L["Sort By Header"] = true
 L["Money Tab"] = true
 L["Scan Date"] = true
 L["Tab ID"] = true
@@ -18,6 +17,7 @@ L["Review"] = true
 L["Analyze"] = true
 L["Select a guild"] = true
 L["Settings"] = true
+L["Sorting"] = true
 
 -- -- TODO: sort
 -- L["Buy Tab"] = true

@@ -40,9 +40,24 @@ function private:MixinCollection(frame, parent, ignoreRelease)
 
     frameCollection:CreatePool("Button", parent or frame, addonName .. "Button", function(_, button)
         button.onClick = nil
+
+        button:ClearAllPoints()
         button:Hide()
     end)
-    frameCollection:CreatePool("Button", parent or frame, addonName .. "DropdownButton")
+    frameCollection:CreatePool("Button", parent or frame, addonName .. "DropdownButton", function(_, dropdown)
+        LibDD:CloseAll()
+
+        -- Clear userdata
+        dropdown.onClick = nil
+        dropdown.onShow = nil
+
+        -- Restore defaults
+        dropdown:HideButton()
+        dropdown:SetJustify()
+
+        dropdown:ClearAllPoints()
+        dropdown:Hide()
+    end)
 end
 
 function GuildBankSnapshotsCollectionFrame_OnLoad(frame)
@@ -102,6 +117,7 @@ function GuildBankSnapshotsLinearScrollFrame_OnLoad(frame)
     frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
     frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
     frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+    frame.scrollBar:SetFrameLevel(1)
 
     -- scrollBox
     frame.scrollBox = CreateFrame("Frame", nil, frame, "WowScrollBox")
@@ -142,6 +158,7 @@ function GuildBankSnapshotsListScrollFrame_OnLoad(frame)
     frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
     frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
     frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+    frame.scrollBar:SetFrameLevel(1)
 
     -- scrollBox
     frame.scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
@@ -220,6 +237,13 @@ function GuildBankSnapshotsButton_OnLoad(button)
 
     -- Text
     button:SetNormalFontObject("GameFontNormal")
+
+    -- Scripts
+    button:SetScript("OnClick", function(self)
+        if self.onClick then
+            self.onClick(self)
+        end
+    end)
 end
 
 function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
@@ -258,13 +282,26 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
     -- Menu
     dropdown.menu = LibDD:NewMenu(dropdown, addonName .. "DropdownMenu" .. (#dropdownMenus + 1))
-    dropdown.menu:SetAnchor("TOP", dropdown, "BOTTOM", 0, -20)
+    dropdown.menu:SetAnchor("TOP", dropdown, "BOTTOM", 0, -10)
     dropdown.menu:SetStyle(addonName)
     dropdown.menu:SetCheckAlignment("LEFT")
     dropdown.menu.dropdown = dropdown
     tinsert(dropdownMenus, dropdown.menu)
 
     -- Methods
+    function dropdown:HideButton(hide)
+        if hide then
+            dropdown.arrow:Hide()
+        else
+            dropdown.arrow:Show()
+        end
+    end
+
+    function dropdown:SetJustify(h, v)
+        self.text:SetJustifyH(h or "RIGHT")
+        self.text:SetJustifyV(v or "MIDDLE")
+    end
+
     function dropdown:SetText(text)
         self.text:SetText(text)
     end
@@ -289,13 +326,14 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     -- Scripts
     dropdown:SetScript("OnClick", function(self)
         if self.onClick then
-            self.onClick()
+            self.onClick(self)
         end
     end)
 
-    dropdown:SetScript("OnHide", function(self)
-        LibDD:CloseAll()
-        self.onClick = nil
+    dropdown:SetScript("OnShow", function(self)
+        if self.onShow then
+            self.onShow(self)
+        end
     end)
 end
 
