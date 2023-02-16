@@ -270,22 +270,37 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 end
 
 function GuildBankSnapshotsReviewCell_OnLoad(cell)
-    cell:SetNormalFontObject(GameFontHighlight)
-    cell:SetHighlightFontObject(GameFontNormal)
+    -- Text
+    cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    cell.text:SetAllPoints(cell)
+    cell.text:SetJustifyH("LEFT")
+    cell.text:SetJustifyV("TOP")
 
+    function cell:SetText(text)
+        cell.text:SetText(text)
+    end
+
+    -- Scripts
     cell:SetScript("OnEnter", function(self, ...)
         -- Enable row highlight
         local parent = self:GetParent()
         parent:GetScript("OnEnter")(parent, ...)
+
+        -- Highlight text
+        cell.text:SetFontObject(GameFontNormal)
+    end)
+
+    cell:SetScript("OnHide", function(self)
+        self:SetText("")
+        self.text:SetFontObject(GameFontHighlight)
     end)
 
     cell:SetScript("OnLeave", function(self, ...)
         -- Disable row highlight
         local parent = self:GetParent()
         parent:GetScript("OnLeave")(parent, ...)
-    end)
 
-    cell:SetScript("OnHide", function(self)
-        self:SetText("")
+        -- Unhighlight text
+        cell.text:SetFontObject(GameFontHighlight)
     end)
 end
