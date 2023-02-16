@@ -50,21 +50,51 @@ function GuildBankSnapshotsCollectionFrame_OnLoad(frame)
 end
 
 function GuildBankSnapshotsFontFrame_OnLoad(frame)
-    frame.text = frame:CreateFontString(nil, "OVERLAY", addonName .. "NormalFont")
+    frame:EnableMouse(true)
+
+    frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     frame.text:SetJustifyH("LEFT")
-    frame.text:SetAllPoints(frame)
 
-    function frame:SetText(text)
-        frame.text:SetText(text)
-    end
-
+    -- Methods
     function frame:SetFontObject(fontObject)
-        frame.text:SetFontObject(fontObject)
+        self.text:SetFontObject(fontObject)
     end
 
     function frame:SetJustifyH(justifyH)
-        frame.text:SetJustifyH(justifyH)
+        self.text:SetJustifyH(justifyH)
     end
+
+    function frame:SetPadding(x, y)
+        self.text:ClearAllPoints()
+        self.text:SetPoint("TOPLEFT", self, "TOPLEFT", x, -y)
+        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -x, y)
+    end
+
+    function frame:SetText(text)
+        self.text:SetText(text)
+    end
+
+    -- Scripts
+    frame:SetScript("OnEnter", function(self)
+        if self.text:GetStringWidth() > self.text:GetWidth() then
+            -- Get truncated text
+            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                GameTooltip:AddLine(self.text:GetText(), 1, 1, 1)
+            end, self)
+        end
+    end)
+
+    frame:SetScript("OnHide", function(self)
+        self:SetPadding(0, 0)
+    end)
+
+    frame:SetScript("OnLeave", function()
+        -- Hide tooltips
+        private:ClearTooltip()
+    end)
+
+    -- Defaults
+    frame:SetPadding(0, 0)
 end
 
 function GuildBankSnapshotsLinearScrollFrame_OnLoad(frame)

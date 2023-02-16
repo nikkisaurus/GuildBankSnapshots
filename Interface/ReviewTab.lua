@@ -191,6 +191,28 @@ function private:LoadReviewTab(content)
     private:AddBackdrop(headers, "bgColor")
     headers:Show()
 
+    headers.headers = {}
+    function headers:AcquireHeaders(frame)
+        self:ReleaseChildren()
+
+        for dataID, data in addon:pairs(reviewData) do
+            local header = self.frames:Acquire(addonName .. "FontFrame")
+            header:SetPadding(4, 4)
+            self.headers[dataID] = header
+            header:Show()
+
+            header:SetSize(frame:GetWidth() / addon:tcount(reviewData) * data.width, self:GetHeight())
+
+            if dataID == 1 then
+                header:SetPoint("LEFT")
+            else
+                header:SetPoint("LEFT", self.headers[dataID - 1], "RIGHT")
+            end
+
+            header:SetText(data.header)
+        end
+    end
+
     local main = content.frames:Acquire(addonName .. "ListScrollFrame")
     main:SetPoint("TOPLEFT", headers, "BOTTOMLEFT")
     main:SetPoint("BOTTOMRIGHT", -10, 10)
@@ -216,7 +238,7 @@ function private:LoadReviewTab(content)
                 self.cells[dataID] = cell
                 cell:Show()
 
-                cell:SetSize(self:GetWidth() / addon:tcount(reviewData) * reviewData[dataID].width, self:GetHeight())
+                cell:SetSize(self:GetWidth() / addon:tcount(reviewData) * data.width, self:GetHeight())
 
                 if dataID == 1 then
                     cell:SetPoint("LEFT")
@@ -252,6 +274,10 @@ function private:LoadReviewTab(content)
         -- Acquire cells
         frame:AcquireCells()
     end
+
+    main.scrollBox:SetScript("OnSizeChanged", function(self)
+        headers:AcquireHeaders(self)
+    end)
 end
 
 function private:LoadTransactions(provider, guildID)
