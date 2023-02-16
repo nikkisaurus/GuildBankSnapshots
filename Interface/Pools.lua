@@ -38,6 +38,16 @@ function private:MixinCollection(frame, parent, ignoreRelease)
     frameCollection:CreatePool("Frame", parent or frame, addonName .. "LinearScrollFrame")
     frameCollection:CreatePool("Frame", parent or frame, addonName .. "ListScrollFrame")
 
+    frameCollection:CreatePool("EditBox", parent or frame, addonName .. "SearchBox", function(_, editbox)
+        editbox.onEnterPressed = nil
+        editbox.onTextChanged = nil
+        editbox.clear = nil
+
+        editbox:SetText("")
+        editbox:ClearAllPoints()
+        editbox:Hide()
+    end)
+
     frameCollection:CreatePool("Button", parent or frame, addonName .. "Button", function(_, button)
         button.onClick = nil
 
@@ -214,6 +224,51 @@ function GuildBankSnapshotsListScrollFrame_OnLoad(frame)
         self.initializer = nil
         self.scrollBox:Flush()
     end)
+end
+
+function GuildBankSnapshotsSearchBox_OnLoad(editbox)
+    editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
+
+    editbox:HookScript("OnEnterPressed", function(self)
+        if self.onEnterPressed then
+            self.onEnterPressed(self)
+        end
+    end)
+
+    editbox:HookScript("OnTextChanged", function(self)
+        if self.onTextChanged then
+            self.onTextChanged(self)
+        end
+    end)
+
+    editbox.clearButton:HookScript("OnClick", function()
+        if editbox.clear then
+            editbox.clear(editbox)
+        end
+    end)
+
+    -- function SearchBoxTemplate_OnEditFocusLost(self)
+    --     if ( self:GetText() == "" ) then
+    --         self.searchIcon:SetVertexColor(0.6, 0.6, 0.6);
+    --         self.clearButton:Hide();
+    --     end
+    -- end
+
+    -- function SearchBoxTemplate_OnEditFocusGained(self)
+    --     self.searchIcon:SetVertexColor(1.0, 1.0, 1.0);
+    --     self.clearButton:Show();
+    -- end
+
+    -- function SearchBoxTemplate_OnTextChanged(self)
+    --     if ( not self:HasFocus() and self:GetText() == "" ) then
+    --         self.searchIcon:SetVertexColor(0.6, 0.6, 0.6);
+    --         self.clearButton:Hide();
+    --     else
+    --         self.searchIcon:SetVertexColor(1.0, 1.0, 1.0);
+    --         self.clearButton:Show();
+    --     end
+    --     InputBoxInstructions_OnTextChanged(self);
+    -- end
 end
 
 function GuildBankSnapshotsButton_OnLoad(button)

@@ -31,6 +31,22 @@
         </Scripts>
     </Frame>
 
+    <EditBox name="GuildBankSnapshotsSearchBox" inherits="SearchBoxTemplate" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsSearchBox_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </EditBox>
+
+    <!-- <Frame name="GuildBankSnapshotsScrollingEditbox" inherits="BackdropTemplate" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsScrollingEditbox_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame> -->
+
     <Button name="GuildBankSnapshotsButton" virtual="true">
         <Scripts>
             <OnLoad>

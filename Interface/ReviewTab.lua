@@ -2,45 +2,8 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local selectedGuild
-local sections = {
-    {
-        header = "Sorting",
-        collapsed = false,
-        onLoad = function(sidebar, height, padding)
-            for i = 1, 50 do
-                local test = sidebar.frames:Acquire(addonName .. "FontFrame")
-                test:SetHeight(20)
-                test:SetPoint("TOPLEFT", padding, -height)
-                test:SetPoint("RIGHT", -padding, 0)
-                test:SetText("Sorting stuff " .. i)
-                test:SetJustifyH("LEFT")
-                test:Show()
-                height = height + test:GetHeight()
-            end
-
-            return height
-        end,
-    },
-    {
-        header = "Filters",
-        collapsed = true,
-        onLoad = function(sidebar, height, padding)
-            for i = 1, 50 do
-                local test = sidebar.frames:Acquire(addonName .. "FontFrame")
-                test:SetHeight(20)
-                test:SetPoint("TOPLEFT", padding, -height)
-                test:SetPoint("RIGHT", -padding, 0)
-                test:SetText("Filtering stuff " .. i)
-                test:SetJustifyH("LEFT")
-                test:Show()
-                height = height + test:GetHeight()
-            end
-
-            return height
-        end,
-    },
-}
+local ignoreSearch, selectedGuild = true
+local searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" }
 
 -- [[ Data ]]
 --------------
@@ -58,10 +21,10 @@ local reviewData = {
     [2] = {
         header = "Tab",
         sortValue = function(data)
-            return private:GetTabName(data.guildID, data.tabID)
+            return data.tabName
         end,
         text = function(data)
-            return private:GetTabName(data.guildID, data.tabID)
+            return data.tabName
         end,
         width = 1,
     },
@@ -121,7 +84,7 @@ local reviewData = {
             return data.moveOrigin or 0
         end,
         text = function(data)
-            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(data.guildID, data.moveOrigin) or ""
+            return data.moveOrigin and data.moveOrigin > 0 and data.moveOriginName or ""
         end,
         width = 1,
     },
@@ -131,7 +94,7 @@ local reviewData = {
             return data.moveDestination or 0
         end,
         text = function(data)
-            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(data.guildID, data.moveDestination) or ""
+            return data.moveDestination and data.moveDestination > 0 and data.moveDestinationName or ""
         end,
         width = 1,
     },
@@ -162,6 +125,46 @@ local reviewData = {
     },
 }
 
+local sections = {
+    {
+        header = "Sorting",
+        collapsed = true,
+        onLoad = function(sidebar, height, padding)
+            for i = 1, 8 do
+                local test = sidebar.frames:Acquire(addonName .. "FontFrame")
+                test:SetHeight(20)
+                test:SetPoint("TOPLEFT", padding, -height)
+                test:SetPoint("RIGHT", -padding, 0)
+                test:SetText("Sorting stuff " .. i)
+                test:SetJustifyH("LEFT")
+                test:Show()
+                height = height + test:GetHeight()
+            end
+
+            return height
+        end,
+    },
+    {
+        header = "Filters",
+        collapsed = false,
+        onLoad = function(sidebar, height, padding)
+            for i = 1, 50 do
+                local test = sidebar.frames:Acquire(addonName .. "FontFrame")
+                test:SetHeight(20)
+                test:SetPoint("TOPLEFT", padding, -height)
+                test:SetPoint("RIGHT", -padding, 0)
+                test:SetText("Filtering stuff " .. i)
+                test:SetJustifyH("LEFT")
+                test:Show()
+                height = height + test:GetHeight()
+            end
+
+            return height
+        end,
+    },
+}
+
+-- [[ Methods ]]
 function private:LoadReviewTab(content)
     selectedGuild = selectedGuild or private.db.global.settings.preferences.defaultGuild
 
@@ -211,6 +214,7 @@ function private:LoadReviewTab(content)
     sidebar:SetPoint("BOTTOM", 0, 10)
     private:AddBackdrop(sidebar, "bgColor")
     sidebar:Show()
+    sidebar.guildDD = guildDD
     guildDD.sidebar = sidebar
 
     local headers = content.frames:Acquire(addonName .. "CollectionFrame")
@@ -246,6 +250,7 @@ function private:LoadReviewTab(content)
     main:SetPoint("TOPLEFT", headers, "BOTTOMLEFT")
     main:SetPoint("BOTTOMRIGHT", -10, 10)
     private:AddBackdrop(main, "bgColor")
+    main.guildDD = guildDD
     guildDD.main = main
     main:Show()
 
@@ -314,6 +319,40 @@ function private:LoadReviewSidebar(sidebar)
 
     local height = 0
     local padding = 2
+    local main = sidebar.guildDD.main
+
+    local searchBox = sidebar.frames:Acquire(addonName .. "SearchBox")
+    searchBox:SetHeight(20)
+    searchBox:SetPoint("TOPLEFT", 5, -height)
+    searchBox:SetPoint("RIGHT", -padding, 0)
+
+    searchBox.onTextChanged = function(self)
+        local text = self:GetText()
+        text = text ~= "" and text
+
+        if ignoreSearch then
+            if type(ignoreSearch) == "string" then
+                -- Restores search text without reloading transactions
+                local text = ignoreSearch
+                ignoreSearch = true
+                self:SetText(text)
+                return
+            end
+
+            -- Prevents reinitializing data provider when loading in
+            ignoreSearch = false
+            return
+        end
+
+        private:InitializeDataProvider(main, function(provider)
+            private:LoadTransactions(provider, text)
+        end)
+    end
+
+    searchBox:Show()
+
+    height = height + searchBox:GetHeight() + 10
+
     for sectionID, info in addon:pairs(sections) do
         local button = sidebar.frames:Acquire(addonName .. "Button")
         button:SetHeight(20)
@@ -327,10 +366,11 @@ function private:LoadReviewSidebar(sidebar)
                 sections[sectionID].collapsed = true
             end
 
+            ignoreSearch = searchBox:GetText()
             private:LoadReviewSidebar(sidebar)
         end
 
-        button:SetPoint("TOPLEFT", padding, -height)
+        button:SetPoint("TOPLEFT", 0, -height)
         button:SetPoint("RIGHT", -padding, 0)
 
         height = height + button:GetHeight()
@@ -353,49 +393,65 @@ function private:ReviewGuild(dropdown)
     -- Initialize main
     if dropdown.main then
         private:InitializeDataProvider(dropdown.main, function(provider)
-            private:LoadTransactions(provider, selectedGuild)
+            private:LoadTransactions(provider)
         end)
     end
 end
 
-function private:LoadTransactions(provider, guildID)
-    if not provider or not guildID then
+function private:LoadTransactions(provider, filter)
+    if not provider or not selectedGuild then
         return
     end
 
     local AceSerializer = LibStub("AceSerializer-3.0")
 
-    for scanID, scan in pairs(private.db.global.guilds[guildID].scans) do
+    for scanID, scan in pairs(private.db.global.guilds[selectedGuild].scans) do
         for tabID, tab in pairs(scan.tabs) do
             for transactionID, transaction in pairs(tab.transactions) do
                 local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
 
-                provider:Insert({
-                    guildID = guildID,
+                local entry = {
+                    guildID = selectedGuild,
                     scanID = scanID,
                     tabID = tabID,
+                    tabName = private:GetTabName(selectedGuild, tabID),
                     transactionID = transactionID,
                     transactionType = transactionType,
                     name = name,
                     itemLink = itemLink,
                     count = count,
                     moveOrigin = moveOrigin,
+                    moveOriginName = private:GetTabName(selectedGuild, moveOrigin),
                     moveDestination = moveDestination,
+                    moveDestinationName = private:GetTabName(selectedGuild, moveDestination),
                     year = year,
                     month = month,
                     day = day,
                     hour = hour,
-                })
+                }
+
+                if filter then
+                    for _, key in pairs(searchKeys) do
+                        local found = entry[key] and strfind(strupper(entry[key]), strupper(filter))
+                        if found then
+                            provider:Insert(entry)
+                            break
+                        end
+                    end
+                else
+                    provider:Insert(entry)
+                end
             end
         end
 
         for transactionID, transaction in pairs(scan.moneyTransactions) do
             local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
 
-            provider:Insert({
-                guildID = guildID,
+            local entry = {
+                guildID = selectedGuild,
                 scanID = scanID,
                 tabID = MAX_GUILDBANK_TABS + 1,
+                tabName = private:GetTabName(selectedGuild, MAX_GUILDBANK_TABS + 1),
                 transactionID = transactionID,
                 transactionType = transactionType,
                 name = name,
@@ -404,7 +460,19 @@ function private:LoadTransactions(provider, guildID)
                 month = month,
                 day = day,
                 hour = hour,
-            })
+            }
+
+            if filter then
+                for _, key in pairs(searchKeys) do
+                    local found = entry[key] and strfind(strupper(entry[key]), strupper(filter))
+                    if found then
+                        provider:Insert(entry)
+                        break
+                    end
+                end
+            else
+                provider:Insert(entry)
+            end
         end
     end
 
