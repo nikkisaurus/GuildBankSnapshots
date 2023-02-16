@@ -61,7 +61,6 @@ local reviewData = {
         tooltip = function(data)
             if data.itemLink then
                 GameTooltip:SetHyperlink(data.itemLink)
-                return true
             end
         end,
         width = 2.25,
@@ -118,8 +117,6 @@ local reviewData = {
             if data.moveDestination and data.moveDestination > 0 then
                 GameTooltip:AddDoubleLine(L["Move Destination ID"], data.moveDestination, nil, nil, nil, 1, 1, 1)
             end
-
-            return true
         end,
         width = 0.25,
     },

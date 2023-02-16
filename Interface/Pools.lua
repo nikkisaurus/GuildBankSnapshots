@@ -318,6 +318,23 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
 
         -- Highlight text
         cell.text:SetFontObject(GameFontNormal)
+
+        local data = self.data
+        if not data then
+            return
+        end
+
+        -- Show tooltips
+        if data.tooltip then
+            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, data)
+                GameTooltip:AddLine(data.tooltip(self.elementData), 1, 1, 1)
+            end, self, data)
+        elseif cell.text:GetStringWidth() > cell:GetWidth() then
+            -- Get truncated text
+            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, data)
+                GameTooltip:AddLine(data.text(self.elementData), 1, 1, 1)
+            end, self, data)
+        end
     end)
 
     cell:SetScript("OnHide", function(self)
@@ -334,5 +351,8 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
 
         -- Unhighlight text
         cell.text:SetFontObject(GameFontHighlight)
+
+        -- Hide tooltips
+        private:ClearTooltip()
     end)
 end
