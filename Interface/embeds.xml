@@ -1,6 +1,5 @@
 <Ui>
     <Include file="Frame.lua" />
-    <Include file="GUI.lua" />
     <Include file="Helpers.lua" />
     <Include file="Pools.xml" />
     <Include file="Pools.lua" />

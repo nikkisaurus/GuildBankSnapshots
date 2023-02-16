@@ -12,7 +12,7 @@ function private:ConvertDB4_5(backup)
             realm = gsub(realm, "|s", " ")
 
             local guildID = format("%s - %s (%s)", guildName, realm, faction)
-            private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.defaults.guild)
+            private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.interface.guild)
             local db = private.db.global.guilds[guildID]
 
             db.guildName = guildName

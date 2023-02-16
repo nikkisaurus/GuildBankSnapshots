@@ -67,7 +67,7 @@ local function CreateSorter()
     -- Scripts
     sorter:SetScript("OnDragStart", function(self)
         private.frame.sorters.dragging = self.sorterID
-        self:SetBackdropColor(private.defaults.colors.emphasizeColor:GetRGBA())
+        self:SetBackdropColor(private.interface.colors.emphasizeColor:GetRGBA())
     end)
 
     sorter:SetScript("OnDragStop", function(self)
@@ -77,12 +77,12 @@ local function CreateSorter()
             private.frame.sorters.dragging = nil
         end)
 
-        sorter:SetBackdropColor(private.defaults.colors.bgColorDark:GetRGBA())
+        sorter:SetBackdropColor(private.interface.colors.bgColorDark:GetRGBA())
     end)
 
     sorter:SetScript("OnEnter", function(self)
         -- Emphasize highlighted text
-        self.text:SetFontObject(private.defaults.fonts.emphasizedFont)
+        self.text:SetFontObject(private.interface.fonts.emphasizedFont)
 
         -- Add indicator for sorting insertion
         local sorterID = self.sorterID
@@ -98,7 +98,7 @@ local function CreateSorter()
             end
 
             -- Highlight frame to indicate where dragged header is moving
-            sorter:SetBackdropColor(private.defaults.colors.highlightColor:GetRGBA())
+            sorter:SetBackdropColor(private.interface.colors.highlightColor:GetRGBA())
         end
 
         -- Show tooltip if text is truncated
@@ -113,13 +113,13 @@ local function CreateSorter()
 
     sorter:SetScript("OnLeave", function(self)
         -- Restore default text color
-        sorter.text:SetFontObject(private.defaults.fonts.normalFont)
+        sorter.text:SetFontObject(private.interface.fonts.normalFont)
 
         -- Remove sorting indicator
         self:UpdateText()
         if self.sorterID ~= private.frame.sorters.dragging then
             -- Don't reset backdrop on dragging frame; this is done in OnDragStop
-            self:SetBackdropColor(private.defaults.colors.bgColorDark:GetRGBA())
+            self:SetBackdropColor(private.interface.colors.bgColorDark:GetRGBA())
         end
 
         -- Hide tooltips
@@ -159,7 +159,7 @@ end
 local function ResetSorter(__, sorter)
     sorter.sorterID = nil
     sorter.colID = nil
-    sorter:SetBackdropColor(private.defaults.colors.bgColorDark:GetRGBA())
+    sorter:SetBackdropColor(private.interface.colors.bgColorDark:GetRGBA())
     sorter:Hide()
 end
 
@@ -200,16 +200,16 @@ end
 function frame:SetHighlighted(isHighlighted)
     for _, cell in pairs(self.cells) do
         if isHighlighted then
-            cell.text:SetFontObject(private.defaults.fonts.emphasizedFont)
+            cell.text:SetFontObject(private.interface.fonts.emphasizedFont)
         else
-            cell.text:SetFontObject(private.defaults.fonts.normalFont)
+            cell.text:SetFontObject(private.interface.fonts.normalFont)
         end
     end
 
     if isHighlighted then
-        self.bg:SetColorTexture(private.defaults.colors.highlightColor:GetRGBA())
+        self.bg:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
     else
-        self.bg:SetColorTexture(private.defaults.colors.bgColorDark:GetRGBA())
+        self.bg:SetColorTexture(private.interface.colors.bgColorDark:GetRGBA())
     end
 end
 
@@ -401,7 +401,7 @@ local function CreateScrollView(frame, data) end
 
 -- frame.sorters.text = private:CreateFontString(frame.sorters)
 -- frame.sorters.text:SetText(L["Sort By Header"])
--- frame.sorters.text:SetFontObject(private.defaults.fonts.emphasizedFont)
+-- frame.sorters.text:SetFontObject(private.interface.fonts.emphasizedFont)
 
 -- frame.sorters.text:SetPoint("TOPLEFT", frame.guildDD, "BOTTOMLEFT", 0, -10)
 -- frame.sorters:SetPoint("TOPLEFT", frame.sorters.text, "BOTTOMLEFT", 0, -2)

@@ -189,7 +189,7 @@ function GuildBankSnapshotsButton_OnLoad(button)
     button.highlight:SetAllPoints(button.bg)
 
     -- Text
-    button:SetNormalFontObject("GuildBankSnapshotsEmphasizedFontLarge")
+    button:SetNormalFontObject("GameFontNormal")
 end
 
 function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
@@ -211,13 +211,15 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     dropdown.highlight:SetColorTexture(0.2, 0.2, 0.2, 1)
     dropdown.highlight:SetAllPoints(dropdown.bg)
 
-    -- Text
-    dropdown.arrow = dropdown:CreateFontString(nil, "OVERLAY", "GuildBankSnapshotsNormalFont")
+    dropdown.arrow = dropdown:CreateTexture(nil, "ARTWORK", nil, 7)
     dropdown.arrow:SetSize(20, 20)
     dropdown.arrow:SetPoint("RIGHT", -5)
-    dropdown.arrow:SetText("▼")
+    dropdown.arrow:SetTexture(136961)
+    dropdown.arrow:SetTexCoord(4 / 64, 27 / 64, 8 / 64, 24 / 64)
+    dropdown.arrow:SetVertexColor(1, 1, 1, 1)
 
-    dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GuildBankSnapshotsNormalFont")
+    -- Text
+    dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     dropdown.text:SetHeight(20)
     dropdown.text:SetJustifyH("RIGHT")
     dropdown.text:SetWordWrap(false)
@@ -268,9 +270,8 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 end
 
 function GuildBankSnapshotsReviewCell_OnLoad(cell)
-    -- private:AddBackdrop(cell, "random")
-    cell:SetNormalFontObject("GuildBankSnapshotsNormalFont")
-    cell:SetHighlightFontObject("GuildBankSnapshotsEmphasizedFont")
+    cell:SetNormalFontObject(GameFontHighlight)
+    cell:SetHighlightFontObject(GameFontNormal)
 
     cell:SetScript("OnEnter", function(self, ...)
         -- Enable row highlight

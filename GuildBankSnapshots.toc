@@ -16,5 +16,4 @@ Locales\embeds.xml
 Database\embeds.xml
 Core\embeds.xml
 Interface\embeds.xml
-Helpers.lua
 GuildBankSnapshots.lua

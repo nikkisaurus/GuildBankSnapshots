@@ -1,4 +1,36 @@
 <Ui>
+    <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate, ResizeLayoutFrame" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsCollectionFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsFontFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsLinearScrollFrame" inherits="BackdropTemplate" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsLinearScrollFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsListScrollFrame" inherits="BackdropTemplate" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsListScrollFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
     <Button name="GuildBankSnapshotsButton" virtual="true">
         <Scripts>
             <OnLoad>
@@ -14,41 +46,6 @@
             </OnLoad>
         </Scripts>
     </Button>
-
-    <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate, ResizeLayoutFrame"
-        virtual="true">
-        <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsCollectionFrame_OnLoad(self)
-            </OnLoad>
-        </Scripts>
-    </Frame>
-
-    <Frame name="GuildBankSnapshotsLinearScrollFrame" inherits="BackdropTemplate"
-        virtual="true">
-        <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsLinearScrollFrame_OnLoad(self)
-            </OnLoad>
-        </Scripts>
-    </Frame>
-
-    <Frame name="GuildBankSnapshotsListScrollFrame" inherits="BackdropTemplate"
-        virtual="true">
-        <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsListScrollFrame_OnLoad(self)
-            </OnLoad>
-        </Scripts>
-    </Frame>
-
-    <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
-        <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsFontFrame_OnLoad(self)
-            </OnLoad>
-        </Scripts>
-    </Frame>
 
 
     <Button name="GuildBankSnapshotsReviewCell" virtual="true">

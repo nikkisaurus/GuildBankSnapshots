@@ -100,7 +100,7 @@ function private:DeleteCorruptedScans(lastScan)
     return lastScanCorrupted
 end
 
-private.defaults = {
+private.interface = {
     guild = {
         guildName = "",
         faction = "",
@@ -215,7 +215,7 @@ end
 
 function private:UpdateGuildDatabase()
     local guildID, guildName, faction, realm = private:GetGuildID()
-    private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.defaults.guild)
+    private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.interface.guild)
     local db = private.db.global.guilds[guildID]
 
     db.guildName = guildName

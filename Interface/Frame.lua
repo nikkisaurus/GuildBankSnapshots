@@ -24,12 +24,12 @@ local function CreateTabButton()
     button:SetHeight(20)
 
     -- Textures
-    button:SetNormalTexture(private:AddBackdropTexture(button, "elementColor"))
+    button:SetNormalTexture(private:AddBackdrop(button, "elementColor"))
 
     -- Text
     button:SetText("")
-    button:SetNormalFontObject(private.defaults.fonts.emphasizedFontLarge)
-    button:SetHighlightFontObject(private.defaults.fonts.normalFontLarge)
+    button:SetNormalFontObject(GameFontNormal)
+    button:SetHighlightFontObject(GameFontHighlight)
     button:SetPushedTextOffset(0, 0)
 
     -- Methods
@@ -99,13 +99,13 @@ function private:InitializeFrame()
     frame.closeButton:SetSize(22, 22)
     frame.closeButton:SetPoint("RIGHT", -4, 0)
     frame.closeButton:SetText("x")
-    frame.closeButton:SetNormalFontObject(private.defaults.fonts.emphasizedFontLarge)
-    frame.closeButton:SetHighlightFontObject(private.defaults.fonts.normalFontLarge)
+    frame.closeButton:SetNormalFontObject(GameFontNormal)
+    frame.closeButton:SetHighlightFontObject(GameFontHighlight)
     frame.closeButton:SetScript("OnClick", function()
         frame:Hide()
     end)
 
-    frame.title = private:CreateHeader(frame.titleBar, "CENTER")
+    frame.title = frame.titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.title:SetText(L.addonName)
     frame.title:SetPoint("TOPLEFT", 4, -2)
     frame.title:SetPoint("BOTTOMRIGHT", -4, 2)
