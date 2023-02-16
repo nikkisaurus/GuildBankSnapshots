@@ -2,6 +2,8 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local loaded
+
 local tabs = {
     {
         header = L["Review"],
@@ -15,7 +17,9 @@ local tabs = {
     },
     {
         header = L["Settings"],
-        onClick = function(content) end,
+        onClick = function(content)
+            private:LoadSettingsTab(content)
+        end,
     },
 }
 
@@ -168,11 +172,12 @@ function private:InitializeFrame()
     frame:SetScript("OnSizeChanged", function(self)
         self.tabContainer:AcquireTabButtons()
     end)
-
-    -- [[ Defaults ]]
-    frame:SelectTab(1) -- TODO implement default from db
 end
 
 function private:LoadFrame()
     private.frame:Show()
+    if not loaded then
+        loaded = true
+        private.frame:SelectTab(1)
+    end
 end

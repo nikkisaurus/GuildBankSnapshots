@@ -397,6 +397,14 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
     cell.icon = cell:CreateTexture(nil, "ARTWORK")
     cell.icon:SetSize(12, 12)
 
+    cell.icon:SetScript("OnEnter", function(_, ...)
+        cell:GetScript("OnEnter")(cell, ...)
+    end)
+
+    cell.icon:SetScript("OnLeave", function(_, ...)
+        cell:GetScript("OnLeave")(cell, ...)
+    end)
+
     -- Text
     cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     cell.text:SetJustifyH("LEFT")
@@ -450,7 +458,7 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
         -- Show tooltips
         if data.tooltip then
             private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, data)
-                GameTooltip:AddLine(data.tooltip(self.elementData), 1, 1, 1)
+                GameTooltip:AddLine(data.tooltip(self.elementData, self.entryID), 1, 1, 1)
             end, self, data)
         elseif cell.text:GetStringWidth() > cell:GetWidth() then
             -- Get truncated text
@@ -463,7 +471,8 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
     cell:SetScript("OnHide", function(self)
         self.data = nil
         self.elementData = nil
-        self:Update()
+        self.entryID = nil
+        self:Reset()
         self.text:SetFontObject(GameFontHighlight)
     end)
 

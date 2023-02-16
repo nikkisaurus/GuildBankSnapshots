@@ -3,5 +3,6 @@
     <Include file="Helpers.lua" />
     <Include file="Pools.xml" />
     <Include file="Pools.lua" />
-    <Include file="ReviewTab.lua" />
+    <Include file="Review.lua" />
+    <Include file="Settings.lua" />
 </Ui>

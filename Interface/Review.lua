@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local ignoreSearch, selectedGuild = true
+local ignoreSearch, filter, selectedGuild = true
 local searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" }
 
 -- [[ Data ]]
@@ -190,6 +190,7 @@ function private:LoadReviewTab(content)
                         func = function()
                             guildDD:SetValue(guildID, function(dropdown, guildID)
                                 -- Update text
+                                selectedGuild = guildID
                                 dropdown:SetText(private:GetGuildDisplayName(guildID))
                                 private:ReviewGuild(dropdown)
                             end)
@@ -206,7 +207,7 @@ function private:LoadReviewTab(content)
         end
     end
 
-    guildDD:Show()
+    -- guildDD:Show() is moved to the end of the func, to ensure sidebar and main are available
 
     local sidebar = content.frames:Acquire(addonName .. "LinearScrollFrame")
     sidebar:SetPoint("TOPLEFT", guildDD, "BOTTOMLEFT")
@@ -282,6 +283,7 @@ function private:LoadReviewTab(content)
 
                 cell.data = data
                 cell.elementData = elementData
+                cell.entryID = frame:GetOrderIndex()
                 cell:Update()
             end
         end
@@ -312,6 +314,9 @@ function private:LoadReviewTab(content)
     main.scrollBox:SetScript("OnSizeChanged", function(self)
         headers:AcquireHeaders(self)
     end)
+
+    -- Making sure sidebar and main are available
+    guildDD:Show()
 end
 
 function private:LoadReviewSidebar(sidebar)
