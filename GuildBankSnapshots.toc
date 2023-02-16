@@ -6,7 +6,6 @@
 ## Author: Nikketa-Hyjal-US
 ## Version: @project-version@
 ## SavedVariables: GuildBankSnapshotsDB, GuildBankSnapshotsDevDB
-## OptionalDeps: LibStub, !LibUIDropDownMenu
 
 ## X-Curse-Project-ID: 82308
 ## X-WoWI-ID: 22913

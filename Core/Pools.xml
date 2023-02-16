@@ -1,0 +1,45 @@
+<Ui>
+    <Include file="Pools.lua" />
+
+    <Button name="GuildBankSnapshotsButton" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsButton_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Button>
+
+    <Button name="GuildBankSnapshotsDropdownButton" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsDropdownButton_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Button>
+
+    <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate, ResizeLayoutFrame"
+        virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsCollectionFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsScrollFrame" inherits="BackdropTemplate"
+        virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsScrollFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
+        <Scripts>
+            <OnLoad>
+                GuildBankSnapshotsFontFrame_OnLoad(self)
+            </OnLoad>
+        </Scripts>
+    </Frame>
+</Ui>

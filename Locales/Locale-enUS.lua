@@ -14,6 +14,10 @@ L["Tab ID"] = true
 L["Transaction ID"] = true
 L["Move Origin ID"] = true
 L["Move Destination ID"] = true
+L["Review"] = true
+L["Analyze"] = true
+L["Select a guild"] = true
+L["Settings"] = true
 
 -- -- TODO: sort
 -- L["Buy Tab"] = true

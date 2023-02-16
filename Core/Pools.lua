@@ -1,0 +1,189 @@
+local addonName, private = ...
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local LibDD = LibStub("LibDropDown")
+
+local dropdownMenus = {}
+
+function private:MixinCollection(frame, parent)
+    local frameCollection = CreateFramePoolCollection()
+    frame.frames = Mixin({}, frameCollection)
+
+    function frame:ReleaseChildren()
+        self.frames:ReleaseAll()
+    end
+
+    frame:SetScript("OnHide", function(self)
+        self:ReleaseChildren()
+    end)
+
+    frameCollection:CreatePool("Frame", parent or frame, addonName .. "CollectionFrame")
+    frameCollection:CreatePool("Frame", parent or frame, addonName .. "FontFrame")
+    frameCollection:CreatePool("Frame", parent or frame, addonName .. "ScrollFrame")
+
+    frameCollection:CreatePool("Button", parent or frame, addonName .. "Button", function(_, button)
+        button.onClick = nil
+        button:Hide()
+    end)
+    frameCollection:CreatePool("Button", parent or frame, addonName .. "DropdownButton")
+end
+
+function GuildBankSnapshotsCollectionFrame_OnLoad(frame)
+    private:MixinCollection(frame)
+end
+
+function GuildBankSnapshotsFontFrame_OnLoad(frame)
+    frame.text = frame:CreateFontString(nil, "OVERLAY", addonName .. "NormalFont")
+    frame.text:SetJustifyH("LEFT")
+    frame.text:SetAllPoints(frame)
+
+    function frame:SetText(text)
+        frame.text:SetText(text)
+    end
+
+    function frame:SetFontObject(fontObject)
+        frame.text:SetFontObject(fontObject)
+    end
+
+    function frame:SetJustifyH(justifyH)
+        frame.text:SetJustifyH(justifyH)
+    end
+end
+
+function GuildBankSnapshotsScrollFrame_OnLoad(frame)
+    -- scrollBar
+    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
+    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+
+    -- scrollBox
+    frame.scrollBox = CreateFrame("Frame", nil, frame, "WowScrollBox")
+    frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+
+    -- scrollView
+    frame.scrollView = CreateScrollBoxLinearView()
+    frame.scrollView:SetPanExtent(50)
+
+    -- Content
+    frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
+    private:MixinCollection(frame, frame.content)
+    frame.content.scrollable = true
+    frame.content:SetAllPoints(frame.scrollBox)
+    frame.content:Show()
+
+    frame.content:SetScript("OnSizeChanged", function()
+        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+    end)
+
+    -- ScrollUtil
+    local anchorsWithBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
+        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -5, 5),
+    }
+
+    local anchorsWithoutBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
+        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 5),
+    }
+
+    ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
+    ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
+end
+
+function GuildBankSnapshotsButton_OnLoad(button)
+    button:SetSize(150, 20)
+
+    -- Textures
+    button.border = button:CreateTexture(nil, "BACKGROUND")
+    button.border:SetAllPoints(button)
+    button.border:SetColorTexture(0, 0, 0, 1)
+
+    button:SetNormalTexture(button:CreateTexture(nil, "ARTWORK"))
+    button.bg = button:GetNormalTexture()
+    button.bg:SetColorTexture(0.1, 0.1, 0.1, 1)
+    button.bg:SetPoint("TOPLEFT", button.border, "TOPLEFT", 1, -1)
+    button.bg:SetPoint("BOTTOMRIGHT", button.border, "BOTTOMRIGHT", -1, 1)
+
+    button:SetHighlightTexture(button:CreateTexture(nil, "ARTWORK"))
+    button.highlight = button:GetHighlightTexture()
+    button.highlight:SetColorTexture(0.2, 0.2, 0.2, 1)
+    button.highlight:SetAllPoints(button.bg)
+
+    -- Text
+    button:SetNormalFontObject("GuildBankSnapshotsEmphasizedFontLarge")
+end
+
+function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
+    dropdown:SetSize(150, 20)
+
+    -- Textures
+    dropdown.border = dropdown:CreateTexture(nil, "BACKGROUND")
+    dropdown.border:SetAllPoints(dropdown)
+    dropdown.border:SetColorTexture(0, 0, 0, 1)
+
+    dropdown:SetNormalTexture(dropdown:CreateTexture(nil, "ARTWORK"))
+    dropdown.bg = dropdown:GetNormalTexture()
+    dropdown.bg:SetColorTexture(0.1, 0.1, 0.1, 1)
+    dropdown.bg:SetPoint("TOPLEFT", dropdown.border, "TOPLEFT", 1, -1)
+    dropdown.bg:SetPoint("BOTTOMRIGHT", dropdown.border, "BOTTOMRIGHT", -1, 1)
+
+    dropdown:SetHighlightTexture(dropdown:CreateTexture(nil, "ARTWORK"))
+    dropdown.highlight = dropdown:GetHighlightTexture()
+    dropdown.highlight:SetColorTexture(0.2, 0.2, 0.2, 1)
+    dropdown.highlight:SetAllPoints(dropdown.bg)
+
+    -- Text
+    dropdown.arrow = dropdown:CreateFontString(nil, "OVERLAY", "GuildBankSnapshotsNormalFont")
+    dropdown.arrow:SetSize(20, 20)
+    dropdown.arrow:SetPoint("RIGHT", -5)
+    dropdown.arrow:SetText("▼")
+
+    dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GuildBankSnapshotsNormalFont")
+    dropdown.text:SetHeight(20)
+    dropdown.text:SetJustifyH("RIGHT")
+    dropdown.text:SetWordWrap(false)
+    dropdown.text:SetPoint("LEFT", 5, 0)
+    dropdown.text:SetPoint("RIGHT", dropdown.arrow, "LEFT", -5, 0)
+
+    -- Menu
+    dropdown.menu = LibDD:NewMenu(dropdown, addonName .. "DropdownMenu" .. (#dropdownMenus + 1))
+    dropdown.menu:SetAnchor("TOP", dropdown, "BOTTOM", 0, -20)
+    dropdown.menu:SetStyle(addonName)
+    dropdown.menu:SetCheckAlignment("LEFT")
+    dropdown.menu.dropdown = dropdown
+    tinsert(dropdownMenus, dropdown.menu)
+
+    -- Methods
+    function dropdown:SetText(text)
+        self.text:SetText(text)
+    end
+
+    function dropdown:SetValue(value, callback)
+        self.selected = value
+        if type(callback) == "function" then
+            callback(self, value)
+        end
+    end
+
+    function dropdown:ToggleMenu(callback)
+        if type(callback) ~= "function" then
+            return
+        end
+
+        self.menu:ClearLines()
+        callback()
+        self.menu:Toggle()
+    end
+
+    -- Scripts
+    dropdown:SetScript("OnClick", function(self)
+        if self.onClick then
+            self.onClick()
+        end
+    end)
+
+    dropdown:SetScript("OnHide", function(self)
+        LibDD:CloseAll()
+        self.onClick = nil
+    end)
+end

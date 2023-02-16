@@ -29,6 +29,10 @@ function private:ClearTooltip()
     GameTooltip:Hide()
 end
 
+function private:CreateDropdownMenu(button)
+    print(button)
+end
+
 function private:CreateDropdown(parent, name, setter, initializer)
     local LDD = LibStub("LibDropDown")
     local dropdown = LDD:NewButton(parent, "LibDropDownTest")
@@ -92,10 +96,14 @@ function private:CreateFontString(parent, justifyH, justifyV, isHeader)
     end
 
     local text = parent:CreateFontString(nil, "OVERLAY")
-    text:SetFontObject(private.defaults.fonts[isHeader and "headerFont" or "normalFont"])
+    text:SetFontObject(private.defaults.fonts[isHeader and "emphasizedFontLarge" or "normalFont"])
     text:SetJustifyH(justifyH or "LEFT")
     text:SetJustifyV(justifyV or "MIDDLE")
     return text
+end
+
+function private:CreateHeader(parent, justifyH, justifyV)
+    return private:CreateFontString(parent, justifyH, justifyV, true)
 end
 
 function private:InitializeTooltip(frame, anchor, callback, ...)
@@ -120,7 +128,6 @@ function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
     frame.resizer = CreateFrame("Button", nil, frame)
     frame.resizer:SetNormalTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down]])
     frame.resizer:SetHighlightTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight]])
-    frame.resizer:SetPushedTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up]])
     frame.resizer:SetPoint("BOTTOMRIGHT", 0, 0)
     frame.resizer:SetSize(16, 16)
     frame.resizer:EnableMouse(true)
