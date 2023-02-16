@@ -47,13 +47,8 @@ local reviewData = {
     },
     [5] = {
         header = "Item/Amount",
-        icon = function(icon, data)
-            if data.itemLink then
-                icon:SetPoint("TOPLEFT")
-                icon:SetTexture(GetItemIcon(data.itemLink))
-                icon:SetSize(12, 12)
-                return true
-            end
+        icon = function(data)
+            return data.itemLink and GetItemIcon(data.itemLink)
         end,
         sortValue = function(data)
             local itemString = select(3, strfind(data.itemLink or "", "|H(.+)|h"))
@@ -103,12 +98,7 @@ local reviewData = {
     },
     [9] = {
         header = "Scan ID",
-        icon = function(icon)
-            icon:SetPoint("TOP")
-            icon:SetTexture(374216)
-            icon:SetSize(12, 12)
-            return true
-        end,
+        icon = 374216,
         sortValue = function(data)
             return data.scanID
         end,
@@ -237,7 +227,9 @@ function private:LoadReviewTab(content)
                     cell:SetPoint("LEFT", self.cells[dataID - 1], "RIGHT")
                 end
 
-                cell:SetText(data.text(elementData))
+                cell.data = data
+                cell.elementData = elementData
+                cell:Update()
             end
         end
 

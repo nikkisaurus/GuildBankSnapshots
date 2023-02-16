@@ -270,14 +270,44 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 end
 
 function GuildBankSnapshotsReviewCell_OnLoad(cell)
+    -- Textures
+    cell.icon = cell:CreateTexture(nil, "ARTWORK")
+    cell.icon:SetSize(12, 12)
+
     -- Text
     cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    cell.text:SetAllPoints(cell)
     cell.text:SetJustifyH("LEFT")
     cell.text:SetJustifyV("TOP")
 
-    function cell:SetText(text)
-        cell.text:SetText(text)
+    function cell:Reset()
+        self.icon:SetTexture()
+        self.icon:ClearAllPoints()
+        self.text:SetText("")
+        self.text:ClearAllPoints()
+    end
+
+    function cell:Update()
+        self:Reset()
+
+        local data = self.data
+        if data then
+            self.text:SetText(data.text(self.elementData))
+            self.text:SetPoint("TOPLEFT")
+            self.text:SetPoint("BOTTOMRIGHT")
+
+            if data.icon then
+                local icon = data.icon
+                if type(data.icon) == "function" then
+                    icon = data.icon(self.elementData)
+                end
+
+                if icon then
+                    self.icon:SetTexture(icon)
+                    self.icon:SetPoint("TOPLEFT")
+                    self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
+                end
+            end
+        end
     end
 
     -- Scripts
@@ -291,7 +321,9 @@ function GuildBankSnapshotsReviewCell_OnLoad(cell)
     end)
 
     cell:SetScript("OnHide", function(self)
-        self:SetText("")
+        self.data = nil
+        self.elementData = nil
+        self:Update()
         self.text:SetFontObject(GameFontHighlight)
     end)
 

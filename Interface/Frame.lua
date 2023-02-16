@@ -164,12 +164,13 @@ function private:InitializeFrame()
         tabs[tabID].onClick(frame.content)
     end
 
-    frame:SelectTab(1)
-
-    -- -- Scripts
+    -- [[ Scripts ]]
     frame:SetScript("OnSizeChanged", function(self)
         self.tabContainer:AcquireTabButtons()
     end)
+
+    -- [[ Defaults ]]
+    frame:SelectTab(1) -- TODO implement default from db
 end
 
 function private:LoadFrame()
