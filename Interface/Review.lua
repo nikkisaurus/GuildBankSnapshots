@@ -342,7 +342,6 @@ function private:LoadReviewTab(content)
                 end,
                 func = function()
                     ReviewTab.guildID = guildID
-                    guildDropdown:SetText(text)
                     private:LoadSidebar()
                     private:LoadTable()
                 end,

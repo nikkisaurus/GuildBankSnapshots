@@ -44,11 +44,7 @@ function DropdownMenuMixin:DrawButtons()
         frame.dropdown = frame.menu.dropdown
 
         frame:SetStyle(style)
-        frame:SetText(elementData.text)
-        frame:SetChecked(elementData.checked)
-        if elementData.func then
-            frame:SetCallback("OnClick", elementData.func)
-        end
+        frame:SetElementData(elementData)
     end, "GuildBankSnapshotsDropdownListButton")
 
     listFrame:SetDataProvider(function(provider)
@@ -322,9 +318,9 @@ local function DropdownButton_OnLoad(dropdown)
     dropdown.menu = CreateFrame("Frame", nil, dropdown, "GuildBankSnapshotsCollectionFrame")
     dropdown.menu = Mixin(dropdown.menu, DropdownMenuMixin, ContainerMixin)
     dropdown.menu:InitStyle()
-    private:AddBackdrop(dropdown.menu, "insetColor")
     dropdown.menu:Hide()
     dropdown.menu.dropdown = dropdown
+    private:AddBackdrop(dropdown.menu, "insetColor")
 
     -- Methods
     function dropdown:SelectValue(value)
@@ -334,6 +330,7 @@ local function DropdownButton_OnLoad(dropdown)
 
         for _, info in pairs(self.menu.info) do
             if info.value == value then
+                self:SetText(info.text)
                 info.func()
                 return
             end
@@ -354,10 +351,6 @@ local function DropdownButton_OnLoad(dropdown)
         end
 
         self.menu.info = info
-    end
-
-    function dropdown:SetMenuHeight()
-        self.menu:SetHeight(200)
     end
 
     function dropdown:ToggleMenu()
@@ -449,6 +442,15 @@ local function DropdownListButton_OnLoad(button)
         end
     end
 
+    function button:SetElementData(elementData)
+        self.elementData = elementData
+        self:SetText(elementData.text)
+        self:SetChecked(elementData.checked)
+        if elementData.func then
+            self:SetCallback("OnClick", elementData.func)
+        end
+    end
+
     function button:SetStyle(style)
         self.style = style
         self:SetAnchors()
@@ -456,11 +458,16 @@ local function DropdownListButton_OnLoad(button)
     end
 
     -- Scripts
-    button.scripts.OnRelease = function()
-        button:SetSize(150, 20)
-        button:SetFontObject("GameFontHighlightSmall")
-        button.style = nil
-        button.selected = nil
+    button.scripts.OnClick = function(self)
+        self.menu:Hide()
+        self.dropdown:SetText(self.text:GetText())
+    end
+
+    button.scripts.OnRelease = function(self)
+        self:SetSize(150, 20)
+        self:SetFontObject("GameFontHighlightSmall")
+        self.style = nil
+        self.elementData = nil
     end
 
     button:InitializeScripts()
