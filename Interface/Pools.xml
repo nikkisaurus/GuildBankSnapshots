@@ -1,74 +1,56 @@
 <Ui>
-    <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate, ResizeLayoutFrame" virtual="true">
+    <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsCollectionFrame_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsCollectionFrame_OnLoad" />
         </Scripts>
     </Frame>
 
     <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsFontFrame_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsFontFrame_OnLoad" />
         </Scripts>
     </Frame>
 
-    <Frame name="GuildBankSnapshotsLinearScrollFrame" inherits="BackdropTemplate" virtual="true">
+    <Frame name="GuildBankSnapshotsScrollFrame" inherits="BackdropTemplate" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsLinearScrollFrame_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsScrollFrame_OnLoad" />
         </Scripts>
     </Frame>
 
     <Frame name="GuildBankSnapshotsListScrollFrame" inherits="BackdropTemplate" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsListScrollFrame_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsListScrollFrame_OnLoad" />
         </Scripts>
     </Frame>
 
     <EditBox name="GuildBankSnapshotsSearchBox" inherits="SearchBoxTemplate" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsSearchBox_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsSearchBox_OnLoad" />
         </Scripts>
     </EditBox>
 
-    <!-- <Frame name="GuildBankSnapshotsScrollingEditbox" inherits="BackdropTemplate" virtual="true">
-        <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsScrollingEditbox_OnLoad(self)
-            </OnLoad>
-        </Scripts>
-    </Frame> -->
-
     <Button name="GuildBankSnapshotsButton" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsButton_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsButton_OnLoad" />
         </Scripts>
     </Button>
 
     <Button name="GuildBankSnapshotsDropdownButton" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsDropdownButton_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsDropdownButton_OnLoad" />
+        </Scripts>
+    </Button>
+
+    <Button name="GuildBankSnapshotsDropdownListButton" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsDropdownListButton_OnLoad" />
         </Scripts>
     </Button>
 
 
-    <Button name="GuildBankSnapshotsReviewCell" virtual="true">
+    <Button name="GuildBankSnapshotsTableCell" virtual="true">
         <Scripts>
-            <OnLoad>
-                GuildBankSnapshotsReviewCell_OnLoad(self)
-            </OnLoad>
+            <OnLoad function="GuildBankSnapshotsTableCell_OnLoad" />
         </Scripts>
     </Button>
 </Ui>

@@ -1,278 +1,260 @@
 local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
-local LibDD = LibStub("LibDropDown")
 
-local dropdownMenus = {}
-local pools = {}
-
-function private:GetPool(...)
-    local frameTemplate = select(3, ...)
-    if not frameTemplate then
-        return
+--*----------[[ Collection pool ]]----------*--
+local function Resetter(_, self)
+    if self.Reset then
+        self:Reset()
+    else
+        self:ClearAllPoints()
+        self:Hide()
     end
-
-    if not pools[frameTemplate] then
-        pools[frameTemplate] = CreateFramePool(...)
-    end
-
-    return pools[frameTemplate]
 end
 
-function private:MixinCollection(frame, parent, ignoreRelease)
-    local frameCollection = CreateFramePoolCollection()
-    frame.frames = Mixin({}, frameCollection)
+local CollectionMixin = {}
 
-    function frame:ReleaseChildren()
-        self.frames:ReleaseAll()
+function CollectionMixin:InitPools(parent)
+    self.pool = CreateFramePoolCollection()
+    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsButton", Resetter)
+    self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsCollectionFrame", Resetter)
+    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsDropdownButton", Resetter)
+    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsDropdownListButton", Resetter)
+    self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsFontFrame", Resetter)
+    self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsListScrollFrame", Resetter)
+    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsTableCell", Resetter)
+    self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsScrollFrame", Resetter)
+    self.pool:CreatePool("EditBox", parent or self, "GuildBankSnapshotsSearchBox", Resetter)
+end
+
+--*----------[[ Mixins ]]----------*--
+local DropdownMenuMixin = {}
+
+function DropdownMenuMixin:DrawButtons()
+    self:ReleaseAll()
+
+    local style = self.style
+    self:SetHeight(min(#self.info * style.buttonHeight, style.maxButtons * style.buttonHeight))
+
+    local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
+    listFrame:SetAllPoints(self)
+
+    listFrame.scrollView:Initialize(style.buttonHeight, function(frame, elementData)
+        frame.menu = self
+        frame.dropdown = frame.menu.dropdown
+
+        frame:SetStyle(style)
+        frame:SetText(elementData.text)
+        frame:SetChecked(elementData.checked)
+        if elementData.func then
+            frame:SetCallback("OnClick", elementData.func)
+        end
+    end, "GuildBankSnapshotsDropdownListButton")
+
+    listFrame:SetDataProvider(function(provider)
+        provider:InsertTable(self.info)
+    end)
+
+    -- local height = 0
+    -- for i, info in pairs(self.info) do
+    --     local button = scrollFrame.content:Acquire("GuildBankSnapshotsFontFrame")
+    --     button:SetText(info.text)
+    --     button:SetSize(self:GetWidth(), style.buttonHeight)
+
+    --     button:SetPoint("TOPLEFT", 0, -height)
+    --     height = height + button:GetHeight()
+    --     if i <= style.maxButtons then
+    --         self:SetHeight(height)
+    --     end
+    -- end
+end
+
+function DropdownMenuMixin:InitStyle()
+    self.style = {
+        width = "auto",
+        buttonHeight = 20,
+        buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
+        maxButtons = 10,
+        anchor = "TOPLEFT",
+        relAnchor = "BOTTOMLEFT",
+        xOffset = 0,
+        yOffset = 0,
+        justifyH = "LEFT",
+        justifyV = "MIDDLE",
+        paddingX = 3,
+        paddyingY = 3,
+        hasCheckBox = true,
+        checkAlignment = "LEFT",
+    }
+end
+
+function DropdownMenuMixin:SetAnchors()
+    self:SetPoint(self.style.anchor, self:GetParent(), self.style.relAnchor, self.style.xOffset, self.style.yOffset)
+end
+
+function DropdownMenuMixin:SetMenuWidth()
+    self:SetWidth(self.style.width == "auto" and self:GetParent():GetWidth() or self.style.width)
+end
+
+-----------------------
+
+local TextMixin = {}
+
+local function TextMixin_Validate(self)
+    return assert(self.text, "TextMixin: text has not been initialized")
+end
+
+function TextMixin:Justify(justifyH, justifyV)
+    TextMixin_Validate(self)
+    self.text:SetJustifyH(justifyH or "CENTER")
+    self.text:SetJustifyV(justifyV or "MIDDLE")
+end
+
+function TextMixin:SetAutoHeight(autoHeight)
+    TextMixin_Validate(self)
+    self.autoHeight = autoHeight
+end
+
+function TextMixin:SetFontObject(fontObject)
+    TextMixin_Validate(self)
+    self.text:SetFontObject(fontObject or GameFontNormalSmall)
+end
+
+function TextMixin:SetPadding(x, y)
+    TextMixin_Validate(self)
+    self.text:ClearAllPoints()
+    self.text:SetPoint("TOPLEFT", self, "TOPLEFT", x, -y)
+    self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -x, y)
+end
+
+function TextMixin:SetText(text)
+    TextMixin_Validate(self)
+    self.text:SetText(text or "")
+    if self.autoHeight then
+        self:SetHeight(self.text:GetStringHeight() + 8)
+    end
+end
+
+function TextMixin:SetWordWrap(canWordWrap)
+    TextMixin_Validate(self)
+    self.text:SetWordWrap(canWordWrap or "")
+end
+
+-----------------------
+
+local WidgetMixin = {}
+
+function WidgetMixin:Fire(script, ...)
+    if script == "OnAcquire" and self.scripts.OnAcquire then
+        self.scripts.OnAcquire(...)
+    else
+        if self.scripts[script] then
+            self.scripts[script](self, ...)
+        end
+
+        if self.handlers[script] then
+            self.handlers[script](self, ...)
+        end
+    end
+end
+
+function WidgetMixin:InitializeScripts()
+    for script, callback in pairs(self.scripts) do
+        local success, err = pcall(self.SetScript, self, script, callback)
+        if success then
+            self:SetScript(script, callback)
+        end
+    end
+end
+
+function WidgetMixin:InitScripts()
+    self.handlers = {}
+    self.scripts = {}
+end
+
+function WidgetMixin:Reset()
+    self:Fire("OnRelease")
+
+    for script, callback in pairs(self.handlers) do
+        local success, err = pcall(self.SetScript, self, script, callback)
+        if success then
+            self:SetScript(script, nil)
+        end
     end
 
-    if not ignoreRelease then
-        frame:SetScript("OnHide", function(self)
-            self:ReleaseChildren()
+    wipe(self.handlers)
+
+    self:ClearAllPoints()
+    self:Hide()
+end
+
+function WidgetMixin:SetCallback(script, callback, init)
+    local success, err = pcall(self.SetScript, self, script, callback)
+    assert(success or script == "OnRelease", "WidgetMixin: invalid script")
+    assert(type(callback) == "function", callback and "WidgetMixin: callback must be a function" or "WidgetMixin: attempting to create empty callback")
+
+    self.handlers[script] = callback
+    local existingScript = self.scripts[script]
+    if success then
+        self:SetScript(script, function(...)
+            if existingScript then
+                existingScript(...)
+            end
+
+            callback(...)
         end)
     end
 
-    frameCollection:CreatePool("Frame", parent or frame, addonName .. "CollectionFrame")
-    frameCollection:CreatePool("Frame", parent or frame, addonName .. "FontFrame")
-    frameCollection:CreatePool("Frame", parent or frame, addonName .. "LinearScrollFrame")
-    frameCollection:CreatePool("Frame", parent or frame, addonName .. "ListScrollFrame")
-
-    frameCollection:CreatePool("EditBox", parent or frame, addonName .. "SearchBox", function(_, editbox)
-        editbox.onEnterPressed = nil
-        editbox.onTextChanged = nil
-        editbox.clear = nil
-
-        editbox:SetText("")
-        editbox:ClearAllPoints()
-        editbox:Hide()
-    end)
-
-    frameCollection:CreatePool("Button", parent or frame, addonName .. "Button", function(_, button)
-        button.onClick = nil
-
-        button:ClearAllPoints()
-        button:Hide()
-    end)
-    frameCollection:CreatePool("Button", parent or frame, addonName .. "DropdownButton", function(_, dropdown)
-        LibDD:CloseAll()
-
-        -- Clear userdata
-        dropdown.onClick = nil
-        dropdown.onShow = nil
-
-        -- Restore defaults
-        dropdown:HideButton()
-        dropdown:SetJustify()
-
-        dropdown:ClearAllPoints()
-        dropdown:Hide()
-    end)
-end
-
-function GuildBankSnapshotsCollectionFrame_OnLoad(frame)
-    private:MixinCollection(frame)
-end
-
-function GuildBankSnapshotsFontFrame_OnLoad(frame)
-    frame:EnableMouse(true)
-
-    frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    frame.text:SetJustifyH("LEFT")
-
-    -- Methods
-    function frame:SetFontObject(fontObject)
-        self.text:SetFontObject(fontObject)
+    if init then
+        callback(self)
     end
-
-    function frame:SetJustifyH(justifyH)
-        self.text:SetJustifyH(justifyH)
-    end
-
-    function frame:SetPadding(x, y)
-        self.text:ClearAllPoints()
-        self.text:SetPoint("TOPLEFT", self, "TOPLEFT", x, -y)
-        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -x, y)
-    end
-
-    function frame:SetText(text)
-        self.text:SetText(text)
-    end
-
-    -- Scripts
-    frame:SetScript("OnEnter", function(self)
-        if self.text:GetStringWidth() > self.text:GetWidth() then
-            -- Get truncated text
-            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
-                GameTooltip:AddLine(self.text:GetText(), 1, 1, 1)
-            end, self)
-        end
-    end)
-
-    frame:SetScript("OnHide", function(self)
-        self:SetPadding(0, 0)
-    end)
-
-    frame:SetScript("OnLeave", function()
-        -- Hide tooltips
-        private:ClearTooltip()
-    end)
-
-    -- Defaults
-    frame:SetPadding(0, 0)
 end
 
-function GuildBankSnapshotsLinearScrollFrame_OnLoad(frame)
-    -- scrollBar
-    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
-    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
-    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
-    frame.scrollBar:SetFrameLevel(1)
+-----------------------
 
-    -- scrollBox
-    frame.scrollBox = CreateFrame("Frame", nil, frame, "WowScrollBox")
-    frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+local ContainerMixin = Mixin({}, WidgetMixin)
+ContainerMixin:InitScripts()
 
-    -- scrollView
-    frame.scrollView = CreateScrollBoxLinearView()
-    frame.scrollView:SetPanExtent(50)
+function ContainerMixin:Acquire(template, parent)
+    assert(self.pool, "ContainerMixin: collection pool has not been initialized")
 
-    -- Content
-    frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
-    private:MixinCollection(frame, frame.content)
-    frame.content.scrollable = true
-    frame.content:SetAllPoints(frame.scrollBox)
-    frame.content:Show()
+    local object = self.pool:Acquire(template)
+    object:SetParent(parent or self)
+    object:Show()
 
-    frame.content:SetScript("OnSizeChanged", function()
-        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
-    end)
-
-    -- ScrollUtil
-    local anchorsWithBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
-        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -5, 5),
-    }
-
-    local anchorsWithoutBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
-        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 5),
-    }
-
-    ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
-    ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
+    return object
 end
 
-function GuildBankSnapshotsListScrollFrame_OnLoad(frame)
-    -- scrollBar
-    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
-    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -5)
-    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
-    frame.scrollBar:SetFrameLevel(1)
-
-    -- scrollBox
-    frame.scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
-    frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
-
-    -- scrollView
-    frame.scrollView = CreateScrollBoxListLinearView()
-    frame.scrollView:SetElementExtentCalculator(function()
-        return frame.extent or 20
-    end)
-    frame.scrollView:SetElementInitializer("Frame", function(element, data)
-        if frame.initializer then
-            frame.initializer(element, data)
-        end
-    end)
-
-    -- Content
-    frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
-    private:MixinCollection(frame, frame.content)
-    frame.content.scrollable = true
-    frame.content:SetAllPoints(frame.scrollBox)
-    frame.content:Show()
-
-    frame.content:SetScript("OnSizeChanged", function()
-        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
-    end)
-
-    -- ScrollUtil
-    local anchorsWithBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
-        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -5, 5),
-    }
-
-    local anchorsWithoutBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 5, -5),
-        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 5),
-    }
-
-    ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
-    ScrollUtil.InitScrollBoxListWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
-
-    -- Methods and scripts
-    function frame:SetDataProvider(callback)
-        local DataProvider = CreateDataProvider()
-
-        callback(DataProvider)
-
-        self.scrollBox:SetDataProvider(DataProvider)
-    end
-
-    frame:SetScript("OnHide", function(self)
-        self.extent = nil
-        self.initializer = nil
-        self.scrollBox:Flush()
-    end)
+function ContainerMixin:EnumerateActive()
+    assert(self.pool, "ContainerMixin: collection pool has not been initialized")
+    return self.pool:EnumerateActive()
 end
 
-function GuildBankSnapshotsSearchBox_OnLoad(editbox)
-    editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
-
-    editbox:HookScript("OnEnterPressed", function(self)
-        if self.onEnterPressed then
-            self.onEnterPressed(self)
-        end
-    end)
-
-    editbox:HookScript("OnTextChanged", function(self)
-        if self.onTextChanged then
-            self.onTextChanged(self)
-        end
-    end)
-
-    editbox.clearButton:HookScript("OnClick", function()
-        if editbox.clear then
-            editbox.clear(editbox)
-        end
-    end)
-
-    -- function SearchBoxTemplate_OnEditFocusLost(self)
-    --     if ( self:GetText() == "" ) then
-    --         self.searchIcon:SetVertexColor(0.6, 0.6, 0.6);
-    --         self.clearButton:Hide();
-    --     end
-    -- end
-
-    -- function SearchBoxTemplate_OnEditFocusGained(self)
-    --     self.searchIcon:SetVertexColor(1.0, 1.0, 1.0);
-    --     self.clearButton:Show();
-    -- end
-
-    -- function SearchBoxTemplate_OnTextChanged(self)
-    --     if ( not self:HasFocus() and self:GetText() == "" ) then
-    --         self.searchIcon:SetVertexColor(0.6, 0.6, 0.6);
-    --         self.clearButton:Hide();
-    --     else
-    --         self.searchIcon:SetVertexColor(1.0, 1.0, 1.0);
-    --         self.clearButton:Show();
-    --     end
-    --     InputBoxInstructions_OnTextChanged(self);
-    -- end
+function ContainerMixin:EnumerateActiveByTemplate(template)
+    assert(self.pool, "ContainerMixin: collection pool has not been initialized")
+    return self.pool:EnumerateActiveByTemplate(template)
 end
 
-function GuildBankSnapshotsButton_OnLoad(button)
-    button:SetSize(150, 20)
+function ContainerMixin:Release(object)
+    assert(self.pool, "ContainerMixin: collection pool has not been initialized")
+    self.pool:Release(object)
+end
+
+function ContainerMixin:ReleaseAll()
+    assert(self.pool, "ContainerMixin: collection pool has not been initialized")
+    self.pool:ReleaseAll()
+end
+
+function ContainerMixin:ReleaseAllByTemplate(template)
+    assert(self.pool, "ContainerMixin: collection pool has not been initialized")
+    self.pool:ReleaseAllByTemplate(template)
+end
+
+--*----------[[ Widgets ]]----------*--
+local function Button_OnLoad(button)
+    button = Mixin(button, WidgetMixin)
+    button:InitScripts()
+    button:SetNormalFontObject("GameFontNormalSmall")
 
     -- Textures
     button.border = button:CreateTexture(nil, "BACKGROUND")
@@ -281,28 +263,32 @@ function GuildBankSnapshotsButton_OnLoad(button)
 
     button:SetNormalTexture(button:CreateTexture(nil, "ARTWORK"))
     button.bg = button:GetNormalTexture()
-    button.bg:SetColorTexture(0.1, 0.1, 0.1, 1)
+    button.bg:SetColorTexture(private.interface.colors.elementColor:GetRGBA())
     button.bg:SetPoint("TOPLEFT", button.border, "TOPLEFT", 1, -1)
     button.bg:SetPoint("BOTTOMRIGHT", button.border, "BOTTOMRIGHT", -1, 1)
 
     button:SetHighlightTexture(button:CreateTexture(nil, "ARTWORK"))
     button.highlight = button:GetHighlightTexture()
-    button.highlight:SetColorTexture(0.2, 0.2, 0.2, 1)
+    button.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
     button.highlight:SetAllPoints(button.bg)
 
-    -- Text
-    button:SetNormalFontObject("GameFontNormal")
-
     -- Scripts
-    button:SetScript("OnClick", function(self)
-        if self.onClick then
-            self.onClick(self)
-        end
-    end)
+    button.scripts.OnRelease = function()
+        button:SetSize(150, 20)
+        button:SetNormalFontObject("GameFontNormalSmall")
+    end
+
+    button:InitializeScripts()
 end
 
-function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
-    dropdown:SetSize(150, 20)
+local function CollectionFrame_OnLoad(frame)
+    frame = Mixin(frame, ContainerMixin, CollectionMixin)
+    frame:InitPools()
+end
+
+local function DropdownButton_OnLoad(dropdown)
+    dropdown = Mixin(dropdown, TextMixin, WidgetMixin)
+    dropdown:InitScripts()
 
     -- Textures
     dropdown.border = dropdown:CreateTexture(nil, "BACKGROUND")
@@ -321,176 +307,445 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     dropdown.highlight:SetAllPoints(dropdown.bg)
 
     dropdown.arrow = dropdown:CreateTexture(nil, "ARTWORK", nil, 7)
-    dropdown.arrow:SetSize(20, 20)
     dropdown.arrow:SetPoint("RIGHT", -5)
     dropdown.arrow:SetTexture(136961)
     dropdown.arrow:SetTexCoord(4 / 64, 27 / 64, 8 / 64, 24 / 64)
     dropdown.arrow:SetVertexColor(1, 1, 1, 1)
 
     -- Text
-    dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    dropdown.text:SetHeight(20)
-    dropdown.text:SetJustifyH("RIGHT")
+    dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     dropdown.text:SetWordWrap(false)
     dropdown.text:SetPoint("LEFT", 5, 0)
     dropdown.text:SetPoint("RIGHT", dropdown.arrow, "LEFT", -5, 0)
 
     -- Menu
-    dropdown.menu = LibDD:NewMenu(dropdown, addonName .. "DropdownMenu" .. (#dropdownMenus + 1))
-    dropdown.menu:SetAnchor("TOP", dropdown, "BOTTOM", 0, -10)
-    dropdown.menu:SetStyle(addonName)
-    dropdown.menu:SetCheckAlignment("LEFT")
+    dropdown.menu = CreateFrame("Frame", nil, dropdown, "GuildBankSnapshotsCollectionFrame")
+    dropdown.menu = Mixin(dropdown.menu, DropdownMenuMixin, ContainerMixin)
+    dropdown.menu:InitStyle()
+    private:AddBackdrop(dropdown.menu, "insetColor")
+    dropdown.menu:Hide()
     dropdown.menu.dropdown = dropdown
-    tinsert(dropdownMenus, dropdown.menu)
 
     -- Methods
-    function dropdown:HideButton(hide)
-        if hide then
+    function dropdown:SelectValue(value)
+        if not self.menu.info then
+            return
+        end
+
+        for _, info in pairs(self.menu.info) do
+            if info.value == value then
+                info.func()
+                return
+            end
+        end
+    end
+
+    function dropdown:SetButtonHidden(setHidden)
+        if setHidden then
             dropdown.arrow:Hide()
         else
             dropdown.arrow:Show()
         end
     end
 
-    function dropdown:SetJustify(h, v)
-        self.text:SetJustifyH(h or "RIGHT")
-        self.text:SetJustifyV(v or "MIDDLE")
+    function dropdown:SetInfo(info)
+        if type(info) == "function" then
+            info = info()
+        end
+
+        self.menu.info = info
     end
 
-    function dropdown:SetText(text)
-        self.text:SetText(text)
+    function dropdown:SetMenuHeight()
+        self.menu:SetHeight(200)
     end
 
-    function dropdown:SetValue(value, callback)
-        self.selected = value
-        if type(callback) == "function" then
-            callback(self, value)
+    function dropdown:ToggleMenu()
+        if self.menu:IsVisible() then
+            self.menu:ClearAllPoints()
+            self.menu:Hide()
+        else
+            self.menu:SetAnchors()
+            self.menu:SetMenuWidth()
+            self.menu:DrawButtons()
+            self.menu:Show()
         end
     end
 
-    function dropdown:ToggleMenu(callback)
-        if type(callback) ~= "function" then
+    -- Scripts
+    dropdown.scripts.OnClick = function()
+        dropdown:ToggleMenu()
+    end
+
+    dropdown.scripts.OnRelease = function()
+        dropdown:SetButtonHidden(false)
+        dropdown:Justify("RIGHT", "MIDDLE")
+        dropdown:SetSize(150, 20)
+        dropdown.arrow:SetSize(20, 20)
+        dropdown.text:SetHeight(20)
+        dropdown.menu.info = nil
+        dropdown.menu:Hide()
+    end
+
+    dropdown.scripts.OnSizeChanged = function()
+        local height = dropdown:GetHeight()
+        dropdown.arrow:SetSize(height, height)
+        dropdown.text:SetHeight(height)
+    end
+
+    dropdown:InitializeScripts()
+end
+
+local function DropdownListButton_OnLoad(button)
+    button = Mixin(button, TextMixin, WidgetMixin)
+    button:InitScripts()
+
+    button.checkBox = button:CreateTexture(nil, "ARTWORK")
+    button.checkBox:SetTexture(130755)
+
+    button.checked = button:CreateTexture(nil, "OVERLAY")
+    button.checked:SetAllPoints(button.checkBox)
+    button.checked:SetTexture(130751)
+    button.checked:Hide()
+
+    button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+
+    -- Textures
+    button:SetHighlightTexture(button:CreateTexture(nil, "ARTWORK"))
+    button.highlight = button:GetHighlightTexture()
+    button.highlight:SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
+    button.highlight:SetAllPoints(button)
+
+    -- Methods
+    function button:SetAnchors()
+        local style = self.style
+        local leftAligned = style.checkAlignment == "LEFT"
+        local xMod = leftAligned and 1 or -1
+        local height = self:GetHeight() - (style.paddingX * 2)
+        local width = self:GetWidth() - (style.paddingX * (style.hasCheckBox and 3 or 2) - (style.hasCheckBox and height or 0))
+
+        if style.hasCheckBox then
+            self.checkBox:SetSize(height, height)
+            self.checkBox:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, 0)
+            self.text:SetPoint(style.checkAlignment, self.checkBox, leftAligned and "RIGHT" or "LEFT", xMod * style.paddingX, 0)
+            self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
+        else
+            self.checkBox:ClearAllPoints()
+            self.text:SetSize(width, height)
+            self.text:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, 0)
+            self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
+        end
+    end
+
+    function button:SetChecked(checked)
+        if type(checked) == "function" then
+            checked = checked()
+        end
+
+        if checked then
+            self.checked:Show()
+        else
+            self.checked:Hide()
+        end
+    end
+
+    function button:SetStyle(style)
+        self.style = style
+        self:SetAnchors()
+        self:Justify(style.justifyH, style.justifyV)
+    end
+
+    -- Scripts
+    button.scripts.OnRelease = function()
+        button:SetSize(150, 20)
+        button:SetFontObject("GameFontHighlightSmall")
+        button.style = nil
+        button.selected = nil
+    end
+
+    button:InitializeScripts()
+end
+
+local function FontFrame_OnLoad(frame)
+    frame = Mixin(frame, TextMixin, WidgetMixin)
+    frame:InitScripts()
+    frame:EnableMouse(true)
+
+    -- Text
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.text:SetJustifyH("LEFT")
+
+    -- Scripts
+    frame.scripts.OnEnter = function()
+        if frame.text:GetStringWidth() <= frame.text:GetWidth() then
             return
         end
 
-        self.menu:ClearLines()
-        callback()
-        self.menu:Toggle()
+        -- Text is truncated; show full text
+        private:InitializeTooltip(frame, "ANCHOR_RIGHT", function(self)
+            local text = self.text:GetText()
+            GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
+        end)
     end
 
-    -- Scripts
-    dropdown:SetScript("OnClick", function(self)
-        if self.onClick then
-            self.onClick(self)
-        end
-    end)
+    frame.scripts.OnLeave = GenerateClosure(private.HideTooltip, private)
 
-    dropdown:SetScript("OnShow", function(self)
-        if self.onShow then
-            self.onShow(self)
-        end
-    end)
+    frame.scripts.OnRelease = function()
+        frame:SetHeight(20)
+        frame:SetFontObject("GameFontHighlightSmall")
+        frame:SetText("")
+        frame:SetPadding(0, 0)
+        frame:Justify("CENTER", "MIDDLE")
+    end
+
+    frame:InitializeScripts()
 end
 
-function GuildBankSnapshotsReviewCell_OnLoad(cell)
-    -- Textures
-    cell.icon = cell:CreateTexture(nil, "ARTWORK")
-    cell.icon:SetSize(12, 12)
+local function ListScrollFrame_OnLoad(frame)
+    frame = Mixin(frame, WidgetMixin)
+    frame:InitScripts()
 
-    cell.icon:SetScript("OnEnter", function(_, ...)
-        cell:GetScript("OnEnter")(cell, ...)
-    end)
+    -- DataProvider
+    function frame:SetDataProvider(callback)
+        assert(type(callback) == "function", callback and "GuildBankSnapshotsListScrollFrame: data provider callback must be a function" or "GuildBankSnapshotsListScrollFrame: attempting to create empty data provider")
 
-    cell.icon:SetScript("OnLeave", function(_, ...)
-        cell:GetScript("OnLeave")(cell, ...)
-    end)
-
-    -- Text
-    cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    cell.text:SetJustifyH("LEFT")
-    cell.text:SetJustifyV("TOP")
-
-    function cell:Reset()
-        self.icon:SetTexture()
-        self.icon:ClearAllPoints()
-        self.text:SetText("")
-        self.text:ClearAllPoints()
+        local DataProvider = CreateDataProvider()
+        callback(DataProvider)
+        self.scrollBox:SetDataProvider(DataProvider)
     end
 
-    function cell:Update()
-        self:Reset()
+    -- ScrollBar
+    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -5)
+    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+    -- frame.scrollBar:SetFrameLevel(1)
 
-        local data = self.data
-        if data then
-            self.text:SetText(data.text(self.elementData))
-            self.text:SetPoint("TOPLEFT")
-            self.text:SetPoint("BOTTOMRIGHT")
+    -- ScrollBox
+    frame.scrollBox = CreateFrame("Frame", nil, frame, "WoWScrollBoxList")
 
-            if data.icon then
-                local icon = data.icon
-                if type(data.icon) == "function" then
-                    icon = data.icon(self.elementData)
-                end
+    -- ScrollView
+    frame.scrollView = CreateScrollBoxListLinearView()
 
-                if icon then
-                    self.icon:SetTexture(icon)
-                    self.icon:SetPoint("TOPLEFT")
-                    self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
-                end
-            end
+    function frame.scrollView:Initialize(extent, initializer, template)
+        if type(extent) == "function" then
+            self:SetElementExtentCalculator(extent)
+        else
+            self:SetElementExtent(extent or 20)
         end
+
+        assert(type(initializer) == "function", "GuildBankSnapshotsListScrollFrame: invalid initializer function")
+        self:SetElementInitializer(template or "Frame", initializer)
+    end
+
+    function frame.scrollView:Reset()
+        self:SetElementExtent(20)
+        self:SetElementInitializer("Frame", private.NullFunc)
+        frame.scrollBox:SetView(self)
+    end
+
+    -- ScrollUtil
+    local anchorsWithBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
+        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -10, -5),
+    }
+
+    local anchorsWithoutBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
+        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0),
+    }
+
+    ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
+    ScrollUtil.InitScrollBoxListWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
+
+    -- Scripts
+    frame.scripts.OnAcquire = function()
+        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+    end
+
+    frame.scripts.OnRelease = function()
+        frame.scrollBox:Flush()
+        frame.scrollView:Reset()
+    end
+
+    frame:InitializeScripts()
+end
+
+local function ScrollFrame_OnLoad(frame)
+    frame = Mixin(frame, WidgetMixin)
+    frame:InitScripts()
+
+    -- ScrollBar
+    frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
+    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -5)
+    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+    -- frame.scrollBar:SetFrameLevel(1)
+
+    -- ScrollBox
+    frame.scrollBox = CreateFrame("Frame", nil, frame, "WowScrollBox")
+
+    -- ScrollView
+    frame.scrollView = CreateScrollBoxLinearView()
+    frame.scrollView:SetPanExtent(50)
+
+    -- Content
+    frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
+    frame.content = Mixin(frame.content, ContainerMixin, CollectionMixin)
+    frame.content:InitPools()
+    frame.content:SetAllPoints(frame.scrollBox)
+    frame.content.scrollable = true
+
+    frame.content.scripts.OnSizeChanged = function()
+        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+    end
+
+    -- ScrollUtil
+    local anchorsWithBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
+        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -10, -5),
+    }
+
+    local anchorsWithoutBar = {
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
+        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0),
+    }
+
+    ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
+    ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
+    frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+
+    -- Scripts
+    frame.scripts.OnRelease = function()
+        frame.content:ReleaseAll()
+    end
+
+    frame:InitializeScripts()
+end
+
+local function SearchBox_OnLoad(editbox)
+    editbox = Mixin(editbox, WidgetMixin)
+    editbox:InitScripts()
+
+    -- Methods
+    function editbox:IsValidText()
+        return private:strcheck(editbox:GetText())
+    end
+
+    -- editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
+end
+
+local function TableCell_OnLoad(cell)
+    cell = Mixin(cell, TextMixin, WidgetMixin)
+    cell:InitScripts()
+    cell:SetHeight(20)
+
+    -- Textures
+    cell.icon = cell:CreateTexture(nil, "BACKGROUND")
+
+    -- Text
+    cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    cell.text:SetWordWrap(false)
+    cell:Justify("LEFT", "TOP")
+
+    -- Methods
+    function cell:SetAnchors()
+        self.icon:SetTexture()
+        self.icon:ClearAllPoints()
+        self.icon:SetSize(12, 12)
+
+        self.text:ClearAllPoints()
+
+        local icon = self.data.icon
+        if type(icon) == "function" then
+            icon = self.data.icon(self.elementData)
+        end
+
+        if icon then
+            self.icon:SetTexture(icon)
+            self.icon:SetPoint("TOPLEFT", self, "TOPLEFT")
+            self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
+        else
+            self.text:SetPoint("TOPLEFT", self, "TOPLEFT")
+        end
+        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT")
+    end
+
+    function cell:SetData(data, elementData)
+        self.data = data
+        self.elementData = elementData
+        self:SetAnchors()
     end
 
     -- Scripts
-    cell:SetScript("OnEnter", function(self, ...)
+    cell.scripts.OnEnter = function(self, ...)
         -- Enable row highlight
         local parent = self:GetParent()
         parent:GetScript("OnEnter")(parent, ...)
-
         -- Highlight text
-        cell.text:SetFontObject(GameFontNormal)
+        self.text:SetFontObject(GameFontNormalSmall)
 
-        local data = self.data
-        if not data then
+        -- Show tooltips
+        if not self.data then
             return
         end
 
-        -- Show tooltips
-        if data.tooltip then
-            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, data)
-                local line = data.tooltip(self.elementData, self.entryID)
+        if self.data.tooltip then
+            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                local line = self.data.tooltip(self.elementData, self.entryID)
 
                 if line then
                     GameTooltip:AddLine(line, 1, 1, 1)
                 elseif self.text:GetStringWidth() > self:GetWidth() then
-                    GameTooltip:AddLine(data.text(self.elementData), 1, 1, 1)
+                    GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
                 end
-            end, self, data)
-        elseif cell.text:GetStringWidth() > cell:GetWidth() then
+            end, self)
+        elseif self.text:GetStringWidth() > self:GetWidth() then
             -- Get truncated text
-            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, data)
-                GameTooltip:AddLine(data.text(self.elementData), 1, 1, 1)
-            end, self, data)
+            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
+            end, self)
         end
-    end)
+    end
 
-    cell:SetScript("OnHide", function(self)
-        self.data = nil
-        self.elementData = nil
-        self.entryID = nil
-        self:Reset()
-        self.text:SetFontObject(GameFontHighlight)
-    end)
-
-    cell:SetScript("OnLeave", function(self, ...)
+    cell.scripts.OnLeave = function(self, ...)
         -- Disable row highlight
         local parent = self:GetParent()
         parent:GetScript("OnLeave")(parent, ...)
-
         -- Unhighlight text
-        cell.text:SetFontObject(GameFontHighlight)
-
+        self.text:SetFontObject(GameFontHighlightSmall)
         -- Hide tooltips
         private:ClearTooltip()
+    end
+
+    cell.scripts.OnRelease = function(self)
+        self:SetHeight(20)
+        self:SetFontObject("GameFontHighlightSmall")
+        self:SetText("")
+        self:Justify("LEFT", "TOP")
+        self.data = nil
+        self.elementData = nil
+    end
+
+    cell:InitializeScripts()
+
+    cell.icon:SetScript("OnEnter", function(self, ...)
+        local parent = self:GetParent()
+        parent:GetScript("OnEnter")(parent, ...)
+    end)
+
+    cell.icon:SetScript("OnLeave", function(self, ...)
+        local parent = self:GetParent()
+        parent:GetScript("OnLeave")(parent, ...)
     end)
 end
+
+-----------------------
+
+GuildBankSnapshotsButton_OnLoad = Button_OnLoad
+GuildBankSnapshotsCollectionFrame_OnLoad = CollectionFrame_OnLoad
+GuildBankSnapshotsDropdownButton_OnLoad = DropdownButton_OnLoad
+GuildBankSnapshotsDropdownListButton_OnLoad = DropdownListButton_OnLoad
+GuildBankSnapshotsFontFrame_OnLoad = FontFrame_OnLoad
+GuildBankSnapshotsListScrollFrame_OnLoad = ListScrollFrame_OnLoad
+GuildBankSnapshotsScrollFrame_OnLoad = ScrollFrame_OnLoad
+GuildBankSnapshotsSearchBox_OnLoad = SearchBox_OnLoad
+GuildBankSnapshotsTableCell_OnLoad = TableCell_OnLoad

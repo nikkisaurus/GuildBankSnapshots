@@ -162,9 +162,7 @@ function private:InitializeFrame()
     private:AddBackdrop(frame.content, "insetColor")
 
     function frame:SelectTab(tabID)
-        self.selected = tabID
-
-        frame.content:ReleaseChildren()
+        frame.content:ReleaseAll()
         tabs[tabID].onClick(frame.content)
     end
 
@@ -172,6 +170,8 @@ function private:InitializeFrame()
     frame:SetScript("OnSizeChanged", function(self)
         self.tabContainer:AcquireTabButtons()
     end)
+
+    private:InitializeReviewTab()
 end
 
 function private:LoadFrame()

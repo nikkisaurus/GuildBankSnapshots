@@ -165,11 +165,11 @@ end
 
 local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
 
-frame.bg = frame.bg or private:AddBackdropTexture(frame)
-frame.cells = frame.cells or {}
+self.bg = self.bg or private:AddBackdropTexture(self)
+self.cells = self.cells or {}
 
 -- Methods
-function frame:AcquireCells()
+function self:AcquireCells()
     for _, cell in pairs(self.cells) do
         Cell:Release(cell)
     end
@@ -191,13 +191,13 @@ function frame:AcquireCells()
     self:ArrangeCells()
 end
 
-function frame:ArrangeCells()
+function self:ArrangeCells()
     for _, cell in pairs(self.cells) do
         cell:UpdateSize()
     end
 end
 
-function frame:SetHighlighted(isHighlighted)
+function self:SetHighlighted(isHighlighted)
     for _, cell in pairs(self.cells) do
         if isHighlighted then
             cell.text:SetFontObject(private.interface.fonts.emphasizedFont)
@@ -214,17 +214,17 @@ function frame:SetHighlighted(isHighlighted)
 end
 
 -- Scripts
-frame:SetScript("OnEnter", function(self)
+self:SetScript("OnEnter", function(self)
     self:SetHighlighted(true)
 end)
 
-frame:SetScript("OnLeave", function(self)
+self:SetScript("OnLeave", function(self)
     self:SetHighlighted()
     private:ClearTooltip()
 end)
 
-frame:SetScript("OnSizeChanged", frame.ArrangeCells)
-frame:AcquireCells()
+self:SetScript("OnSizeChanged", self.ArrangeCells)
+self:AcquireCells()
 -- -- [[ Cell ]]
 -- local function CreateCell()
 --     local cell = CreateFrame("Frame")

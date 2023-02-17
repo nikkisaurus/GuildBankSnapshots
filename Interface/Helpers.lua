@@ -2,23 +2,55 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function private:AddBackdrop(frame, bgColor)
+function private.NullFunc()
+    return
+end
+
+function private:strcheck(str)
+    -- Validates string exists and is not empty
+    return str and str ~= ""
+end
+
+function private:AddBackdrop(frame, bgColor, borderColor, borderSize, noBorder)
     if not frame then
         return
     end
 
-    local color = bgColor == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[bgColor or "bgColor"]
+    local backdrop = private.interface.backdrop
+    if noBorder then
+        backdrop.edgeFile = nil
+        backdrop.edgeSize = nil
+    else
+        backdrop.edgeSize = borderSize or backdrop.edgeSize
+    end
+
+    bgColor = bgColor == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[bgColor or "bgColor"]
+    borderColor = borderColor == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[borderColor or "borderColor"]
 
     if frame.SetBackdrop then
-        frame:SetBackdrop(private.interface.backdrop)
-        frame:SetBackdropBorderColor(private.interface.colors.borderColor:GetRGBA())
-        frame:SetBackdropColor(color:GetRGBA())
+        frame:SetBackdrop(backdrop)
+        frame:SetBackdropColor(bgColor:GetRGBA())
+        if not noBorder then
+            frame:SetBackdropBorderColor(borderColor:GetRGBA())
+        end
     else
-        local bg = frame:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(frame)
-        bg:SetColorTexture(color:GetRGBA())
+        local border
+        if not noBorder then
+            border = frame:CreateTexture(nil, "BACKGROUND")
+            border:SetAllPoints(frame)
+            border:SetColorTexture(borderColor:GetRGBA())
+        end
 
-        return bg
+        local bg = frame:CreateTexture(nil, "ARTWORK")
+        if noBorder then
+            bg:SetAllPoints(frame)
+        else
+            bg:SetPoint("TOPLEFT", backdrop.edgeSize, -backdrop.edgeSize)
+            bg:SetPoint("BOTTOMRIGHT", -backdrop.edgeSize, backdrop.edgeSize)
+        end
+        bg:SetColorTexture(bgColor:GetRGBA())
+
+        return bg, border
     end
 end
 
@@ -27,6 +59,10 @@ function private:AddSpecialFrame(frame)
 end
 
 function private:ClearTooltip()
+    private:HideTooltip()
+end
+
+function private:HideTooltip()
     GameTooltip:ClearLines()
     GameTooltip:Hide()
 end
@@ -49,25 +85,26 @@ function private:InitializeInterface()
         colors = {
             borderColor = CreateColor(0, 0, 0, 1),
             emphasizeColor = CreateColor(1, 0.82, 0, 0.5),
-            -- darkest > lightest
             elementColor = CreateColor(0.05, 0.05, 0.05, 1),
             bgColor = CreateColor(0.1, 0.1, 0.1, 1),
             insetColor = CreateColor(0.15, 0.15, 0.15, 1),
             highlightColor = CreateColor(0.3, 0.3, 0.3, 1),
+            fontColor = CreateColor(1, 1, 1, 1),
+            emphasizedFontColor = CreateColor(1, 0.82, 0, 1),
         },
     }
 
-    LibStub("LibDropDown"):RegisterStyle(addonName, {
-        backdrop = private.interface.backdrop,
-        backdropBorderColor = private.interface.colors.borderColor,
-        backdropColor = private.interface.colors.insetColor,
-    })
+    -- LibStub("LibDropDown"):RegisterStyle(addonName, {
+    --     backdrop = private.interface.backdrop,
+    --     backdropBorderColor = private.interface.colors.borderColor,
+    --     backdropColor = private.interface.colors.insetColor,
+    -- })
 end
 
 function private:InitializeTooltip(frame, anchor, callback, ...)
-    GameTooltip:SetOwner(frame, anchor or "ANCHOR_CURSOR")
+    GameTooltip:SetOwner(frame, anchor or "ANCHOR_NONE")
     if type(callback) == "function" then
-        callback(...)
+        callback(frame, ...)
     end
     GameTooltip:Show()
 end

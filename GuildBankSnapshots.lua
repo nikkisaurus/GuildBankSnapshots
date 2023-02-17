@@ -10,8 +10,8 @@ function addon:OnInitialize()
 end
 
 function addon:OnEnable()
-    C_Timer.After(5, function()
-        -- private:LoadFrame()
+    C_Timer.After(1, function()
+        private:LoadFrame()
     end)
 end
 
