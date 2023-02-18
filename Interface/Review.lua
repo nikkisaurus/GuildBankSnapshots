@@ -14,7 +14,17 @@ local FiltersMixin = {
         list = {},
         values = {},
         func = function(self, elementData)
-            -- TODO filter names
+            if addon:tcount(self.values) == 0 then
+                return
+            end
+
+            for _, data in pairs(self.values) do
+                if elementData.name == data.text then
+                    return
+                end
+            end
+
+            return true
         end,
     },
 
@@ -31,7 +41,7 @@ local FiltersMixin = {
                 end
             end
 
-            return true -- isFiltered
+            return true
         end,
     },
 }
@@ -152,15 +162,6 @@ local sidebarSections = {
             name:SetInfo(function()
                 local info = {}
 
-                -- local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
-                -- for transactionID, transaction in ipairs(masterScan) do
-                --     local elementData = transaction.info
-                --     elementData.scanID = transaction.scanID
-
-                --     if IsQueryMatch(elementData) and not IsFiltered(elementData) then
-                --         provider:Insert(elementData)
-                --     end
-                -- end
                 for name, _ in addon:pairs(ReviewTab.filters[ReviewTab.guildID].names.list) do
                     tinsert(info, {
                         value = name,
@@ -170,13 +171,13 @@ local sidebarSections = {
                                 return
                             end
 
-                            -- if dropdown.selected[buttonID] then
-                            --     ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = elementData
-                            -- else
-                            --     ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = nil
-                            -- end
+                            if dropdown.selected[buttonID] then
+                                ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = elementData
+                            else
+                                ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = nil
+                            end
 
-                            -- private:LoadTable()
+                            private:LoadTable()
                         end,
                     })
                 end
@@ -184,9 +185,9 @@ local sidebarSections = {
                 return info
             end)
 
-            -- for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].transactionType.values) do
-            --     name:SelectValue(data.value, true)
-            -- end
+            for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].names.values) do
+                name:SelectValue(data.value, true)
+            end
 
             height = height + name:GetHeight() + 5
 

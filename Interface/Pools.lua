@@ -371,10 +371,13 @@ local function DropdownButton_OnLoad(dropdown)
             self:ToggleMenu()
         end,
 
+        OnHide = function(self)
+            self.menu:Hide()
+        end,
+
         OnRelease = function(self)
             self.menu.info = nil
             wipe(self.selected)
-            self.menu:Hide()
         end,
 
         OnSizeChanged = function(self)
