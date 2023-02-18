@@ -240,7 +240,12 @@ end
 --*----------[[ Widgets ]]----------*--
 local function Button_OnLoad(button)
     button = Mixin(button, WidgetMixin)
-    button:InitScripts()
+    button:InitScripts({
+        OnRelease = function()
+            button:SetSize(150, 20)
+            button:SetNormalFontObject("GameFontNormalSmall")
+        end,
+    })
     button:SetNormalFontObject("GameFontNormalSmall")
 
     -- Textures
@@ -258,14 +263,6 @@ local function Button_OnLoad(button)
     button.highlight = button:GetHighlightTexture()
     button.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
     button.highlight:SetAllPoints(button.bg)
-
-    -- Scripts
-    button.scripts.OnRelease = function()
-        button:SetSize(150, 20)
-        button:SetNormalFontObject("GameFontNormalSmall")
-    end
-
-    button:InitializeScripts()
 end
 
 local function CollectionFrame_OnLoad(frame)
@@ -275,7 +272,30 @@ end
 
 local function DropdownButton_OnLoad(dropdown)
     dropdown = Mixin(dropdown, TextMixin, WidgetMixin)
-    dropdown:InitScripts()
+    dropdown:InitScripts({
+        OnAcquire = function(self)
+            self:SetButtonHidden(false)
+            self:Justify("RIGHT", "MIDDLE")
+            self:SetSize(150, 20)
+            self.arrow:SetSize(20, 20)
+            self.text:SetHeight(20)
+        end,
+
+        OnClick = function(self)
+            self:ToggleMenu()
+        end,
+
+        OnRelease = function(self)
+            self.menu.info = nil
+            self.menu:Hide()
+        end,
+
+        OnSizeChanged = function(self)
+            local height = self:GetHeight()
+            self.arrow:SetSize(height, height)
+            self.text:SetHeight(height)
+        end,
+    })
 
     -- Textures
     dropdown.border = dropdown:CreateTexture(nil, "BACKGROUND")
@@ -306,9 +326,9 @@ local function DropdownButton_OnLoad(dropdown)
     dropdown.text:SetPoint("RIGHT", dropdown.arrow, "LEFT", -5, 0)
 
     -- Menu
-    dropdown.menu = CreateFrame("Frame", nil, dropdown, "GuildBankSnapshotsCollectionFrame")
-    dropdown.menu = Mixin(dropdown.menu, DropdownMenuMixin, ContainerMixin)
+    dropdown.menu = Mixin(CreateFrame("Frame", nil, dropdown, "GuildBankSnapshotsCollectionFrame"), DropdownMenuMixin, ContainerMixin)
     dropdown.menu:InitStyle()
+    dropdown.menu:SetFrameLevel(1000)
     dropdown.menu:Hide()
     dropdown.menu.dropdown = dropdown
     private:AddBackdrop(dropdown.menu, "insetColor")
@@ -355,34 +375,26 @@ local function DropdownButton_OnLoad(dropdown)
             self.menu:Show()
         end
     end
-
-    -- Scripts
-    dropdown.scripts.OnClick = function()
-        dropdown:ToggleMenu()
-    end
-
-    dropdown.scripts.OnRelease = function()
-        dropdown:SetButtonHidden(false)
-        dropdown:Justify("RIGHT", "MIDDLE")
-        dropdown:SetSize(150, 20)
-        dropdown.arrow:SetSize(20, 20)
-        dropdown.text:SetHeight(20)
-        dropdown.menu.info = nil
-        dropdown.menu:Hide()
-    end
-
-    dropdown.scripts.OnSizeChanged = function()
-        local height = dropdown:GetHeight()
-        dropdown.arrow:SetSize(height, height)
-        dropdown.text:SetHeight(height)
-    end
-
-    dropdown:InitializeScripts()
 end
 
 local function DropdownListButton_OnLoad(button)
     button = Mixin(button, TextMixin, WidgetMixin)
-    button:InitScripts()
+    button:InitScripts({
+        OnAcquire = function(self)
+            self:SetSize(150, 20)
+            self:SetFontObject("GameFontHighlightSmall")
+        end,
+
+        OnClick = function(self)
+            self.menu:Hide()
+            self.dropdown:SetText(self.text:GetText())
+        end,
+
+        OnRelease = function(self)
+            self.style = nil
+            self.elementData = nil
+        end,
+    })
 
     button.checkBox = button:CreateTexture(nil, "ARTWORK")
     button.checkBox:SetTexture(130755)
@@ -447,70 +459,53 @@ local function DropdownListButton_OnLoad(button)
         self:SetAnchors()
         self:Justify(style.justifyH, style.justifyV)
     end
-
-    -- Scripts
-    button.scripts.OnClick = function(self)
-        self.menu:Hide()
-        self.dropdown:SetText(self.text:GetText())
-    end
-
-    button.scripts.OnRelease = function(self)
-        self:SetSize(150, 20)
-        self:SetFontObject("GameFontHighlightSmall")
-        self.style = nil
-        self.elementData = nil
-    end
-
-    button:InitializeScripts()
 end
 
 local function FontFrame_OnLoad(frame)
     frame = Mixin(frame, TextMixin, WidgetMixin)
-    frame:InitScripts()
+    frame:InitScripts({
+        OnEnter = function(self)
+            if self.text:GetStringWidth() <= self.text:GetWidth() then
+                return
+            end
+
+            -- Text is truncated; show full text
+            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                local text = self.text:GetText()
+                GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
+            end)
+        end,
+
+        OnLeave = GenerateClosure(private.HideTooltip, private),
+
+        OnRelease = function(self)
+            self:SetHeight(20)
+            self:SetFontObject("GameFontHighlightSmall")
+            self:SetText("")
+            self:SetPadding(0, 0)
+            self:Justify("CENTER", "MIDDLE")
+        end,
+    })
+
     frame:EnableMouse(true)
 
     -- Text
     frame.text = frame:CreateFontString(nil, "OVERLAY")
     frame.text:SetJustifyH("LEFT")
-
-    -- Scripts
-    frame.scripts.OnEnter = function()
-        if frame.text:GetStringWidth() <= frame.text:GetWidth() then
-            return
-        end
-
-        -- Text is truncated; show full text
-        private:InitializeTooltip(frame, "ANCHOR_RIGHT", function(self)
-            local text = self.text:GetText()
-            GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
-        end)
-    end
-
-    frame.scripts.OnLeave = GenerateClosure(private.HideTooltip, private)
-
-    frame.scripts.OnRelease = function()
-        frame:SetHeight(20)
-        frame:SetFontObject("GameFontHighlightSmall")
-        frame:SetText("")
-        frame:SetPadding(0, 0)
-        frame:Justify("CENTER", "MIDDLE")
-    end
-
-    frame:InitializeScripts()
 end
 
 local function ListScrollFrame_OnLoad(frame)
     frame = Mixin(frame, WidgetMixin)
-    frame:InitScripts()
+    frame:InitScripts({
+        OnAcquire = function(self)
+            self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+        end,
 
-    -- DataProvider
-    function frame:SetDataProvider(callback)
-        assert(type(callback) == "function", callback and "GuildBankSnapshotsListScrollFrame: data provider callback must be a function" or "GuildBankSnapshotsListScrollFrame: attempting to create empty data provider")
-
-        local DataProvider = CreateDataProvider()
-        callback(DataProvider)
-        self.scrollBox:SetDataProvider(DataProvider)
-    end
+        OnRelease = function(self)
+            self.scrollBox:Flush()
+            self.scrollView:Reset()
+        end,
+    })
 
     -- ScrollBar
     frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
@@ -555,17 +550,14 @@ local function ListScrollFrame_OnLoad(frame)
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
     ScrollUtil.InitScrollBoxListWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
 
-    -- Scripts
-    frame.scripts.OnAcquire = function()
-        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
-    end
+    -- Methods
+    function frame:SetDataProvider(callback)
+        assert(type(callback) == "function", callback and "GuildBankSnapshotsListScrollFrame: data provider callback must be a function" or "GuildBankSnapshotsListScrollFrame: attempting to create empty data provider")
 
-    frame.scripts.OnRelease = function()
-        frame.scrollBox:Flush()
-        frame.scrollView:Reset()
+        local DataProvider = CreateDataProvider()
+        callback(DataProvider)
+        self.scrollBox:SetDataProvider(DataProvider)
     end
-
-    frame:InitializeScripts()
 end
 
 local function ScrollFrame_OnLoad(frame)
@@ -618,12 +610,12 @@ local function SearchBox_OnLoad(editbox)
     editbox = Mixin(editbox, WidgetMixin)
     editbox:InitScripts()
 
+    -- editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
+
     -- Methods
     function editbox:IsValidText()
         return private:strcheck(editbox:GetText())
     end
-
-    -- editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
 end
 
 local function TabButton_OnLoad(tab)
@@ -723,16 +715,70 @@ end
 
 local function TableCell_OnLoad(cell)
     cell = Mixin(cell, TextMixin, WidgetMixin)
-    cell:InitScripts()
+    cell:InitScripts({
+        -- Scripts
+        OnEnter = function(self, ...)
+            -- Enable row highlight
+            local parent = self:GetParent()
+            parent:GetScript("OnEnter")(parent, ...)
+            -- Highlight text
+            self.text:SetFontObject(GameFontNormalSmall)
+
+            -- Show tooltips
+            if not self.data then
+                return
+            end
+
+            if self.data.tooltip then
+                private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                    local line = self.data.tooltip(self.elementData, self.entryID)
+
+                    if line then
+                        GameTooltip:AddLine(line, 1, 1, 1)
+                    elseif self.text:GetStringWidth() > self:GetWidth() then
+                        GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
+                    end
+                end, self)
+            elseif self.text:GetStringWidth() > self:GetWidth() then
+                -- Get truncated text
+                private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                    GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
+                end, self)
+            end
+        end,
+
+        OnLeave = function(self, ...)
+            -- Disable row highlight
+            local parent = self:GetParent()
+            parent:GetScript("OnLeave")(parent, ...)
+            -- Unhighlight text
+            self.text:SetFontObject(GameFontHighlightSmall)
+            -- Hide tooltips
+            private:ClearTooltip()
+        end,
+
+        OnRelease = function(self)
+            self:SetHeight(20)
+            self:SetFontObject("GameFontHighlightSmall")
+            self:SetText("")
+            self:SetPadding(0, 0)
+            self:Justify("LEFT", "TOP")
+            self.data = nil
+            self.elementData = nil
+        end,
+    })
+
     cell:SetHeight(20)
 
     -- Textures
     cell.icon = cell:CreateTexture(nil, "BACKGROUND")
+    cell.icon:SetScript("OnEnter", GenerateClosure(cell.GetScript, cell, "OnEnter"))
+    cell.icon:SetScript("OnLeave", GenerateClosure(cell.GetScript, cell, "OnLeave"))
 
     -- Text
     cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    cell.text:SetWordWrap(false)
     cell:Justify("LEFT", "TOP")
+    cell.text:SetWordWrap(false)
 
     -- Methods
     function cell:SetAnchors()
@@ -768,69 +814,6 @@ local function TableCell_OnLoad(cell)
         self.paddingX = paddingX
         self.paddingY = paddingY
     end
-
-    -- Scripts
-    cell.scripts.OnEnter = function(self, ...)
-        -- Enable row highlight
-        local parent = self:GetParent()
-        parent:GetScript("OnEnter")(parent, ...)
-        -- Highlight text
-        self.text:SetFontObject(GameFontNormalSmall)
-
-        -- Show tooltips
-        if not self.data then
-            return
-        end
-
-        if self.data.tooltip then
-            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
-                local line = self.data.tooltip(self.elementData, self.entryID)
-
-                if line then
-                    GameTooltip:AddLine(line, 1, 1, 1)
-                elseif self.text:GetStringWidth() > self:GetWidth() then
-                    GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
-                end
-            end, self)
-        elseif self.text:GetStringWidth() > self:GetWidth() then
-            -- Get truncated text
-            private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
-                GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
-            end, self)
-        end
-    end
-
-    cell.scripts.OnLeave = function(self, ...)
-        -- Disable row highlight
-        local parent = self:GetParent()
-        parent:GetScript("OnLeave")(parent, ...)
-        -- Unhighlight text
-        self.text:SetFontObject(GameFontHighlightSmall)
-        -- Hide tooltips
-        private:ClearTooltip()
-    end
-
-    cell.scripts.OnRelease = function(self)
-        self:SetHeight(20)
-        self:SetFontObject("GameFontHighlightSmall")
-        self:SetText("")
-        self:SetPadding(0, 0)
-        self:Justify("LEFT", "TOP")
-        self.data = nil
-        self.elementData = nil
-    end
-
-    cell:InitializeScripts()
-
-    cell.icon:SetScript("OnEnter", function(self, ...)
-        local parent = self:GetParent()
-        parent:GetScript("OnEnter")(parent, ...)
-    end)
-
-    cell.icon:SetScript("OnLeave", function(self, ...)
-        local parent = self:GetParent()
-        parent:GetScript("OnLeave")(parent, ...)
-    end)
 end
 
 -----------------------

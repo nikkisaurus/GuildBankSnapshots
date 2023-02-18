@@ -323,6 +323,10 @@ function private:LoadReviewTab(content)
     private:AddBackdrop(tableContainer.scrollBox)
     ReviewTab.tableContainer = tableContainer
 
+    tableContainer:SetCallback("OnRelease", function()
+        print(tableContainer.scrollBox:GetScrollPercentage())
+    end)
+
     local tableHeaders = content:Acquire("GuildBankSnapshotsCollectionFrame")
     tableHeaders:SetPoint("BOTTOMLEFT", tableContainer.scrollBox, "TOPLEFT")
     tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
