@@ -455,7 +455,7 @@ function private:LoadReviewTab(content)
     private:AddBackdrop(tableContainer.scrollBox)
     ReviewTab.tableContainer = tableContainer
 
-    local tableHeaders = content:Acquire("GuildBankSnapshotsCollectionFrame")
+    local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
     tableHeaders:SetPoint("BOTTOMLEFT", tableContainer.scrollBox, "TOPLEFT")
     tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
     tableHeaders:SetPoint("TOP", guildDropdown, "TOP")
@@ -538,7 +538,7 @@ end
 
 function private:LoadTable()
     tableContainer = ReviewTab.tableContainer
-    tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsCollectionFrame")
+    tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
         for transactionID, transaction in ipairs(masterScan) do

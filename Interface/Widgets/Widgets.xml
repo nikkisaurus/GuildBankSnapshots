@@ -5,9 +5,9 @@
         </Scripts>
     </CheckButton>
 
-    <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate" virtual="true">
+    <Frame name="GuildBankSnapshotsContainer" inherits="BackdropTemplate" virtual="true">
         <Scripts>
-            <OnLoad function="GuildBankSnapshotsCollectionFrame_OnLoad" />
+            <OnLoad function="GuildBankSnapshotsContainer_OnLoad" />
         </Scripts>
     </Frame>
 

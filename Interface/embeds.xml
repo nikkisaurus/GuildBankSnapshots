@@ -1,8 +1,7 @@
 <Ui>
+    <Include file="Tabs\embeds.xml" />
+    <Include file="Widgets\embeds.xml" />
     <Include file="Frame.lua" />
     <Include file="Helpers.lua" />
-    <Include file="Pools.xml" />
-    <Include file="Pools.lua" />
-    <Include file="Review.lua" />
-    <Include file="Settings.lua" />
+    <Include file="Mixins.lua" />
 </Ui>

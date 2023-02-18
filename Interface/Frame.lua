@@ -61,13 +61,13 @@ function private:InitializeFrame()
     frame.title:SetPoint("BOTTOMRIGHT", -4, 2)
 
     -- [[ Tabs ]]
-    frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsCollectionFrame")
+    frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsContainer")
     frame.tabContainer:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 10, -10)
     frame.tabContainer:SetPoint("RIGHT", -10, 0)
     frame.tabContainer.children = {}
 
     -- [[ Content ]]
-    frame.content = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsCollectionFrame")
+    frame.content = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsContainer")
     frame.content:SetPoint("TOPLEFT", frame.tabContainer, "BOTTOMLEFT")
     frame.content:SetPoint("RIGHT", frame.tabContainer, "RIGHT")
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
