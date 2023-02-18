@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function FontFrame_OnLoad(frame)
+function GuildBankSnapshotsFontFrame_OnLoad(frame)
     frame:EnableMouse(true)
     frame.text = frame:CreateFontString(nil, "OVERLAY")
 
@@ -32,5 +32,3 @@ local function FontFrame_OnLoad(frame)
         OnLeave = GenerateClosure(private.HideTooltip, private),
     })
 end
-
-GuildBankSnapshotsFontFrame_OnLoad = FontFrame_OnLoad

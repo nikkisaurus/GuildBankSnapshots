@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function ScrollFrame_OnLoad(frame)
+function GuildBankSnapshotsScrollFrame_OnLoad(frame)
     frame = private:MixinWidget(frame)
     frame:InitScripts({
         OnSizeChanged = function(self)
@@ -48,5 +48,3 @@ local function ScrollFrame_OnLoad(frame)
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
     ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
 end
-
-GuildBankSnapshotsScrollFrame_OnLoad = ScrollFrame_OnLoad

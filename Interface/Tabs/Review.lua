@@ -12,6 +12,9 @@ function private:InitializeReviewTab()
         searchQuery = false,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
         filters = {},
+        pages = {},
+        maxPages = {},
+        maxEntries = 250,
     }
 end
 
@@ -19,7 +22,7 @@ end
 local sidebarSections = {
     {
         header = L["Sorting"],
-        collapsed = true,
+        collapsed = false,
         onLoad = function(...)
             return LoadSidebarSorters(...)
         end,
@@ -141,15 +144,16 @@ local tableCols = {
             return ""
         end,
         tooltip = function(data, order)
-            GameTooltip:AddLine(format("%s %d", L["Entry"], order))
-            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
-            GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID, nil, nil, nil, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Line"], order, nil, nil, nil, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Entry"], data.entryID, nil, nil, nil, 1, 1, 1)
+            GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
             GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID, nil, nil, nil, 1, 1, 1)
-
+            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
+            GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
+            GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID, nil, nil, nil, 1, 1, 1)
             if data.moveOrigin and data.moveOrigin > 0 then
                 GameTooltip:AddDoubleLine(L["Move Origin ID"], data.moveOrigin, nil, nil, nil, 1, 1, 1)
             end
-
             if data.moveDestination and data.moveDestination > 0 then
                 GameTooltip:AddDoubleLine(L["Move Destination ID"], data.moveDestination, nil, nil, nil, 1, 1, 1)
             end
@@ -309,6 +313,87 @@ LoadSidebar = function()
 
     height = height + searchBox:GetHeight() + 10
 
+    local pageNumber = content:Acquire("GuildBankSnapshotsFontFrame")
+    pageNumber:SetHeight(20)
+    pageNumber:SetPoint("TOPLEFT", 5, -height)
+    pageNumber:SetPoint("RIGHT", -5, 0)
+    ReviewTab.pageNumber = pageNumber
+
+    height = height + pageNumber:GetHeight()
+
+    local pageContainer = content:Acquire("GuildBankSnapshotsContainer")
+    pageContainer:SetHeight(20)
+    pageContainer:SetPoint("TOPLEFT", 5, -height)
+    pageContainer:SetPoint("RIGHT", -5, 0)
+
+    local first = pageContainer:Acquire("GuildBankSnapshotsButton")
+    first:SetPoint("LEFT")
+    first:SetText("<<")
+    first:SetCallback("OnClick", function()
+        ReviewTab.pages[ReviewTab.guildID] = 1
+        LoadTable()
+    end)
+
+    local prev = pageContainer:Acquire("GuildBankSnapshotsButton")
+    prev:SetPoint("LEFT", first, "RIGHT")
+    prev:SetText("<")
+    prev:SetCallback("OnClick", function()
+        ReviewTab.pages[ReviewTab.guildID] = max(ReviewTab.pages[ReviewTab.guildID] - 1, 1)
+        LoadTable()
+    end)
+
+    local next = pageContainer:Acquire("GuildBankSnapshotsButton")
+    next:SetPoint("LEFT", prev, "RIGHT")
+    next:SetText(">")
+    next:SetCallback("OnClick", function()
+        ReviewTab.pages[ReviewTab.guildID] = min(ReviewTab.pages[ReviewTab.guildID] + 1, ReviewTab.maxPages[ReviewTab.guildID])
+        LoadTable()
+    end)
+
+    local last = pageContainer:Acquire("GuildBankSnapshotsButton")
+    last:SetPoint("LEFT", next, "RIGHT")
+    last:SetText(">>")
+    last:SetCallback("OnClick", function()
+        ReviewTab.pages[ReviewTab.guildID] = ReviewTab.maxPages[ReviewTab.guildID]
+        LoadTable()
+    end)
+
+    pageContainer:SetCallback("OnSizeChanged", function()
+        first:SetSize(pageContainer:GetWidth() / 4, 20)
+        prev:SetSize(pageContainer:GetWidth() / 4, 20)
+        next:SetSize(pageContainer:GetWidth() / 4, 20)
+        last:SetSize(pageContainer:GetWidth() / 4, 20)
+    end, true)
+
+    -- local prev = pageContainer:Acquire("GuildBankSnapshotsButton")
+    -- prev:SetSize(width, 20)
+    -- prev:SetPoint("LEFT", first, "RIGHT")
+    -- prev:SetText("<")
+    -- prev:SetCallback("OnClick", function()
+    --     -- ReviewTab.pages[ReviewTab.guildID] = ReviewTab.pages[ReviewTab.guildID] + 1
+    --     -- LoadTable()
+    -- end)
+
+    -- local next = pageContainer:Acquire("GuildBankSnapshotsButton")
+    -- next:SetSize(width, 20)
+    -- next:SetPoint("LEFT", prev, "RIGHT")
+    -- next:SetText(">")
+    -- next:SetCallback("OnClick", function()
+    --     -- ReviewTab.pages[ReviewTab.guildID] = ReviewTab.pages[ReviewTab.guildID] + 1
+    --     -- LoadTable()
+    -- end)
+
+    -- local last = pageContainer:Acquire("GuildBankSnapshotsButton")
+    -- last:SetSize(width, 20)
+    -- last:SetPoint("LEFT", next, "RIGHT")
+    -- last:SetText(">>")
+    -- last:SetCallback("OnClick", function()
+    --     -- ReviewTab.pages[ReviewTab.guildID] = ReviewTab.pages[ReviewTab.guildID] + 1
+    --     -- LoadTable()
+    -- end)
+
+    height = height + pageContainer:GetHeight() + 5
+
     for sectionID, info in addon:pairs(sidebarSections) do
         local header = content:Acquire("GuildBankSnapshotsButton")
         header:SetHeight(20)
@@ -456,6 +541,38 @@ LoadSidebarFilters = function(content, height)
 end
 
 LoadSidebarSorters = function(content, height)
+    for sortID, colID in addon:pairs(private.db.global.settings.preferences.sortHeaders) do
+        local sorter = content:Acquire("GuildBankSnapshotsTableSorter")
+        sorter:SetPoint("TOPLEFT", 5, -height)
+        sorter:SetPoint("RIGHT", -5, 0)
+        sorter:SetText(tableCols[colID].header)
+        sorter:SetSorterData(sortID, addon:tcount(tableCols), function()
+            LoadSidebar()
+            LoadTable()
+        end)
+
+        -- local moveUp = content:Acquire("GuildBankSnapshotsButton")
+        -- moveUp:SetPoint("TOPLEFT", 5, -height)
+        -- moveUp:SetSize(16, 16)
+        -- moveUp:SetNormalFontObject(NumberFont_Shadow_Tiny)
+        -- moveUp:SetText("▲")
+
+        -- local moveDown = content:Acquire("GuildBankSnapshotsButton")
+        -- moveDown:SetPoint("LEFT", moveUp, "RIGHT", 2, 0)
+        -- moveDown:SetSize(16, 16)
+        -- moveDown:SetNormalFontObject(NumberFont_Shadow_Tiny)
+        -- moveDown:SetText("▼")
+
+        -- moveUp:SetText("▼")
+        -- moveUp:SetPadding(4, 4)
+        -- moveUp:SetText(col.header)
+
+        -- moveUp:SetSize(self:GetWidth() / addon:tcount(tableCols) * col.width, self:GetHeight())
+        -- moveUp:SetPoint("LEFT", width, 0)
+        -- width = width + moveUp:GetWidth()
+
+        height = height + sorter:GetHeight() + 2
+    end
     -- for i = 1, 8 do
     --     local test = content:Acquire("GuildBankSnapshotsFontFrame")
     --     test:SetPoint("TOPLEFT", 5, -height)
@@ -483,54 +600,84 @@ LoadSidebarTools = function(content, height)
     return height
 end
 
+local entries = {}
 LoadTable = function()
     tableContainer = ReviewTab.tableContainer
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
+        local lower = (ReviewTab.pages[ReviewTab.guildID] - 1) * ReviewTab.maxEntries
+        -- local numEntries, numValidEntries = 0, 0
+
+        wipe(entries)
         for transactionID, transaction in ipairs(masterScan) do
             local elementData = transaction.info
+            elementData.transactionID = transaction.transactionID
             elementData.scanID = transaction.scanID
 
             ReviewTab.filters[ReviewTab.guildID].names.list[elementData.name] = true
 
             if IsQueryMatch(elementData) and not IsFiltered(elementData) then
-                provider:Insert(elementData)
+                elementData.entryID = #entries + 1
+                tinsert(entries, elementData)
             end
         end
 
-        -- provider:SetSortComparator(function(a, b)
-        --     for i = 1, addon:tcount(private.db.global.settings.preferences.sortHeaders) do
-        --         local id = private.db.global.settings.preferences.sortHeaders[i]
-        --         local sortValue = tableCols[id].sortValue
-        --         local des = private.db.global.settings.preferences.descendingHeaders[id]
+        provider:InsertTableRange(entries, lower + 1, max(lower + ReviewTab.maxEntries, #entries))
 
-        --         local sortA = sortValue(a)
-        --         local sortB = sortValue(b)
+        ReviewTab.maxPages[ReviewTab.guildID] = ceil(#entries / ReviewTab.maxEntries)
 
-        --         if type(sortA) ~= type(sortB) then
-        --             sortA = tostring(sortA)
-        --             sortB = tostring(sortB)
-        --         end
+        provider:SetSortComparator(function(a, b)
+            for _, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
+                local sortValue = tableCols[id].sortValue
+                local des = private.db.global.settings.preferences.descendingHeaders[id]
 
-        --         if sortA > sortB then
-        --             if des then
-        --                 return true
-        --             else
-        --                 return false
-        --             end
-        --         elseif sortA < sortB then
-        --             if des then
-        --                 return false
-        --             else
-        --                 return true
-        --             end
-        --         end
-        --     end
-        -- end)
+                local sortA = sortValue(a)
+                local sortB = sortValue(b)
 
-        print(provider:GetSize())
+                if type(sortA) ~= type(sortB) then
+                    sortA = tostring(sortA)
+                    sortB = tostring(sortB)
+                end
+
+                if sortA > sortB then
+                    if des then
+                        return true
+                    else
+                        return false
+                    end
+                elseif sortA < sortB then
+                    if des then
+                        return false
+                    else
+                        return true
+                    end
+                end
+            end
+        end)
+
+        -- print(provider:GetSize())
     end)
+
+    private:UpdatePageNumber()
+end
+
+function private:UpdatePageNumber()
+    if not ReviewTab.pageNumber then
+        return
+    end
+
+    if ReviewTab.pages[ReviewTab.guildID] == 0 and ReviewTab.maxPages[ReviewTab.guildID] > 0 then
+        ReviewTab.pages[ReviewTab.guildID] = 1
+        LoadTable()
+        return
+    elseif ReviewTab.pages[ReviewTab.guildID] > ReviewTab.maxPages[ReviewTab.guildID] then
+        ReviewTab.pages[ReviewTab.guildID] = ReviewTab.maxPages[ReviewTab.guildID]
+        LoadTable()
+        return
+    end
+
+    ReviewTab.pageNumber:SetText(format("%s %d/%d", L["Page"], ReviewTab.pages[ReviewTab.guildID], ReviewTab.maxPages[ReviewTab.guildID]))
 end
 
 ------------------------
@@ -561,8 +708,10 @@ function private:LoadReviewTab(content)
                 func = function()
                     ReviewTab.guildID = guildID
                     ReviewTab.filters[guildID] = ReviewTab.filters[guildID] or GetFilters()
-                    LoadTable()
+                    ReviewTab.pages[guildID] = ReviewTab.pages[guildID] or (#private.db.global.guilds[ReviewTab.guildID].masterScan > 0 and 1 or 0)
+                    ReviewTab.maxPages[guildID] = ReviewTab.maxPages[guildID] or 1
                     LoadSidebar()
+                    LoadTable()
                 end,
             })
         end

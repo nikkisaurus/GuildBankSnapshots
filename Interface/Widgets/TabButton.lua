@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function TabButton_OnLoad(tab)
+function GuildBankSnapshotsTabButton_OnLoad(tab)
     tab = private:MixinWidget(tab)
 
     tab:InitScripts({
@@ -97,5 +97,3 @@ local function TabButton_OnLoad(tab)
         self:SetWidth(self:GetTextWidth() + 20)
     end
 end
-
-GuildBankSnapshotsTabButton_OnLoad = TabButton_OnLoad

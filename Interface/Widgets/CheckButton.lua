@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function CheckButton_OnLoad(button)
+function GuildBankSnapshotsCheckButton_OnLoad(button)
     button:EnableMouse(true)
     button = private:MixinText(button)
     button = private:MixinWidget(button)
@@ -70,5 +70,3 @@ local function CheckButton_OnLoad(button)
         self.tooltip = tooltip
     end
 end
-
-GuildBankSnapshotsCheckButton_OnLoad = CheckButton_OnLoad

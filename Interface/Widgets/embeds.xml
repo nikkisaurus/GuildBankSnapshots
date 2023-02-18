@@ -9,5 +9,6 @@
     <Include file="SearchBox.lua" />
     <Include file="TabButton.lua" />
     <Include file="TableCell.lua" />
+    <Include file="TableSorter.lua" />
     <Include file="Widgets.xml" />
 </Ui>

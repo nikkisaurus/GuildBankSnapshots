@@ -100,7 +100,7 @@ function DropdownMenuMixin:SetMenuWidth()
     self:SetWidth(self.style.width == "auto" and self.dropdown:GetWidth() or self.style.width)
 end
 
-local function DropdownButton_OnLoad(dropdown)
+function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     dropdown = private:MixinText(dropdown)
     dropdown = private:MixinWidget(dropdown)
     dropdown:InitScripts({
@@ -251,7 +251,7 @@ local function DropdownButton_OnLoad(dropdown)
     end
 end
 
-local function DropdownListButton_OnLoad(button)
+function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button = private:MixinText(button)
     button = private:MixinWidget(button)
     button:InitScripts({
@@ -349,6 +349,3 @@ local function DropdownListButton_OnLoad(button)
         self:Justify(style.justifyH, style.justifyV)
     end
 end
-
-GuildBankSnapshotsDropdownButton_OnLoad = DropdownButton_OnLoad
-GuildBankSnapshotsDropdownListButton_OnLoad = DropdownListButton_OnLoad

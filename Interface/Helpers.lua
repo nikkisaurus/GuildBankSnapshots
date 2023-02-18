@@ -76,6 +76,14 @@ function private:InitializeDataProvider(scrollBox, callback)
 end
 
 function private:InitializeInterface()
+    local symbolFont = CreateFont("GuildBankSnapshotsSymbolFont")
+    symbolFont:SetFont("Fonts/ARIALN.TTF", 10, "OUTLINE")
+    symbolFont:SetTextColor(1, 1, 1, 1)
+
+    local symbolFontDisabled = CreateFont("GuildBankSnapshotsSymbolFontDisabled")
+    symbolFontDisabled:SetFontObject(symbolFont)
+    symbolFontDisabled:SetTextColor(1, 1, 1, 0.25)
+
     private.interface = {
         backdrop = {
             bgFile = [[Interface\Buttons\WHITE8x8]],
@@ -92,8 +100,11 @@ function private:InitializeInterface()
             fontColor = CreateColor(1, 1, 1, 1),
             emphasizedFontColor = CreateColor(1, 0.82, 0, 1),
         },
+        fonts = {
+            symbolFont = symbolFont,
+            symbolFontDisabled = symbolFontDisabled,
+        },
     }
-
     -- LibStub("LibDropDown"):RegisterStyle(addonName, {
     --     backdrop = private.interface.backdrop,
     --     backdropBorderColor = private.interface.colors.borderColor,

@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function TableCell_OnLoad(cell)
+function GuildBankSnapshotsTableCell_OnLoad(cell)
     cell = private:MixinText(cell)
     cell = private:MixinWidget(cell)
     cell:InitScripts({
@@ -107,5 +107,3 @@ local function TableCell_OnLoad(cell)
         self.paddingY = paddingY
     end
 end
-
-GuildBankSnapshotsTableCell_OnLoad = TableCell_OnLoad

@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function ListScrollFrame_OnLoad(frame)
+function GuildBankSnapshotsListScrollFrame_OnLoad(frame)
     frame = private:MixinWidget(frame)
     frame:InitScripts({
         OnAcquire = function(self)
@@ -69,5 +69,3 @@ local function ListScrollFrame_OnLoad(frame)
         return DataProvider
     end
 end
-
-GuildBankSnapshotsListScrollFrame_OnLoad = ListScrollFrame_OnLoad

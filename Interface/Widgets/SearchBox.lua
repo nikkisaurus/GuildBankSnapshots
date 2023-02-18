@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function SearchBox_OnLoad(editbox)
+function GuildBankSnapshotsSearchBox_OnLoad(editbox)
     editbox = private:MixinWidget(editbox)
     editbox:InitScripts({
         OnAcquire = function(self)
@@ -23,5 +23,3 @@ local function SearchBox_OnLoad(editbox)
         return private:strcheck(editbox:GetText())
     end
 end
-
-GuildBankSnapshotsSearchBox_OnLoad = SearchBox_OnLoad

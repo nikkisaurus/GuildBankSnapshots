@@ -5,7 +5,7 @@
         </Scripts>
     </CheckButton>
 
-    <Frame name="GuildBankSnapshotsContainer" inherits="BackdropTemplate" virtual="true">
+    <Frame name="GuildBankSnapshotsContainer" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsContainer_OnLoad" />
         </Scripts>
@@ -17,13 +17,13 @@
         </Scripts>
     </Frame>
 
-    <Frame name="GuildBankSnapshotsScrollFrame" inherits="BackdropTemplate" virtual="true">
+    <Frame name="GuildBankSnapshotsScrollFrame" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsScrollFrame_OnLoad" />
         </Scripts>
     </Frame>
 
-    <Frame name="GuildBankSnapshotsListScrollFrame" inherits="BackdropTemplate" virtual="true">
+    <Frame name="GuildBankSnapshotsListScrollFrame" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsListScrollFrame_OnLoad" />
         </Scripts>
@@ -38,6 +38,12 @@
     <Button name="GuildBankSnapshotsButton" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsButton_OnLoad" />
+        </Scripts>
+    </Button>
+
+    <Button name="GuildBankSnapshotsTableSorter" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsTableSorter_OnLoad" />
         </Scripts>
     </Button>
 

@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function Button_OnLoad(button)
+function GuildBankSnapshotsButton_OnLoad(button)
     button = private:MixinWidget(button)
     button:InitScripts({
         OnRelease = function()
@@ -28,5 +28,3 @@ local function Button_OnLoad(button)
     button.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
     button.highlight:SetAllPoints(button.bg)
 end
-
-GuildBankSnapshotsButton_OnLoad = Button_OnLoad

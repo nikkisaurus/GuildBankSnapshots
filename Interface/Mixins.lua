@@ -111,6 +111,8 @@ function WidgetMixin:Fire(script, ...)
     if script == "OnAcquire" and self.scripts.OnAcquire then
         self.scripts.OnAcquire(self)
     else
+        assert(self.scripts, "WidgetMixin: Scripts have not been initialized")
+
         if self.scripts[script] then
             self.scripts[script](self, ...)
         end
@@ -205,8 +207,9 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsListScrollFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollFrame", Resetter)
     tbl.pool:CreatePool("EditBox", parent or tbl, "GuildBankSnapshotsSearchBox", Resetter)
-    tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableCell", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTabButton", Resetter)
+    tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableCell", Resetter)
+    tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableSorter", Resetter)
 
     return tbl
 end
