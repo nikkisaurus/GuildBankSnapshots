@@ -182,6 +182,32 @@ function WidgetMixin:ShowTooltip(anchor, callback)
     private:InitializeTooltip(self, anchor or "ANCHOR_RIGHT", callback)
 end
 
+function WidgetMixin:UnregisterCallback(script)
+    assert(self.handlers[script], "WidgetMixin: script '" .. "' is not registered")
+
+    local existingScript = self.scripts[script]
+    self:SetScript(script, existingScript)
+    -- local success, err = pcall(self.GetScript, self, script)
+    -- assert(success or validScripts[script], "WidgetMixin: invalid script")
+    -- assert(type(callback) == "function", callback and "WidgetMixin: callback must be a function" or "WidgetMixin: attempting to create empty callback")
+
+    -- self.handlers[script] = callback
+    -- local existingScript = self.scripts[script]
+    -- if success then
+    --     self:SetScript(script, function(...)
+    --         if existingScript then
+    --             existingScript(...)
+    --         end
+
+    --         callback(...)
+    --     end)
+    -- end
+
+    -- if init then
+    --     callback(self)
+    -- end
+end
+
 function private:MixinWidget(tbl)
     return Mixin(tbl, WidgetMixin)
 end

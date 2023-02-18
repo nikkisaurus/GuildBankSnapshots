@@ -10,6 +10,7 @@ L["Experimental"] = true
 L["Filters"] = true
 L["Help"] = true
 L["Line"] = true
+L["Loading transactions"] = true
 L["Money Tab"] = true
 L["Move Destination ID"] = true
 L["Move Origin ID"] = true

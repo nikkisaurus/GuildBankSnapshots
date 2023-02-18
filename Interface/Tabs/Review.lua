@@ -12,9 +12,7 @@ function private:InitializeReviewTab()
         searchQuery = false,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
         filters = {},
-        pages = {},
-        maxPages = {},
-        maxEntries = 250,
+        entriesPerFrame = 50,
     }
 end
 
@@ -311,88 +309,15 @@ LoadSidebar = function()
         searchBox:SetText(ReviewTab.searchQuery)
     end
 
-    height = height + searchBox:GetHeight() + 10
+    height = height + searchBox:GetHeight() + 5
 
-    local pageNumber = content:Acquire("GuildBankSnapshotsFontFrame")
-    pageNumber:SetHeight(20)
-    pageNumber:SetPoint("TOPLEFT", 5, -height)
-    pageNumber:SetPoint("RIGHT", -5, 0)
-    ReviewTab.pageNumber = pageNumber
+    local progress = content:Acquire("GuildBankSnapshotsFontFrame")
+    progress:SetHeight(20)
+    progress:SetPoint("TOPLEFT", 5, -height)
+    progress:SetPoint("RIGHT", -5, 0)
+    ReviewTab.progress = progress
 
-    height = height + pageNumber:GetHeight()
-
-    local pageContainer = content:Acquire("GuildBankSnapshotsContainer")
-    pageContainer:SetHeight(20)
-    pageContainer:SetPoint("TOPLEFT", 5, -height)
-    pageContainer:SetPoint("RIGHT", -5, 0)
-
-    local first = pageContainer:Acquire("GuildBankSnapshotsButton")
-    first:SetPoint("LEFT")
-    first:SetText("<<")
-    first:SetCallback("OnClick", function()
-        ReviewTab.pages[ReviewTab.guildID] = 1
-        LoadTable()
-    end)
-
-    local prev = pageContainer:Acquire("GuildBankSnapshotsButton")
-    prev:SetPoint("LEFT", first, "RIGHT")
-    prev:SetText("<")
-    prev:SetCallback("OnClick", function()
-        ReviewTab.pages[ReviewTab.guildID] = max(ReviewTab.pages[ReviewTab.guildID] - 1, 1)
-        LoadTable()
-    end)
-
-    local next = pageContainer:Acquire("GuildBankSnapshotsButton")
-    next:SetPoint("LEFT", prev, "RIGHT")
-    next:SetText(">")
-    next:SetCallback("OnClick", function()
-        ReviewTab.pages[ReviewTab.guildID] = min(ReviewTab.pages[ReviewTab.guildID] + 1, ReviewTab.maxPages[ReviewTab.guildID])
-        LoadTable()
-    end)
-
-    local last = pageContainer:Acquire("GuildBankSnapshotsButton")
-    last:SetPoint("LEFT", next, "RIGHT")
-    last:SetText(">>")
-    last:SetCallback("OnClick", function()
-        ReviewTab.pages[ReviewTab.guildID] = ReviewTab.maxPages[ReviewTab.guildID]
-        LoadTable()
-    end)
-
-    pageContainer:SetCallback("OnSizeChanged", function()
-        first:SetSize(pageContainer:GetWidth() / 4, 20)
-        prev:SetSize(pageContainer:GetWidth() / 4, 20)
-        next:SetSize(pageContainer:GetWidth() / 4, 20)
-        last:SetSize(pageContainer:GetWidth() / 4, 20)
-    end, true)
-
-    -- local prev = pageContainer:Acquire("GuildBankSnapshotsButton")
-    -- prev:SetSize(width, 20)
-    -- prev:SetPoint("LEFT", first, "RIGHT")
-    -- prev:SetText("<")
-    -- prev:SetCallback("OnClick", function()
-    --     -- ReviewTab.pages[ReviewTab.guildID] = ReviewTab.pages[ReviewTab.guildID] + 1
-    --     -- LoadTable()
-    -- end)
-
-    -- local next = pageContainer:Acquire("GuildBankSnapshotsButton")
-    -- next:SetSize(width, 20)
-    -- next:SetPoint("LEFT", prev, "RIGHT")
-    -- next:SetText(">")
-    -- next:SetCallback("OnClick", function()
-    --     -- ReviewTab.pages[ReviewTab.guildID] = ReviewTab.pages[ReviewTab.guildID] + 1
-    --     -- LoadTable()
-    -- end)
-
-    -- local last = pageContainer:Acquire("GuildBankSnapshotsButton")
-    -- last:SetSize(width, 20)
-    -- last:SetPoint("LEFT", next, "RIGHT")
-    -- last:SetText(">>")
-    -- last:SetCallback("OnClick", function()
-    --     -- ReviewTab.pages[ReviewTab.guildID] = ReviewTab.pages[ReviewTab.guildID] + 1
-    --     -- LoadTable()
-    -- end)
-
-    height = height + pageContainer:GetHeight() + 5
+    height = height + progress:GetHeight()
 
     for sectionID, info in addon:pairs(sidebarSections) do
         local header = content:Acquire("GuildBankSnapshotsButton")
@@ -600,82 +525,73 @@ LoadSidebarTools = function(content, height)
     return height
 end
 
-local entries = {}
 LoadTable = function()
     tableContainer = ReviewTab.tableContainer
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
 
-        wipe(entries)
-        local lower = (ReviewTab.pages[ReviewTab.guildID] - 1) * ReviewTab.maxEntries
-        for transactionID, transaction in ipairs(masterScan) do
-            local elementData = transaction.info
-            elementData.transactionID = transaction.transactionID
-            elementData.scanID = transaction.scanID
+        local validEntries = 0
+        local index = 1
+        tableContainer:SetCallback("OnUpdate", function()
+            local upper = min(index + ReviewTab.entriesPerFrame, #masterScan)
+            for lower = index, upper do
+                local transaction = masterScan[lower]
+                if transaction then
+                    ReviewTab.progress:SetText(L["Loading transactions"] .. ": " .. addon:round((lower / #masterScan) * 100) .. "%")
+                    ReviewTab.progress:SetHeight(20)
+                    local elementData = transaction.info
+                    elementData.transactionID = transaction.transactionID
+                    elementData.scanID = transaction.scanID
 
-            ReviewTab.filters[ReviewTab.guildID].names.list[elementData.name] = true
+                    ReviewTab.filters[ReviewTab.guildID].names.list[elementData.name] = true
 
-            if IsQueryMatch(elementData) and not IsFiltered(elementData) then
-                elementData.entryID = #entries + 1
-                tinsert(entries, elementData)
+                    if IsQueryMatch(elementData) and not IsFiltered(elementData) then
+                        validEntries = validEntries + 1
+                        elementData.entryID = validEntries
+                        provider:Insert(elementData)
+                    end
+                end
             end
-        end
+            index = upper
 
-        sort(entries, function(a, b)
-            for _, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
-                local sortValue = tableCols[id].sortValue
-                local des = private.db.global.settings.preferences.descendingHeaders[id]
+            if index == #masterScan then
+                tableContainer:UnregisterCallback("OnUpdate", nil)
+                ReviewTab.progress:SetText("")
+                ReviewTab.progress:SetHeight(0)
 
-                local sortA = sortValue(a)
-                local sortB = sortValue(b)
+                provider:SetSortComparator(function(a, b)
+                    for _, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
+                        local sortValue = tableCols[id].sortValue
+                        local des = private.db.global.settings.preferences.descendingHeaders[id]
 
-                if type(sortA) ~= type(sortB) then
-                    sortA = tostring(sortA)
-                    sortB = tostring(sortB)
-                end
+                        local sortA = sortValue(a)
+                        local sortB = sortValue(b)
 
-                if sortA > sortB then
-                    if des then
-                        return true
-                    else
-                        return false
+                        if type(sortA) ~= type(sortB) then
+                            sortA = tostring(sortA)
+                            sortB = tostring(sortB)
+                        end
+
+                        if sortA > sortB then
+                            if des then
+                                return true
+                            else
+                                return false
+                            end
+                        elseif sortA < sortB then
+                            if des then
+                                return false
+                            else
+                                return true
+                            end
+                        end
                     end
-                elseif sortA < sortB then
-                    if des then
-                        return false
-                    else
-                        return true
-                    end
-                end
+                end)
             end
         end)
-
-        provider:InsertTableRange(entries, lower + 1, min(lower + ReviewTab.maxEntries, #entries))
-        ReviewTab.maxPages[ReviewTab.guildID] = ceil(#entries / ReviewTab.maxEntries)
-
         -- print(provider:GetSize())
     end)
-
-    private:UpdatePageNumber()
-end
-
-function private:UpdatePageNumber()
-    if not ReviewTab.pageNumber then
-        return
-    end
-
-    if ReviewTab.pages[ReviewTab.guildID] == 0 and ReviewTab.maxPages[ReviewTab.guildID] > 0 then
-        ReviewTab.pages[ReviewTab.guildID] = 1
-        LoadTable()
-        return
-    elseif ReviewTab.pages[ReviewTab.guildID] > ReviewTab.maxPages[ReviewTab.guildID] then
-        ReviewTab.pages[ReviewTab.guildID] = ReviewTab.maxPages[ReviewTab.guildID]
-        LoadTable()
-        return
-    end
-
-    ReviewTab.pageNumber:SetText(format("%s %d/%d", L["Page"], ReviewTab.pages[ReviewTab.guildID], ReviewTab.maxPages[ReviewTab.guildID]))
 end
 
 ------------------------
@@ -706,8 +622,6 @@ function private:LoadReviewTab(content)
                 func = function()
                     ReviewTab.guildID = guildID
                     ReviewTab.filters[guildID] = ReviewTab.filters[guildID] or GetFilters()
-                    ReviewTab.pages[guildID] = ReviewTab.pages[guildID] or (#private.db.global.guilds[ReviewTab.guildID].masterScan > 0 and 1 or 0)
-                    ReviewTab.maxPages[guildID] = ReviewTab.maxPages[guildID] or 1
                     LoadSidebar()
                     LoadTable()
                 end,
