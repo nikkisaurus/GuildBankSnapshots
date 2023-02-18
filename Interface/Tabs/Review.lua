@@ -606,10 +606,9 @@ LoadTable = function()
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
-        local lower = (ReviewTab.pages[ReviewTab.guildID] - 1) * ReviewTab.maxEntries
-        -- local numEntries, numValidEntries = 0, 0
 
         wipe(entries)
+        local lower = (ReviewTab.pages[ReviewTab.guildID] - 1) * ReviewTab.maxEntries
         for transactionID, transaction in ipairs(masterScan) do
             local elementData = transaction.info
             elementData.transactionID = transaction.transactionID
@@ -623,11 +622,7 @@ LoadTable = function()
             end
         end
 
-        provider:InsertTableRange(entries, lower + 1, max(lower + ReviewTab.maxEntries, #entries))
-
-        ReviewTab.maxPages[ReviewTab.guildID] = ceil(#entries / ReviewTab.maxEntries)
-
-        provider:SetSortComparator(function(a, b)
+        sort(entries, function(a, b)
             for _, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
                 local sortValue = tableCols[id].sortValue
                 local des = private.db.global.settings.preferences.descendingHeaders[id]
@@ -655,6 +650,9 @@ LoadTable = function()
                 end
             end
         end)
+
+        provider:InsertTableRange(entries, lower + 1, min(lower + ReviewTab.maxEntries, #entries))
+        ReviewTab.maxPages[ReviewTab.guildID] = ceil(#entries / ReviewTab.maxEntries)
 
         -- print(provider:GetSize())
     end)
