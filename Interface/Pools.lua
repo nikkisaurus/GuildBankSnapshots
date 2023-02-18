@@ -41,12 +41,28 @@ end
 
 --*----------[[ Mixins ]]----------*--
 local DropdownMenuMixin = {}
+local DropdownMenuStyle = {
+    width = "auto",
+    buttonHeight = 20,
+    buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
+    maxButtons = 10,
+    anchor = "TOPLEFT",
+    relAnchor = "BOTTOMLEFT",
+    xOffset = 0,
+    yOffset = 0,
+    justifyH = "LEFT",
+    justifyV = "MIDDLE",
+    paddingX = 3,
+    paddingY = 3,
+    hasCheckBox = true,
+    checkAlignment = "LEFT",
+    hasSearch = false,
+    multiSelect = false,
+}
 
 function DropdownMenuMixin:DrawButtons()
-    self:ReleaseAll()
-
     local style = self.style
-    self:SetHeight(min((addon:tcount(self.info) + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
+    self:ReleaseAll()
 
     local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
 
@@ -61,16 +77,23 @@ function DropdownMenuMixin:DrawButtons()
             local text = searchBox:GetText()
 
             if userInput then
-                listFrame:SetDataProvider(function(provider)
+                local provider = listFrame:SetDataProvider(function(provider)
                     for _, info in pairs(self.info) do
                         if strfind(strupper(info.value), strupper(text)) then
                             provider:Insert(info)
                         end
                     end
-                    self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
-                    self:SetHeight(self:GetHeight() + 25)
                 end)
+
+                self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight) + 25)
             end
+        end)
+
+        searchBox:SetCallback("OnClear", function(...)
+            local provider = listFrame:SetDataProvider(function(provider)
+                provider:InsertTable(self.info)
+            end)
+            self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight) + 25)
         end)
 
         listFrame:SetPoint("TOP", searchBox, "BOTTOM")
@@ -88,29 +111,14 @@ function DropdownMenuMixin:DrawButtons()
         frame:SetElementData(frame:GetOrderIndex(), elementData)
     end, "GuildBankSnapshotsDropdownListButton")
 
-    listFrame:SetDataProvider(function(provider)
+    local provider = listFrame:SetDataProvider(function(provider)
         provider:InsertTable(self.info)
     end)
+    self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
 end
 
 function DropdownMenuMixin:InitStyle()
-    self.style = {
-        width = "auto",
-        buttonHeight = 20,
-        buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
-        maxButtons = 10,
-        anchor = "TOPLEFT",
-        relAnchor = "BOTTOMLEFT",
-        xOffset = 0,
-        yOffset = 0,
-        justifyH = "LEFT",
-        justifyV = "MIDDLE",
-        paddingX = 3,
-        paddingY = 3,
-        hasCheckBox = true,
-        checkAlignment = "LEFT",
-        hasSearch = false,
-    }
+    self.style = addon:CloneTable(DropdownMenuStyle)
 end
 
 function DropdownMenuMixin:SetAnchors()
@@ -169,6 +177,10 @@ end
 -----------------------
 
 local WidgetMixin = {}
+local validScripts = {
+    OnClear = true,
+    OnRelease = true,
+}
 
 function WidgetMixin:Fire(script, ...)
     if script == "OnAcquire" and self.scripts.OnAcquire then
@@ -218,7 +230,7 @@ end
 
 function WidgetMixin:SetCallback(script, callback, init)
     local success, err = pcall(self.SetScript, self, script, callback)
-    assert(success or script == "OnRelease", "WidgetMixin: invalid script")
+    assert(success or validScripts[script], "WidgetMixin: invalid script")
     assert(type(callback) == "function", callback and "WidgetMixin: callback must be a function" or "WidgetMixin: attempting to create empty callback")
 
     self.handlers[script] = callback
@@ -395,6 +407,7 @@ local function DropdownButton_OnLoad(dropdown)
             self:SetSize(150, 20)
             self.arrow:SetSize(20, 20)
             self.text:SetHeight(20)
+            self.menu:InitStyle()
         end,
 
         OnClick = function(self)
@@ -449,7 +462,6 @@ local function DropdownButton_OnLoad(dropdown)
     dropdown.menu = Mixin(CreateFrame("Frame", nil, UIParent, "GuildBankSnapshotsCollectionFrame"), DropdownMenuMixin, ContainerMixin)
     tinsert(menus, dropdown.menu)
     dropdown.menu.dropdown = dropdown
-    dropdown.menu:InitStyle()
     dropdown.menu:SetFrameLevel(1000)
     dropdown.menu:Hide()
     private:AddBackdrop(dropdown.menu, "insetColor")
@@ -457,10 +469,6 @@ local function DropdownButton_OnLoad(dropdown)
     dropdown.selected = {}
 
     -- Methods
-    function dropdown:IsMultiSelect()
-        return self.isMulti
-    end
-
     function dropdown:SelectValue(value, callback)
         if not self.menu.info then
             return
@@ -468,7 +476,7 @@ local function DropdownButton_OnLoad(dropdown)
 
         for infoID, info in pairs(self.menu.info) do
             if info.value == value then
-                if self:IsMultiSelect() then
+                if self.menu.style.multiSelect then
                     self.selected[infoID] = not self.selected[infoID]
                     self:UpdateMultiText()
                 else
@@ -495,10 +503,6 @@ local function DropdownButton_OnLoad(dropdown)
         end
 
         self.menu.info = info
-    end
-
-    function dropdown:SetMultiSelect(isMulti)
-        self.isMulti = isMulti
     end
 
     function dropdown:SetStyle(style)
@@ -553,7 +557,7 @@ local function DropdownListButton_OnLoad(button)
         OnClick = function(self)
             self.dropdown:SelectValue(self.elementData.value, true)
 
-            if self.dropdown:IsMultiSelect() then
+            if self.menu.style.multiSelect then
                 self:SetChecked()
             else
                 self.menu:Hide()
@@ -608,7 +612,7 @@ local function DropdownListButton_OnLoad(button)
             return
         end
 
-        local checked = self.dropdown:IsMultiSelect() and self.dropdown.selected[self.id] or self.elementData.checked
+        local checked = self.menu.style.multiSelect and self.dropdown.selected[self.id] or self.elementData.checked
 
         if type(checked) == "function" then
             checked = checked()
@@ -736,6 +740,8 @@ local function ListScrollFrame_OnLoad(frame)
         local DataProvider = CreateDataProvider()
         callback(DataProvider)
         self.scrollBox:SetDataProvider(DataProvider)
+
+        return DataProvider
     end
 end
 
@@ -787,7 +793,17 @@ end
 
 local function SearchBox_OnLoad(editbox)
     editbox = Mixin(editbox, WidgetMixin)
-    editbox:InitScripts()
+    editbox:InitScripts({
+        OnAcquire = function(self)
+            self:SetText("")
+        end,
+    })
+
+    editbox.clearButton:HookScript("OnClick", function()
+        if editbox.handlers.OnClear then
+            editbox.handlers.OnClear(editbox)
+        end
+    end)
 
     -- editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
 

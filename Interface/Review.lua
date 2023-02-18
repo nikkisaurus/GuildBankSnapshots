@@ -110,7 +110,7 @@ local sidebarSections = {
             transactionType:SetPoint("RIGHT", -5, 0)
             transactionType:Justify("LEFT")
 
-            transactionType:SetMultiSelect(true)
+            transactionType:SetStyle({ multiSelect = true })
             transactionType:SetInfo(function()
                 local info = {}
 
@@ -158,10 +158,7 @@ local sidebarSections = {
             name:SetPoint("RIGHT", -5, 0)
             name:Justify("LEFT")
 
-            name:SetStyle({
-                hasSearch = true,
-            })
-            name:SetMultiSelect(true)
+            name:SetStyle({ multiSelect = true, hasSearch = true })
             name:SetInfo(function()
                 local info = {}
 
@@ -496,6 +493,11 @@ function private:LoadSidebar()
             ReviewTab.searchQuery = self:IsValidText() and text
             private:LoadTable()
         end
+    end)
+
+    searchBox:SetCallback("OnClear", function()
+        ReviewTab.searchQuery = nil
+        private:LoadTable()
     end)
 
     if ReviewTab.searchQuery then
