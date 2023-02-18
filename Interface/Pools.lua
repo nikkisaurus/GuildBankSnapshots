@@ -2,6 +2,16 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local menus = {}
+
+function private:CloseMenus(ignoredMenu)
+    for _, menu in pairs(menus) do
+        if menu ~= ignoredMenu then
+            menu:Hide()
+        end
+    end
+end
+
 --*----------[[ Collection pool ]]----------*--
 local function Resetter(_, self)
     if self.Reset then
@@ -36,7 +46,7 @@ function DropdownMenuMixin:DrawButtons()
     self:ReleaseAll()
 
     local style = self.style
-    self:SetHeight(min(#self.info * (style.buttonHeight + style.paddingY), style.maxButtons * (style.buttonHeight + style.paddingY)))
+    self:SetHeight(min(addon:tcount(self.info) * style.buttonHeight, style.maxButtons * style.buttonHeight))
 
     local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
     listFrame:SetAllPoints(self)
@@ -59,7 +69,7 @@ function DropdownMenuMixin:InitStyle()
         width = "auto",
         buttonHeight = 20,
         buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
-        maxButtons = 10,
+        maxButtons = 20,
         anchor = "TOPLEFT",
         relAnchor = "BOTTOMLEFT",
         xOffset = 0,
@@ -74,11 +84,11 @@ function DropdownMenuMixin:InitStyle()
 end
 
 function DropdownMenuMixin:SetAnchors()
-    self:SetPoint(self.style.anchor, self:GetParent(), self.style.relAnchor, self.style.xOffset, self.style.yOffset)
+    self:SetPoint(self.style.anchor, self.dropdown, self.style.relAnchor, self.style.xOffset, self.style.yOffset)
 end
 
 function DropdownMenuMixin:SetMenuWidth()
-    self:SetWidth(self.style.width == "auto" and self:GetParent():GetWidth() or self.style.width)
+    self:SetWidth(self.style.width == "auto" and self.dropdown:GetWidth() or self.style.width)
 end
 
 -----------------------
@@ -319,14 +329,20 @@ local function CheckButton_OnLoad(button)
         return self.isChecked
     end
 
-    function button:SetChecked(checked)
-        self.isChecked = checked
+    function button:SetChecked(isChecked)
+        self.isChecked = isChecked
 
-        if checked then
+        if isChecked then
             self.checked:Show()
         else
             self.checked:Hide()
         end
+    end
+
+    function button:SetCheckedState(isChecked)
+        self.isChecked = isChecked
+        self:SetChecked(isChecked)
+        self.handlers.OnClick(self)
     end
 
     function button:SetTooltipInitializer(tooltip)
@@ -345,6 +361,7 @@ local function DropdownButton_OnLoad(dropdown)
         OnAcquire = function(self)
             self:SetButtonHidden(false)
             self:Justify("RIGHT", "MIDDLE")
+            self:SetText("")
             self:SetSize(150, 20)
             self.arrow:SetSize(20, 20)
             self.text:SetHeight(20)
@@ -396,11 +413,12 @@ local function DropdownButton_OnLoad(dropdown)
     dropdown.text:SetPoint("RIGHT", dropdown.arrow, "LEFT", -5, 0)
 
     -- Menu
-    dropdown.menu = Mixin(CreateFrame("Frame", nil, dropdown, "GuildBankSnapshotsCollectionFrame"), DropdownMenuMixin, ContainerMixin)
+    dropdown.menu = Mixin(CreateFrame("Frame", nil, UIParent, "GuildBankSnapshotsCollectionFrame"), DropdownMenuMixin, ContainerMixin)
+    tinsert(menus, dropdown.menu)
+    dropdown.menu.dropdown = dropdown
     dropdown.menu:InitStyle()
     dropdown.menu:SetFrameLevel(1000)
     dropdown.menu:Hide()
-    dropdown.menu.dropdown = dropdown
     private:AddBackdrop(dropdown.menu, "insetColor")
 
     dropdown.selected = {}
@@ -451,6 +469,8 @@ local function DropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:ToggleMenu()
+        private:CloseMenus(self.menu)
+
         if self.menu:IsVisible() then
             self.menu:ClearAllPoints()
             self.menu:Hide()
@@ -885,6 +905,7 @@ local function TableCell_OnLoad(cell)
             self:Justify("LEFT", "TOP")
             self.data = nil
             self.elementData = nil
+            self.entryID = nil
         end,
     })
 
@@ -924,9 +945,10 @@ local function TableCell_OnLoad(cell)
         self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -self.paddingX, self.paddingY)
     end
 
-    function cell:SetData(data, elementData)
+    function cell:SetData(data, elementData, entryID)
         self.data = data
         self.elementData = elementData
+        self.entryID = entryID
         self:SetAnchors()
     end
 

@@ -2,43 +2,47 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local FiltersMixin = {
+    duplicates = {
+        value = true,
+        func = function(self, elementData)
+            -- TODO filter duplicates
+        end,
+    },
+
+    names = {
+        list = {},
+        values = {},
+        func = function(self, elementData)
+            -- TODO filter names
+        end,
+    },
+
+    transactionType = {
+        values = {},
+        func = function(self, elementData)
+            if addon:tcount(self.values) == 0 then
+                return
+            end
+
+            for _, data in pairs(self.values) do
+                if elementData.transactionType == data.text then
+                    return
+                end
+            end
+
+            return true -- isFiltered
+        end,
+    },
+}
+
 local ReviewTab
 function private:InitializeReviewTab()
     ReviewTab = {
         guildID = private.db.global.settings.preferences.defaultGuild,
         searchQuery = false,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
-        filters = {
-            transactionType = {
-                values = {},
-                func = function(self, elementData)
-                    if addon:tcount(self.values) == 0 then
-                        return
-                    end
-
-                    for _, data in pairs(self.values) do
-                        if elementData.transactionType == data.text then
-                            return
-                        end
-                    end
-
-                    return true -- isFiltered
-                end,
-            },
-            -- {
-            --     key = "name",
-            --     values = { "Atsumiko", "Nikketa" },
-            --     func = function(self, elementData)
-            --         for i, v in ipairs(self.values) do
-            --             if addon:GetTableKey(elementData, v) then
-            --                 return
-            --             end
-            --         end
-
-            --         return true -- isFiltered
-            --     end,
-            -- },
-        },
+        filters = {},
     }
 end
 
@@ -65,17 +69,21 @@ local sidebarSections = {
         header = L["Filters"],
         collapsed = false,
         onLoad = function(content, height)
-            local removeDuplicates = content:Acquire("GuildBankSnapshotsCheckButton")
-            removeDuplicates:SetPoint("TOPLEFT", 5, -height)
-            removeDuplicates:SetPoint("RIGHT", -5, 0)
+            local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
+            duplicates:SetPoint("TOPLEFT", 5, -height)
+            duplicates:SetPoint("RIGHT", -5, 0)
 
-            removeDuplicates:SetText(L["Remove duplicates"] .. "*")
-            -- removeDuplicates:SetCallback("OnClick", function(self) end)
-            removeDuplicates:SetTooltipInitializer(function()
+            duplicates:SetText(L["Remove duplicates"] .. "*")
+            duplicates:SetCallback("OnClick", function(self)
+                ReviewTab.filters[ReviewTab.guildID].duplicates.value = self:GetChecked()
+            end)
+            duplicates:SetTooltipInitializer(function()
                 GameTooltip:AddLine(L["Experimental"])
             end)
 
-            height = height + removeDuplicates:GetHeight()
+            duplicates:SetCheckedState(ReviewTab.filters[ReviewTab.guildID].duplicates.value)
+
+            height = height + duplicates:GetHeight()
 
             local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
             transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
@@ -106,9 +114,9 @@ local sidebarSections = {
                             end
 
                             if dropdown.selected[buttonID] then
-                                ReviewTab.filters.transactionType.values[buttonID] = elementData
+                                ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = elementData
                             else
-                                ReviewTab.filters.transactionType.values[buttonID] = nil
+                                ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = nil
                             end
 
                             private:LoadTable()
@@ -119,11 +127,68 @@ local sidebarSections = {
                 return info
             end)
 
-            for buttonID, data in pairs(ReviewTab.filters.transactionType.values) do
-                transactionType:SelectValue(data.value)
+            for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].transactionType.values) do
+                transactionType:SelectValue(data.value, true)
             end
 
             height = height + transactionType:GetHeight() + 5
+
+            local nameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+            nameLabel:SetPoint("TOPLEFT", 5, -height)
+            nameLabel:SetPoint("RIGHT", -5, 0)
+            nameLabel:SetText(L["Name"])
+            nameLabel:SetFontObject(GameFontNormalSmall)
+            nameLabel:Justify("LEFT")
+            nameLabel:Show()
+
+            height = height + nameLabel:GetHeight()
+
+            local name = content:Acquire("GuildBankSnapshotsDropdownButton")
+            name:SetPoint("TOPLEFT", 5, -height)
+            name:SetPoint("RIGHT", -5, 0)
+            name:Justify("LEFT")
+
+            name:SetMultiSelect(true)
+            name:SetInfo(function()
+                local info = {}
+
+                -- local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
+                -- for transactionID, transaction in ipairs(masterScan) do
+                --     local elementData = transaction.info
+                --     elementData.scanID = transaction.scanID
+
+                --     if IsQueryMatch(elementData) and not IsFiltered(elementData) then
+                --         provider:Insert(elementData)
+                --     end
+                -- end
+                for name, _ in addon:pairs(ReviewTab.filters[ReviewTab.guildID].names.list) do
+                    tinsert(info, {
+                        value = name,
+                        text = name,
+                        func = function(dropdown, buttonID, elementData)
+                            if not dropdown then
+                                return
+                            end
+
+                            -- if dropdown.selected[buttonID] then
+                            --     ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = elementData
+                            -- else
+                            --     ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = nil
+                            -- end
+
+                            -- private:LoadTable()
+                        end,
+                    })
+                end
+
+                return info
+            end)
+
+            -- for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].transactionType.values) do
+            --     name:SelectValue(data.value, true)
+            -- end
+
+            height = height + name:GetHeight() + 5
 
             return height
         end,
@@ -283,7 +348,7 @@ local function DrawTableHeaders(self)
 end
 
 local function IsFiltered(elementData)
-    for filterID, filter in pairs(ReviewTab.filters) do
+    for filterID, filter in pairs(ReviewTab.filters[ReviewTab.guildID]) do
         if filter.func(filter, elementData) then
             return true
         end
@@ -333,7 +398,7 @@ local function LoadRow(row, elementData)
             cell:SetPoint("LEFT", width, 0)
             width = width + cell:GetWidth()
 
-            cell:SetData(col, elementData)
+            cell:SetData(col, elementData, row:GetOrderIndex())
         end
     end, true)
 end
@@ -364,7 +429,9 @@ function private:LoadReviewTab(content)
                 end,
                 func = function()
                     ReviewTab.guildID = guildID
+                    ReviewTab.filters[guildID] = ReviewTab.filters[guildID] or addon:CloneTable(FiltersMixin)
                     private:LoadTable()
+                    private:LoadSidebar()
                 end,
             })
         end
@@ -404,8 +471,6 @@ function private:LoadReviewTab(content)
             guildDropdown:SelectValue(ReviewTab.guildID, true)
         end
     end, true)
-
-    private:LoadSidebar()
 end
 
 function private:LoadSidebar()
@@ -474,6 +539,8 @@ function private:LoadTable()
             local elementData = transaction.info
             elementData.scanID = transaction.scanID
 
+            ReviewTab.filters[ReviewTab.guildID].names.list[elementData.name] = true
+
             if IsQueryMatch(elementData) and not IsFiltered(elementData) then
                 provider:Insert(elementData)
             end
@@ -509,6 +576,6 @@ function private:LoadTable()
         --     end
         -- end)
 
-        -- print(provider:GetSize())
+        print(provider:GetSize())
     end)
 end

@@ -7,6 +7,7 @@ L["Add Filter"] = true
 L["Filters"] = true
 L["Tab"] = true
 L["Entry"] = true
+L["Name"] = true
 L["Help"] = true
 L["Money Tab"] = true
 L["Scan Date"] = true
