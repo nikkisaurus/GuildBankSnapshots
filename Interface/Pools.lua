@@ -470,7 +470,6 @@ local function DropdownButton_OnLoad(dropdown)
         local text
         for infoID, enabled in addon:pairs(self.selected) do
             if enabled then
-                print(infoID)
                 local info = self.menu.info[infoID]
                 if not text then
                     text = info.text
@@ -569,7 +568,9 @@ local function DropdownListButton_OnLoad(button)
         self:SetText(elementData.text)
         self:SetChecked()
         if elementData.func then
-            self:SetCallback("OnClick", elementData.func)
+            self:SetCallback("OnClick", function()
+                elementData.func(self.dropdown, id, elementData)
+            end)
         end
     end
 
