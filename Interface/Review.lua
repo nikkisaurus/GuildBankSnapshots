@@ -244,6 +244,7 @@ local function LoadRow(row, elementData)
 
         for colID, col in addon:pairs(tableCols) do
             local cell = row:Acquire("GuildBankSnapshotsTableCell")
+            cell:SetPadding(4, 4)
             row.cells[colID] = cell
 
             cell:SetText(col.text(elementData))

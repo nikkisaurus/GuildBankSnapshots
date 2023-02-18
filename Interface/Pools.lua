@@ -34,7 +34,7 @@ function DropdownMenuMixin:DrawButtons()
     self:ReleaseAll()
 
     local style = self.style
-    self:SetHeight(min(#self.info * style.buttonHeight, style.maxButtons * style.buttonHeight))
+    self:SetHeight(min(#self.info * (style.buttonHeight + style.paddingY), style.maxButtons * (style.buttonHeight + style.paddingY)))
 
     local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
     listFrame:SetAllPoints(self)
@@ -50,19 +50,6 @@ function DropdownMenuMixin:DrawButtons()
     listFrame:SetDataProvider(function(provider)
         provider:InsertTable(self.info)
     end)
-
-    -- local height = 0
-    -- for i, info in pairs(self.info) do
-    --     local button = scrollFrame.content:Acquire("GuildBankSnapshotsFontFrame")
-    --     button:SetText(info.text)
-    --     button:SetSize(self:GetWidth(), style.buttonHeight)
-
-    --     button:SetPoint("TOPLEFT", 0, -height)
-    --     height = height + button:GetHeight()
-    --     if i <= style.maxButtons then
-    --         self:SetHeight(height)
-    --     end
-    -- end
 end
 
 function DropdownMenuMixin:InitStyle()
@@ -78,7 +65,7 @@ function DropdownMenuMixin:InitStyle()
         justifyH = "LEFT",
         justifyV = "MIDDLE",
         paddingX = 3,
-        paddyingY = 3,
+        paddingY = 3,
         hasCheckBox = true,
         checkAlignment = "LEFT",
     }
@@ -657,7 +644,8 @@ local function TableCell_OnLoad(cell)
     function cell:SetAnchors()
         self.icon:SetTexture()
         self.icon:ClearAllPoints()
-        self.icon:SetSize(12, 12)
+        local iconSize = min(self:GetWidth() - self.paddingX, 12)
+        self.icon:SetSize(iconSize, iconSize)
 
         self.text:ClearAllPoints()
 
@@ -668,18 +656,23 @@ local function TableCell_OnLoad(cell)
 
         if icon then
             self.icon:SetTexture(icon)
-            self.icon:SetPoint("TOPLEFT", self, "TOPLEFT")
+            self.icon:SetPoint("TOPLEFT", self, "TOPLEFT", self.paddingX, -self.paddingY)
             self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
         else
-            self.text:SetPoint("TOPLEFT", self, "TOPLEFT")
+            self.text:SetPoint("TOPLEFT", self, "TOPLEFT", self.paddingX, -self.paddingY)
         end
-        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT")
+        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -self.paddingX, self.paddingY)
     end
 
     function cell:SetData(data, elementData)
         self.data = data
         self.elementData = elementData
         self:SetAnchors()
+    end
+
+    function cell:SetPadding(paddingX, paddingY)
+        self.paddingX = paddingX
+        self.paddingY = paddingY
     end
 
     -- Scripts
@@ -727,6 +720,7 @@ local function TableCell_OnLoad(cell)
         self:SetHeight(20)
         self:SetFontObject("GameFontHighlightSmall")
         self:SetText("")
+        self:SetPadding(0, 0)
         self:Justify("LEFT", "TOP")
         self.data = nil
         self.elementData = nil
