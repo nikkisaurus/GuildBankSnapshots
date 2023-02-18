@@ -49,7 +49,36 @@ function DropdownMenuMixin:DrawButtons()
     self:SetHeight(min((addon:tcount(self.info) + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
 
     local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
-    listFrame:SetAllPoints(self)
+
+    if style.hasSearch then
+        local searchBox = self:Acquire("GuildBankSnapshotsSearchBox")
+        searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 10, -5)
+        searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, 0)
+        searchBox:SetHeight(20)
+        self:SetHeight(self:GetHeight() + 25)
+
+        searchBox:SetCallback("OnTextChanged", function(_, userInput)
+            local text = searchBox:GetText()
+
+            if userInput then
+                listFrame:SetDataProvider(function(provider)
+                    for _, info in pairs(self.info) do
+                        if strfind(strupper(info.value), strupper(text)) then
+                            provider:Insert(info)
+                        end
+                    end
+                    self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
+                    self:SetHeight(self:GetHeight() + 25)
+                end)
+            end
+        end)
+
+        listFrame:SetPoint("TOP", searchBox, "BOTTOM")
+        listFrame:SetPoint("LEFT", self, "LEFT")
+        listFrame:SetPoint("BOTTOM", self, "BOTTOM")
+    else
+        listFrame:SetAllPoints(self)
+    end
 
     listFrame.scrollView:Initialize(style.buttonHeight, function(frame, elementData)
         frame.menu = self
@@ -80,6 +109,7 @@ function DropdownMenuMixin:InitStyle()
         paddingY = 3,
         hasCheckBox = true,
         checkAlignment = "LEFT",
+        hasSearch = false,
     }
 end
 
@@ -469,6 +499,12 @@ local function DropdownButton_OnLoad(dropdown)
 
     function dropdown:SetMultiSelect(isMulti)
         self.isMulti = isMulti
+    end
+
+    function dropdown:SetStyle(style)
+        for k, v in pairs(style) do
+            self.menu.style[k] = v
+        end
     end
 
     function dropdown:ToggleMenu()

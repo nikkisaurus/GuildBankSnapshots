@@ -158,6 +158,9 @@ local sidebarSections = {
             name:SetPoint("RIGHT", -5, 0)
             name:Justify("LEFT")
 
+            name:SetStyle({
+                hasSearch = true,
+            })
             name:SetMultiSelect(true)
             name:SetInfo(function()
                 local info = {}
