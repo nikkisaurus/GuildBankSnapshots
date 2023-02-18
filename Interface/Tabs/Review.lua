@@ -2,51 +2,10 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local FiltersMixin = {
-    duplicates = {
-        value = true,
-        func = function(self, elementData)
-            -- TODO filter duplicates
-        end,
-    },
-
-    names = {
-        list = {},
-        values = {},
-        func = function(self, elementData)
-            if addon:tcount(self.values) == 0 then
-                return
-            end
-
-            for _, data in pairs(self.values) do
-                if elementData.name == data.text then
-                    return
-                end
-            end
-
-            return true
-        end,
-    },
-
-    transactionType = {
-        values = {},
-        func = function(self, elementData)
-            if addon:tcount(self.values) == 0 then
-                return
-            end
-
-            for _, data in pairs(self.values) do
-                if elementData.transactionType == data.text then
-                    return
-                end
-            end
-
-            return true
-        end,
-    },
-}
-
+--*----------[[ Initialize tab ]]----------*--
 local ReviewTab
+local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideBar, LoadSidebarFilters, LoadSidebarSorters, LoadSidebarTools, LoadTable
+
 function private:InitializeReviewTab()
     ReviewTab = {
         guildID = private.db.global.settings.preferences.defaultGuild,
@@ -61,154 +20,22 @@ local sidebarSections = {
     {
         header = L["Sorting"],
         collapsed = false,
-        onLoad = function(content, height)
-            for i = 1, 8 do
-                local test = content:Acquire("GuildBankSnapshotsFontFrame")
-                test:SetPoint("TOPLEFT", 5, -height)
-                test:SetPoint("RIGHT", -5, 0)
-                test:SetText("Sorting stuff " .. i)
-                test:Justify("LEFT")
-                test:Show()
-                height = height + test:GetHeight()
-            end
-
-            return height
+        onLoad = function(...)
+            return LoadSidebarSorters(...)
         end,
     },
     {
         header = L["Filters"],
         collapsed = false,
-        onLoad = function(content, height)
-            local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
-            duplicates:SetPoint("TOPLEFT", 5, -height)
-            duplicates:SetPoint("RIGHT", -5, 0)
-
-            duplicates:SetText(L["Remove duplicates"] .. "*")
-            duplicates:SetCallback("OnClick", function(self)
-                ReviewTab.filters[ReviewTab.guildID].duplicates.value = self:GetChecked()
-            end)
-            duplicates:SetTooltipInitializer(function()
-                GameTooltip:AddLine(L["Experimental"])
-            end)
-
-            duplicates:SetCheckedState(ReviewTab.filters[ReviewTab.guildID].duplicates.value)
-
-            height = height + duplicates:GetHeight()
-
-            local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-            transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
-            transactionTypeLabel:SetPoint("RIGHT", -5, 0)
-            transactionTypeLabel:SetText(L["Transaction Type"])
-            transactionTypeLabel:SetFontObject(GameFontNormalSmall)
-            transactionTypeLabel:Justify("LEFT")
-            transactionTypeLabel:Show()
-
-            height = height + transactionTypeLabel:GetHeight()
-
-            local transactionType = content:Acquire("GuildBankSnapshotsDropdownButton")
-            transactionType:SetPoint("TOPLEFT", 5, -height)
-            transactionType:SetPoint("RIGHT", -5, 0)
-            transactionType:Justify("LEFT")
-
-            transactionType:SetStyle({ multiSelect = true })
-            transactionType:SetInfo(function()
-                local info = {}
-
-                for _, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "repair", "withdraw", "withdrawForTab" }) do
-                    tinsert(info, {
-                        value = transactionType,
-                        text = transactionType,
-                        func = function(dropdown, buttonID, elementData)
-                            if not dropdown then
-                                return
-                            end
-
-                            if dropdown.selected[buttonID] then
-                                ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = elementData
-                            else
-                                ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = nil
-                            end
-
-                            private:LoadTable()
-                        end,
-                    })
-                end
-
-                return info
-            end)
-
-            for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].transactionType.values) do
-                transactionType:SelectValue(data.value, true)
-            end
-
-            height = height + transactionType:GetHeight() + 5
-
-            local nameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-            nameLabel:SetPoint("TOPLEFT", 5, -height)
-            nameLabel:SetPoint("RIGHT", -5, 0)
-            nameLabel:SetText(L["Name"])
-            nameLabel:SetFontObject(GameFontNormalSmall)
-            nameLabel:Justify("LEFT")
-            nameLabel:Show()
-
-            height = height + nameLabel:GetHeight()
-
-            local name = content:Acquire("GuildBankSnapshotsDropdownButton")
-            name:SetPoint("TOPLEFT", 5, -height)
-            name:SetPoint("RIGHT", -5, 0)
-            name:Justify("LEFT")
-
-            name:SetStyle({ multiSelect = true, hasSearch = true })
-            name:SetInfo(function()
-                local info = {}
-
-                for name, _ in addon:pairs(ReviewTab.filters[ReviewTab.guildID].names.list) do
-                    tinsert(info, {
-                        value = name,
-                        text = name,
-                        func = function(dropdown, buttonID, elementData)
-                            if not dropdown then
-                                return
-                            end
-
-                            if dropdown.selected[buttonID] then
-                                ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = elementData
-                            else
-                                ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = nil
-                            end
-
-                            private:LoadTable()
-                        end,
-                    })
-                end
-
-                return info
-            end)
-
-            for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].names.values) do
-                name:SelectValue(data.value, true)
-            end
-
-            height = height + name:GetHeight() + 5
-
-            return height
+        onLoad = function(...)
+            return LoadSidebarFilters(...)
         end,
     },
     {
         header = L["Tools"],
         collapsed = false,
-        onLoad = function(content, height)
-            for i = 1, 1 do
-                local test = content:Acquire("GuildBankSnapshotsFontFrame")
-                test:SetPoint("TOPLEFT", 5, -height)
-                test:SetPoint("RIGHT", -5, 0)
-                test:SetText("Tools stuff " .. i)
-                test:Justify("LEFT")
-                test:Show()
-                height = height + test:GetHeight()
-            end
-
-            return height
+        onLoad = function(...)
+            return LoadSidebarTools(...)
         end,
     },
 }
@@ -331,8 +158,8 @@ local tableCols = {
     },
 }
 
---*----------[[ Local functions ]]----------*--
-local function DrawTableHeaders(self)
+--*----------[[ Methods ]]----------*--
+DrawTableHeaders = function(self)
     self:ReleaseAll()
 
     local width = 0
@@ -348,7 +175,53 @@ local function DrawTableHeaders(self)
     end
 end
 
-local function IsFiltered(elementData)
+GetFilters = function()
+    return {
+        duplicates = {
+            value = true,
+            func = function(self, elementData)
+                -- TODO filter duplicates
+            end,
+        },
+
+        names = {
+            list = {},
+            values = {},
+            func = function(self, elementData)
+                if addon:tcount(self.values) == 0 then
+                    return
+                end
+
+                for _, data in pairs(self.values) do
+                    if elementData.name == data.text then
+                        return
+                    end
+                end
+
+                return true
+            end,
+        },
+
+        transactionType = {
+            values = {},
+            func = function(self, elementData)
+                if addon:tcount(self.values) == 0 then
+                    return
+                end
+
+                for _, data in pairs(self.values) do
+                    if elementData.transactionType == data.text then
+                        return
+                    end
+                end
+
+                return true
+            end,
+        },
+    }
+end
+
+IsFiltered = function(elementData)
     for filterID, filter in pairs(ReviewTab.filters[ReviewTab.guildID]) do
         if filter.func(filter, elementData) then
             return true
@@ -358,7 +231,7 @@ local function IsFiltered(elementData)
     return
 end
 
-local function IsQueryMatch(elementData)
+IsQueryMatch = function(elementData)
     if not ReviewTab.searchQuery then
         return true
     end
@@ -371,7 +244,7 @@ local function IsQueryMatch(elementData)
     end
 end
 
-local function LoadRow(row, elementData)
+LoadRow = function(row, elementData)
     row.bg = row.bg or row:CreateTexture(nil, "BACKGROUND")
     row.bg:SetAllPoints(row)
 
@@ -404,77 +277,7 @@ local function LoadRow(row, elementData)
     end, true)
 end
 
---*----------[[ Methods ]]----------*--
-function private:LoadReviewTab(content)
-    local guildDropdown = content:Acquire("GuildBankSnapshotsDropdownButton")
-    guildDropdown:SetPoint("TOPLEFT", 10, -10)
-    guildDropdown:SetSize(200, 20)
-    guildDropdown:SetText(L["Select a guild"])
-    ReviewTab.guildDropdown = guildDropdown
-
-    guildDropdown:SetInfo(function()
-        local info = {}
-
-        local sortKeys = function(a, b)
-            return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
-        end
-
-        for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
-            local text = private:GetGuildDisplayName(guildID)
-            tinsert(info, {
-                value = guildID,
-                text = text,
-                isRadio = true,
-                checked = function()
-                    return guildID == ReviewTab.guildID
-                end,
-                func = function()
-                    ReviewTab.guildID = guildID
-                    ReviewTab.filters[guildID] = ReviewTab.filters[guildID] or addon:CloneTable(FiltersMixin)
-                    private:LoadTable()
-                    private:LoadSidebar()
-                end,
-            })
-        end
-
-        return info
-    end)
-
-    -- Have to set guildDropdown OnShow callback after all main elements are drawn to populate sidebar and tableContainer
-
-    local sidebar = content:Acquire("GuildBankSnapshotsScrollFrame")
-    sidebar:SetWidth(guildDropdown:GetWidth())
-    sidebar:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT")
-    sidebar:SetPoint("BOTTOM", 0, 10)
-    private:AddBackdrop(sidebar, "bgColor")
-    ReviewTab.sidebar = sidebar
-
-    local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
-    tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
-    tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
-    private:AddBackdrop(tableContainer.scrollBox)
-    ReviewTab.tableContainer = tableContainer
-
-    local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
-    tableHeaders:SetPoint("BOTTOMLEFT", tableContainer.scrollBox, "TOPLEFT")
-    tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
-    tableHeaders:SetPoint("TOP", guildDropdown, "TOP")
-    private:AddBackdrop(tableHeaders)
-    ReviewTab.tableHeaders = ReviewTab.tableHeaders
-
-    tableHeaders:SetCallback("OnSizeChanged", function()
-        DrawTableHeaders(tableHeaders)
-    end, true)
-
-    -- It's now safe to initialize the dropdown
-    guildDropdown:SetCallback("OnShow", function()
-        if ReviewTab.guildID then
-            guildDropdown:SelectValue(ReviewTab.guildID, true)
-        end
-    end, true)
-end
-
-function private:LoadSidebar()
+LoadSidebar = function()
     local sidebar = ReviewTab.sidebar
     local content = sidebar.content
     content:ReleaseAll()
@@ -491,13 +294,13 @@ function private:LoadSidebar()
 
         if userInput then
             ReviewTab.searchQuery = self:IsValidText() and text
-            private:LoadTable()
+            LoadTable()
         end
     end)
 
     searchBox:SetCallback("OnClear", function()
         ReviewTab.searchQuery = nil
-        private:LoadTable()
+        LoadTable()
     end)
 
     if ReviewTab.searchQuery then
@@ -528,7 +331,7 @@ function private:LoadSidebar()
                 sidebarSections[sectionID].collapsed = true
             end
 
-            private:LoadSidebar()
+            LoadSidebar()
         end)
     end
 
@@ -536,7 +339,151 @@ function private:LoadSidebar()
     sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
 end
 
-function private:LoadTable()
+LoadSidebarFilters = function(content, height)
+    local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
+    duplicates:SetPoint("TOPLEFT", 5, -height)
+    duplicates:SetPoint("RIGHT", -5, 0)
+
+    duplicates:SetText(L["Remove duplicates"] .. "*")
+    duplicates:SetCallback("OnClick", function(self)
+        ReviewTab.filters[ReviewTab.guildID].duplicates.value = self:GetChecked()
+    end)
+    duplicates:SetTooltipInitializer(function()
+        GameTooltip:AddLine(L["Experimental"])
+    end)
+
+    duplicates:SetCheckedState(ReviewTab.filters[ReviewTab.guildID].duplicates.value)
+
+    height = height + duplicates:GetHeight()
+
+    local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
+    transactionTypeLabel:SetPoint("RIGHT", -5, 0)
+    transactionTypeLabel:SetText(L["Transaction Type"])
+    transactionTypeLabel:SetFontObject(GameFontNormalSmall)
+    transactionTypeLabel:Justify("LEFT")
+    transactionTypeLabel:Show()
+
+    height = height + transactionTypeLabel:GetHeight()
+
+    local transactionType = content:Acquire("GuildBankSnapshotsDropdownButton")
+    transactionType:SetPoint("TOPLEFT", 5, -height)
+    transactionType:SetPoint("RIGHT", -5, 0)
+    transactionType:Justify("LEFT")
+
+    transactionType:SetStyle({ multiSelect = true })
+    transactionType:SetInfo(function()
+        local info = {}
+
+        for _, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "repair", "withdraw", "withdrawForTab" }) do
+            tinsert(info, {
+                value = transactionType,
+                text = transactionType,
+                func = function(dropdown, buttonID, elementData)
+                    if not dropdown then
+                        return
+                    end
+
+                    if dropdown.selected[buttonID] then
+                        ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = elementData
+                    else
+                        ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = nil
+                    end
+
+                    LoadTable()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].transactionType.values) do
+        transactionType:SelectValue(data.value, true)
+    end
+
+    height = height + transactionType:GetHeight() + 5
+
+    local nameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    nameLabel:SetPoint("TOPLEFT", 5, -height)
+    nameLabel:SetPoint("RIGHT", -5, 0)
+    nameLabel:SetText(L["Name"])
+    nameLabel:SetFontObject(GameFontNormalSmall)
+    nameLabel:Justify("LEFT")
+    nameLabel:Show()
+
+    height = height + nameLabel:GetHeight()
+
+    local name = content:Acquire("GuildBankSnapshotsDropdownButton")
+    name:SetPoint("TOPLEFT", 5, -height)
+    name:SetPoint("RIGHT", -5, 0)
+    name:Justify("LEFT")
+
+    name:SetStyle({ multiSelect = true, hasSearch = true })
+    name:SetInfo(function()
+        local info = {}
+
+        for name, _ in addon:pairs(ReviewTab.filters[ReviewTab.guildID].names.list) do
+            tinsert(info, {
+                value = name,
+                text = name,
+                func = function(dropdown, buttonID, elementData)
+                    if not dropdown then
+                        return
+                    end
+
+                    if dropdown.selected[buttonID] then
+                        ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = elementData
+                    else
+                        ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = nil
+                    end
+
+                    LoadTable()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].names.values) do
+        name:SelectValue(data.value, true)
+    end
+
+    height = height + name:GetHeight() + 5
+
+    return height
+end
+
+LoadSidebarSorters = function(content, height)
+    -- for i = 1, 8 do
+    --     local test = content:Acquire("GuildBankSnapshotsFontFrame")
+    --     test:SetPoint("TOPLEFT", 5, -height)
+    --     test:SetPoint("RIGHT", -5, 0)
+    --     test:SetText("Sorting stuff " .. i)
+    --     test:Justify("LEFT")
+    --     test:Show()
+    --     height = height + test:GetHeight()
+    -- end
+
+    return height
+end
+
+LoadSidebarTools = function(content, height)
+    -- for i = 1, 1 do
+    --     local test = content:Acquire("GuildBankSnapshotsFontFrame")
+    --     test:SetPoint("TOPLEFT", 5, -height)
+    --     test:SetPoint("RIGHT", -5, 0)
+    --     test:SetText("Tools stuff " .. i)
+    --     test:Justify("LEFT")
+    --     test:Show()
+    --     height = height + test:GetHeight()
+    -- end
+
+    return height
+end
+
+LoadTable = function()
     tableContainer = ReviewTab.tableContainer
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
@@ -584,4 +531,75 @@ function private:LoadTable()
 
         print(provider:GetSize())
     end)
+end
+
+------------------------
+
+function private:LoadReviewTab(content)
+    local guildDropdown = content:Acquire("GuildBankSnapshotsDropdownButton")
+    guildDropdown:SetPoint("TOPLEFT", 10, -10)
+    guildDropdown:SetSize(200, 20)
+    guildDropdown:SetText(L["Select a guild"])
+    ReviewTab.guildDropdown = guildDropdown
+
+    guildDropdown:SetInfo(function()
+        local info = {}
+
+        local sortKeys = function(a, b)
+            return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
+        end
+
+        for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
+            local text = private:GetGuildDisplayName(guildID)
+            tinsert(info, {
+                value = guildID,
+                text = text,
+                isRadio = true,
+                checked = function()
+                    return guildID == ReviewTab.guildID
+                end,
+                func = function()
+                    ReviewTab.guildID = guildID
+                    ReviewTab.filters[guildID] = ReviewTab.filters[guildID] or GetFilters()
+                    LoadTable()
+                    LoadSidebar()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    -- Have to set guildDropdown OnShow callback after all main elements are drawn to populate sidebar and tableContainer
+
+    local sidebar = content:Acquire("GuildBankSnapshotsScrollFrame")
+    sidebar:SetWidth(guildDropdown:GetWidth())
+    sidebar:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT")
+    sidebar:SetPoint("BOTTOM", 0, 10)
+    private:AddBackdrop(sidebar, "bgColor")
+    ReviewTab.sidebar = sidebar
+
+    local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
+    tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
+    tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
+    private:AddBackdrop(tableContainer.scrollBox)
+    ReviewTab.tableContainer = tableContainer
+
+    local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
+    tableHeaders:SetPoint("BOTTOMLEFT", tableContainer.scrollBox, "TOPLEFT")
+    tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
+    tableHeaders:SetPoint("TOP", guildDropdown, "TOP")
+    private:AddBackdrop(tableHeaders)
+    ReviewTab.tableHeaders = ReviewTab.tableHeaders
+
+    tableHeaders:SetCallback("OnSizeChanged", function()
+        DrawTableHeaders(tableHeaders)
+    end, true)
+
+    -- It's now safe to initialize the dropdown
+    guildDropdown:SetCallback("OnShow", function()
+        if ReviewTab.guildID then
+            guildDropdown:SelectValue(ReviewTab.guildID, true)
+        end
+    end, true)
 end
