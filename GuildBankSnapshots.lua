@@ -1,13 +1,18 @@
 local addonName, private = ...
-local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
-local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+LibStub("LibAddonUtils-2.0"):Embed(addon)
 
-function addon:OnInitialize()
-    private:InitializeDatabase()
-    private:InitializeInterface()
-    private:InitializeFrame()
-    private:InitializeSlashCommands()
+local function InitializeSlashCommands()
+    for command, commandInfo in pairs(private.db.global.commands) do
+        if commandInfo.enabled then
+            addon:RegisterChatCommand(command, commandInfo.func)
+        else
+            addon:UnregisterChatCommand(command)
+        end
+    end
 end
+
+function addon:OnDisable() end
 
 function addon:OnEnable()
     C_Timer.After(1, function()
@@ -15,23 +20,18 @@ function addon:OnEnable()
     end)
 end
 
-function addon:OnDisable() end
+function addon:OnInitialize()
+    private:InitializeDatabase()
+    InitializeSlashCommands()
+    private:InitializeInterface()
+    private:InitializeFrame()
+end
 
 function addon:SlashCommandFunc(input)
     local cmd, arg = strsplit(" ", strlower(input))
-    if cmd == "scan" then
+    if strlower(cmd) == "scan" then
         addon:ScanGuildBank(nil, arg == "o")
     else
         private:LoadFrame()
-    end
-end
-
-function private:InitializeSlashCommands()
-    for command, commandInfo in pairs(private.db.global.commands) do
-        if commandInfo.enabled then
-            addon:RegisterChatCommand(command, commandInfo.func)
-        else
-            addon:UnregisterChatCommand(command)
-        end
     end
 end

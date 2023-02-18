@@ -1,4 +1,5 @@
 <Ui>
-    <Include file="DB4-5.lua" />
-    <Include file="DB5-6.lua" />
+    <Include file="V5.lua" />
+    <Include file="V6.lua" />
+    <Include file="V7.lua" />
 </Ui>

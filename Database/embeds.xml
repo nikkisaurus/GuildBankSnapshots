@@ -1,4 +1,5 @@
 <Ui>
     <Include file="Converters\embeds.xml" />
     <Include file="Database.lua" />
+    <Include file="Helpers.lua" />
 </Ui>

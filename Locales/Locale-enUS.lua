@@ -1,31 +1,31 @@
 local addonName, private = ...
-local addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
-LibStub("LibAddonUtils-2.0"):Embed(addon)
 
-L["Add Filter"] = true
-L["Filters"] = true
-L["Tab"] = true
+L.addonName = "Guild Bank Snapshots"
+
+L["Analyze"] = true
 L["Entry"] = true
-L["Name"] = true
+L["Experimental"] = true
+L["Filters"] = true
 L["Help"] = true
 L["Money Tab"] = true
-L["Scan Date"] = true
-L["Tab ID"] = true
-L["Transaction ID"] = true
-L["Transaction Type"] = true
-L["Move Origin ID"] = true
 L["Move Destination ID"] = true
+L["Move Origin ID"] = true
+L["Name"] = true
+L["Remove duplicates"] = true
 L["Review"] = true
-L["Analyze"] = true
+L["Scan Date"] = true
 L["Select a guild"] = true
 L["Settings"] = true
 L["Sorting"] = true
+L["Tab ID"] = true
+L["Tab"] = true
 L["Tools"] = true
-L["Remove duplicates"] = true
-L["Experimental"] = true
+L["Transaction ID"] = true
+L["Transaction Type"] = true
 
--- -- TODO: sort
+-- -- OLD STRINGS:
 -- L["Buy Tab"] = true
 -- L["Withdraw For Tab"] = true
 -- L["Age Measure"] = true
@@ -129,7 +129,6 @@ L["Experimental"] = true
 -- L["Withdraw"] = true
 -- L["Withdrawals"] = true
 
-L.addonName = "Guild Bank Snapshots"
 -- L.BankClosedError = "Please open your guild bank frame and try again."
 -- L.ConfirmDeleteScan = "Are you sure you want to delete this scan?"
 -- L.CorruptScan = "Scan corrupt. Please try again."

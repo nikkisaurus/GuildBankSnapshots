@@ -3,7 +3,7 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceSerializer = LibStub("AceSerializer-3.0")
 
-function private:ConvertDB4_5(backup)
+function private:ConvertDatabaseV5(backup)
     if backup.guilds then
         for guildKey, scans in pairs(backup.guilds) do
             local _, guildName, faction, realm = strsplit(":", guildKey)

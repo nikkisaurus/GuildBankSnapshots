@@ -12,8 +12,8 @@
 ## X-Wago-ID: JZKblkN1
 
 libs.xml
+GuildBankSnapshots.lua
 Locales\embeds.xml
 Database\embeds.xml
 Core\embeds.xml
 Interface\embeds.xml
-GuildBankSnapshots.lua

@@ -19,21 +19,21 @@ end
 local sidebarSections = {
     {
         header = L["Sorting"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarSorters(...)
         end,
     },
     {
         header = L["Filters"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarFilters(...)
         end,
     },
     {
         header = L["Tools"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarTools(...)
         end,
@@ -340,21 +340,21 @@ LoadSidebar = function()
 end
 
 LoadSidebarFilters = function(content, height)
-    local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
-    duplicates:SetPoint("TOPLEFT", 5, -height)
-    duplicates:SetPoint("RIGHT", -5, 0)
+    -- local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
+    -- duplicates:SetPoint("TOPLEFT", 5, -height)
+    -- duplicates:SetPoint("RIGHT", -5, 0)
 
-    duplicates:SetText(L["Remove duplicates"] .. "*")
-    duplicates:SetCallback("OnClick", function(self)
-        ReviewTab.filters[ReviewTab.guildID].duplicates.value = self:GetChecked()
-    end)
-    duplicates:SetTooltipInitializer(function()
-        GameTooltip:AddLine(L["Experimental"])
-    end)
+    -- duplicates:SetText(L["Remove duplicates"] .. "*")
+    -- duplicates:SetCallback("OnClick", function(self)
+    --     ReviewTab.filters[ReviewTab.guildID].duplicates.value = self:GetChecked()
+    -- end)
+    -- duplicates:SetTooltipInitializer(function()
+    --     GameTooltip:AddLine(L["Experimental"])
+    -- end)
 
-    duplicates:SetCheckedState(ReviewTab.filters[ReviewTab.guildID].duplicates.value)
+    -- duplicates:SetCheckedState(ReviewTab.filters[ReviewTab.guildID].duplicates.value)
 
-    height = height + duplicates:GetHeight()
+    -- height = height + duplicates:GetHeight()
 
     local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
@@ -582,13 +582,14 @@ function private:LoadReviewTab(content)
     local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
     tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
     tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
-    private:AddBackdrop(tableContainer.scrollBox)
+    private:AddBackdrop(tableContainer)
     ReviewTab.tableContainer = tableContainer
 
     local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
-    tableHeaders:SetPoint("BOTTOMLEFT", tableContainer.scrollBox, "TOPLEFT")
-    tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
     tableHeaders:SetPoint("TOP", guildDropdown, "TOP")
+    tableHeaders:SetPoint("LEFT", tableContainer.scrollBox, "LEFT")
+    tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
+    tableHeaders:SetPoint("BOTTOM", tableContainer, "TOP")
     private:AddBackdrop(tableHeaders)
     ReviewTab.tableHeaders = ReviewTab.tableHeaders
 
