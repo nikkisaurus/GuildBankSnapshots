@@ -1,4 +1,10 @@
 <Ui>
+    <CheckButton name="GuildBankSnapshotsCheckButton" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsCheckButton_OnLoad" />
+        </Scripts>
+    </CheckButton>
+
     <Frame name="GuildBankSnapshotsCollectionFrame" inherits="BackdropTemplate" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsCollectionFrame_OnLoad" />

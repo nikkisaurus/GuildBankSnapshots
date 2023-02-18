@@ -12,6 +12,7 @@ L["Money Tab"] = true
 L["Scan Date"] = true
 L["Tab ID"] = true
 L["Transaction ID"] = true
+L["Transaction Type"] = true
 L["Move Origin ID"] = true
 L["Move Destination ID"] = true
 L["Review"] = true
@@ -20,6 +21,8 @@ L["Select a guild"] = true
 L["Settings"] = true
 L["Sorting"] = true
 L["Tools"] = true
+L["Remove duplicates"] = true
+L["Experimental"] = true
 
 -- -- TODO: sort
 -- L["Buy Tab"] = true

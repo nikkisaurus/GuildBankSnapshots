@@ -17,6 +17,7 @@ local CollectionMixin = {}
 function CollectionMixin:InitPools(parent)
     self.pool = CreateFramePoolCollection()
     self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsButton", Resetter)
+    self.pool:CreatePool("CheckButton", parent or self, "GuildBankSnapshotsCheckButton", Resetter)
     self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsCollectionFrame", Resetter)
     self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsDropdownButton", Resetter)
     self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsDropdownListButton", Resetter)
@@ -45,7 +46,7 @@ function DropdownMenuMixin:DrawButtons()
         frame.dropdown = frame.menu.dropdown
 
         frame:SetStyle(style)
-        frame:SetElementData(elementData)
+        frame:SetElementData(frame:GetOrderIndex(), elementData)
     end, "GuildBankSnapshotsDropdownListButton")
 
     listFrame:SetDataProvider(function(provider)
@@ -96,6 +97,7 @@ end
 
 function TextMixin:SetAutoHeight(autoHeight)
     TextMixin_Validate(self)
+    self.text:SetWordWrap(autoHeight)
     self.autoHeight = autoHeight
 end
 
@@ -196,6 +198,11 @@ function WidgetMixin:SetCallback(script, callback, init)
     end
 end
 
+function WidgetMixin:ShowTooltip(anchor, callback)
+    assert(type(callback) == "function", "WidgetMixin: ShowTooltip callback must be a function")
+    private:InitializeTooltip(self, anchor or "ANCHOR_RIGHT", callback)
+end
+
 -----------------------
 
 local ContainerMixin = Mixin({}, WidgetMixin)
@@ -205,6 +212,7 @@ function ContainerMixin:Acquire(template, parent)
     assert(self.pool, "ContainerMixin: collection pool has not been initialized")
 
     local object = self.pool:Acquire(template)
+    assert(object.Fire, "ContainerMixin: template '" .. template .. "' is not initialized as a widget")
     object:Fire("OnAcquire")
     object:SetParent(parent or self)
     object:Show()
@@ -265,6 +273,67 @@ local function Button_OnLoad(button)
     button.highlight:SetAllPoints(button.bg)
 end
 
+local function CheckButton_OnLoad(button)
+    button:EnableMouse(true)
+    button = Mixin(button, TextMixin, WidgetMixin)
+    button:InitScripts({
+        OnAcquire = function(self)
+            self:SetSize(150, 20)
+            self:Justify("LEFT", "TOP")
+            button:SetAutoHeight(true)
+        end,
+
+        OnClick = function(self, ...)
+            self:SetChecked(not self:GetChecked())
+        end,
+
+        OnEnter = function(self)
+            if self.tooltip then
+                self:ShowTooltip(nil, self.tooltip)
+            end
+        end,
+
+        OnLeave = function(self)
+            private:HideTooltip()
+        end,
+    })
+
+    -- Textures
+    button.checkBox = button:CreateTexture(nil, "ARTWORK")
+    button.checkBox:SetTexture(130755)
+    button.checkBox:SetPoint("TOPLEFT")
+    button.checkBox:SetSize(16, 16)
+
+    button.checked = button:CreateTexture(nil, "OVERLAY")
+    button.checked:SetAllPoints(button.checkBox)
+    button.checked:SetTexture(130751)
+    button.checked:Hide()
+
+    -- Text
+    button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    button.text:SetPoint("TOPLEFT", button.checkBox, "TOPRIGHT", 2, 0)
+    button.text:SetPoint("RIGHT", -2, 0)
+
+    -- Methods
+    function button:GetChecked()
+        return self.isChecked
+    end
+
+    function button:SetChecked(checked)
+        self.isChecked = checked
+
+        if checked then
+            self.checked:Show()
+        else
+            self.checked:Hide()
+        end
+    end
+
+    function button:SetTooltipInitializer(tooltip)
+        self.tooltip = tooltip
+    end
+end
+
 local function CollectionFrame_OnLoad(frame)
     frame = Mixin(frame, ContainerMixin, CollectionMixin)
     frame:InitPools()
@@ -287,6 +356,7 @@ local function DropdownButton_OnLoad(dropdown)
 
         OnRelease = function(self)
             self.menu.info = nil
+            wipe(self.selected)
             self.menu:Hide()
         end,
 
@@ -333,17 +403,29 @@ local function DropdownButton_OnLoad(dropdown)
     dropdown.menu.dropdown = dropdown
     private:AddBackdrop(dropdown.menu, "insetColor")
 
+    dropdown.selected = {}
+
     -- Methods
-    function dropdown:SelectValue(value)
+    function dropdown:IsMultiSelect()
+        return self.isMulti
+    end
+
+    function dropdown:SelectValue(value, callback)
         if not self.menu.info then
             return
         end
 
-        for _, info in pairs(self.menu.info) do
+        for infoID, info in pairs(self.menu.info) do
             if info.value == value then
-                self:SetText(info.text)
-                info.func()
-                return
+                if self:IsMultiSelect() then
+                    self.selected[infoID] = not self.selected[infoID]
+                    self:UpdateMultiText()
+                else
+                    self:SetText(info.text)
+                end
+                if callback then
+                    info.func()
+                end
             end
         end
     end
@@ -364,6 +446,10 @@ local function DropdownButton_OnLoad(dropdown)
         self.menu.info = info
     end
 
+    function dropdown:SetMultiSelect(isMulti)
+        self.isMulti = isMulti
+    end
+
     function dropdown:ToggleMenu()
         if self.menu:IsVisible() then
             self.menu:ClearAllPoints()
@@ -374,6 +460,27 @@ local function DropdownButton_OnLoad(dropdown)
             self.menu:DrawButtons()
             self.menu:Show()
         end
+    end
+
+    function dropdown:UpdateMultiText()
+        if not self.menu.info then
+            return
+        end
+
+        local text
+        for infoID, enabled in addon:pairs(self.selected) do
+            if enabled then
+                print(infoID)
+                local info = self.menu.info[infoID]
+                if not text then
+                    text = info.text
+                else
+                    text = text .. ", " .. info.text
+                end
+            end
+        end
+
+        self:SetText(text)
     end
 end
 
@@ -386,8 +493,13 @@ local function DropdownListButton_OnLoad(button)
         end,
 
         OnClick = function(self)
-            self.menu:Hide()
-            self.dropdown:SetText(self.text:GetText())
+            self.dropdown:SelectValue(self.elementData.value, true)
+
+            if self.dropdown:IsMultiSelect() then
+                self:SetChecked()
+            else
+                self.menu:Hide()
+            end
         end,
 
         OnRelease = function(self)
@@ -433,7 +545,13 @@ local function DropdownListButton_OnLoad(button)
         end
     end
 
-    function button:SetChecked(checked)
+    function button:SetChecked()
+        if not self.id then
+            return
+        end
+
+        local checked = self.dropdown:IsMultiSelect() and self.dropdown.selected[self.id] or self.elementData.checked
+
         if type(checked) == "function" then
             checked = checked()
         end
@@ -445,10 +563,11 @@ local function DropdownListButton_OnLoad(button)
         end
     end
 
-    function button:SetElementData(elementData)
+    function button:SetElementData(id, elementData)
+        self.id = id
         self.elementData = elementData
         self:SetText(elementData.text)
-        self:SetChecked(elementData.checked)
+        self:SetChecked()
         if elementData.func then
             self:SetCallback("OnClick", elementData.func)
         end
@@ -819,6 +938,7 @@ end
 -----------------------
 
 GuildBankSnapshotsButton_OnLoad = Button_OnLoad
+GuildBankSnapshotsCheckButton_OnLoad = CheckButton_OnLoad
 GuildBankSnapshotsCollectionFrame_OnLoad = CollectionFrame_OnLoad
 GuildBankSnapshotsDropdownButton_OnLoad = DropdownButton_OnLoad
 GuildBankSnapshotsDropdownListButton_OnLoad = DropdownListButton_OnLoad

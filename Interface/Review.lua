@@ -49,15 +49,47 @@ local sidebarSections = {
         header = L["Filters"],
         collapsed = false,
         onLoad = function(content, height)
-            for i = 1, 50 do
-                local test = content:Acquire("GuildBankSnapshotsFontFrame")
-                test:SetPoint("TOPLEFT", 5, -height)
-                test:SetPoint("RIGHT", -5, 0)
-                test:SetText("Filtering stuff " .. i)
-                test:Justify("LEFT")
-                test:Show()
-                height = height + test:GetHeight()
-            end
+            local removeDuplicates = content:Acquire("GuildBankSnapshotsCheckButton")
+            removeDuplicates:SetPoint("TOPLEFT", 5, -height)
+            removeDuplicates:SetPoint("RIGHT", -5, 0)
+
+            removeDuplicates:SetText(L["Remove duplicates"] .. "*")
+            -- removeDuplicates:SetCallback("OnClick", function(self) end)
+            removeDuplicates:SetTooltipInitializer(function()
+                GameTooltip:AddLine(L["Experimental"])
+            end)
+
+            height = height + removeDuplicates:GetHeight()
+
+            local dropdown = content:Acquire("GuildBankSnapshotsDropdownButton")
+            dropdown:SetPoint("TOPLEFT", 5, -height)
+            dropdown:SetPoint("RIGHT", -5, 0)
+            dropdown:SetText(L["Transaction Type"])
+            dropdown:Justify("LEFT")
+
+            dropdown:SetMultiSelect(true)
+            dropdown:SetInfo(function()
+                local info = {}
+
+                for _, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "repair", "withdraw", "withdrawForTab" }) do
+                    tinsert(info, {
+                        value = transactionType,
+                        text = transactionType,
+                        -- checked = function()
+                        --     return transactionType == ReviewTab.guildID
+                        -- end,
+                        func = function()
+                            -- ReviewTab.guildID = transactionType
+                            -- private:LoadSidebar()
+                            -- private:LoadTable()
+                        end,
+                    })
+                end
+
+                return info
+            end)
+
+            height = height + dropdown:GetHeight() + 5
 
             return height
         end,
@@ -67,7 +99,7 @@ local sidebarSections = {
         collapsed = false,
         onLoad = function(content, height)
             print("Load Tools")
-            for i = 1, 10 do
+            for i = 1, 1 do
                 local test = content:Acquire("GuildBankSnapshotsFontFrame")
                 test:SetPoint("TOPLEFT", 5, -height)
                 test:SetPoint("RIGHT", -5, 0)
@@ -341,7 +373,7 @@ function private:LoadReviewTab(content)
     -- It's now safe to initialize the dropdown
     guildDropdown:SetCallback("OnShow", function()
         if ReviewTab.guildID then
-            guildDropdown:SelectValue(ReviewTab.guildID)
+            guildDropdown:SelectValue(ReviewTab.guildID, true)
         end
     end, true)
 end
@@ -381,10 +413,10 @@ function private:LoadSidebar()
         header:SetPoint("TOPLEFT", 5, -height)
         header:SetPoint("RIGHT", -5, 0)
 
-        height = height + header:GetHeight()
+        height = height + header:GetHeight() + 5
 
         if not info.collapsed then
-            height = info.onLoad(content, height)
+            height = info.onLoad(content, height) + 5
         end
 
         header:SetCallback("OnClick", function()
