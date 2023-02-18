@@ -46,7 +46,7 @@ function DropdownMenuMixin:DrawButtons()
     self:ReleaseAll()
 
     local style = self.style
-    self:SetHeight(min(addon:tcount(self.info) * style.buttonHeight, style.maxButtons * style.buttonHeight))
+    self:SetHeight(min((addon:tcount(self.info) + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
 
     local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
     listFrame:SetAllPoints(self)
@@ -69,7 +69,7 @@ function DropdownMenuMixin:InitStyle()
         width = "auto",
         buttonHeight = 20,
         buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
-        maxButtons = 20,
+        maxButtons = 10,
         anchor = "TOPLEFT",
         relAnchor = "BOTTOMLEFT",
         xOffset = 0,
