@@ -35,6 +35,12 @@
         </Scripts>
     </Button>
 
+    <Button name="GuildBankSnapshotsTabButton" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsTabButton_OnLoad" />
+        </Scripts>
+    </Button>
+
     <Button name="GuildBankSnapshotsDropdownButton" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsDropdownButton_OnLoad" />

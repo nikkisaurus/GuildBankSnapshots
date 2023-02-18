@@ -22,9 +22,10 @@ function CollectionMixin:InitPools(parent)
     self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsDropdownListButton", Resetter)
     self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsFontFrame", Resetter)
     self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsListScrollFrame", Resetter)
-    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsTableCell", Resetter)
     self.pool:CreatePool("Frame", parent or self, "GuildBankSnapshotsScrollFrame", Resetter)
     self.pool:CreatePool("EditBox", parent or self, "GuildBankSnapshotsSearchBox", Resetter)
+    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsTableCell", Resetter)
+    self.pool:CreatePool("Button", parent or self, "GuildBankSnapshotsTabButton", Resetter)
 end
 
 --*----------[[ Mixins ]]----------*--
@@ -129,7 +130,7 @@ local WidgetMixin = {}
 
 function WidgetMixin:Fire(script, ...)
     if script == "OnAcquire" and self.scripts.OnAcquire then
-        self.scripts.OnAcquire(...)
+        self.scripts.OnAcquire(self)
     else
         if self.scripts[script] then
             self.scripts[script](self, ...)
@@ -150,9 +151,11 @@ function WidgetMixin:InitializeScripts()
     end
 end
 
-function WidgetMixin:InitScripts()
+function WidgetMixin:InitScripts(scripts)
     self.handlers = {}
-    self.scripts = {}
+    self.scripts = scripts or {}
+
+    self:InitializeScripts()
 end
 
 function WidgetMixin:Reset()
@@ -202,6 +205,7 @@ function ContainerMixin:Acquire(template, parent)
     assert(self.pool, "ContainerMixin: collection pool has not been initialized")
 
     local object = self.pool:Acquire(template)
+    object:Fire("OnAcquire")
     object:SetParent(parent or self)
     object:Show()
 
@@ -627,6 +631,101 @@ local function SearchBox_OnLoad(editbox)
     -- editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
 end
 
+local function TabButton_OnLoad(tab)
+    tab = Mixin(tab, WidgetMixin)
+    tab:InitScripts({
+        OnAcquire = function(self)
+            tab:SetSelected()
+            self:SetSize(150, 20)
+            self:UpdateText()
+            self:UpdateWidth()
+        end,
+
+        OnClick = function(self)
+            self:SetSelected(true)
+
+            -- Unselect other tabs
+            for tab, _ in private.frame.tabContainer:EnumerateActive() do
+                if tab:GetTabID() ~= self.tabID then
+                    tab:SetSelected()
+                end
+            end
+        end,
+
+        OnRelease = function(self)
+            self.tabID = nil
+            self.info = nil
+        end,
+    })
+
+    -- Textures
+    tab.border = tab:CreateTexture(nil, "BACKGROUND")
+    tab.border:SetColorTexture(private.interface.colors.borderColor:GetRGBA())
+    tab.border:SetAllPoints(tab)
+
+    tab.normal = tab:CreateTexture(nil, "BACKGROUND")
+    tab.normal:SetColorTexture(private.interface.colors.elementColor:GetRGBA())
+    tab.normal:SetPoint("TOPLEFT", tab.border, "TOPLEFT", 1, -1)
+    tab.normal:SetPoint("BOTTOMRIGHT", tab.border, "BOTTOMRIGHT", -1, 1)
+
+    tab.selected = tab:CreateTexture(nil, "BACKGROUND")
+    tab.selected:SetColorTexture(private.interface.colors.insetColor:GetRGBA())
+    tab.selected:SetAllPoints(tab.normal)
+
+    tab.highlight = tab:CreateTexture(nil, "BACKGROUND")
+    tab.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
+    tab.highlight:SetAllPoints(tab.normal)
+
+    tab:SetNormalTexture(tab.normal)
+    tab:SetHighlightTexture(tab.highlight)
+
+    -- Text
+    tab:SetText("")
+    tab:SetNormalFontObject(GameFontNormal)
+    tab:SetHighlightFontObject(GameFontHighlight)
+    tab:SetPushedTextOffset(0, 0)
+
+    -- Methods
+    function tab:GetTabID()
+        return self.tabID
+    end
+
+    function tab:SetSelected(isSelected)
+        if isSelected then
+            tab:SetNormalTexture(tab.selected)
+        else
+            tab:SetNormalTexture(tab.normal)
+        end
+    end
+
+    function tab:SetTab(tabID, info)
+        self.tabID = tabID
+        self.info = info
+        self:UpdateText()
+        self:UpdateWidth()
+    end
+
+    function tab:UpdateText()
+        tab:SetText("")
+
+        if not self.tabID then
+            return
+        end
+
+        tab:SetText(self.info.header)
+    end
+
+    function tab:UpdateWidth()
+        self:SetWidth(150)
+
+        if not self.tabID then
+            return
+        end
+
+        self:SetWidth(self:GetTextWidth() + 20)
+    end
+end
+
 local function TableCell_OnLoad(cell)
     cell = Mixin(cell, TextMixin, WidgetMixin)
     cell:InitScripts()
@@ -749,4 +848,5 @@ GuildBankSnapshotsFontFrame_OnLoad = FontFrame_OnLoad
 GuildBankSnapshotsListScrollFrame_OnLoad = ListScrollFrame_OnLoad
 GuildBankSnapshotsScrollFrame_OnLoad = ScrollFrame_OnLoad
 GuildBankSnapshotsSearchBox_OnLoad = SearchBox_OnLoad
+GuildBankSnapshotsTabButton_OnLoad = TabButton_OnLoad
 GuildBankSnapshotsTableCell_OnLoad = TableCell_OnLoad

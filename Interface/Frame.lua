@@ -21,6 +21,10 @@ local tabs = {
             private:LoadSettingsTab(content)
         end,
     },
+    {
+        header = L["Help"],
+        onClick = function(content) end,
+    },
 }
 
 local function CreateTabButton()
@@ -82,7 +86,7 @@ end
 local TabButton = CreateObjectPool(CreateTabButton, ResetTabButton)
 
 function private:InitializeFrame()
-    local frame = CreateFrame("Frame", addonName .. "Frame", UIParent, "BackdropTemplate")
+    local frame = CreateFrame("Frame", "GuildBankSnapshotsFrame", UIParent, "BackdropTemplate")
     frame:SetSize(1000, 500)
     frame:SetPoint("CENTER")
     frame:Hide()
@@ -115,61 +119,55 @@ function private:InitializeFrame()
     frame.title:SetPoint("BOTTOMRIGHT", -4, 2)
 
     -- [[ Tabs ]]
-    frame.tabContainer = CreateFrame("Frame", nil, frame)
+    frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsCollectionFrame")
     frame.tabContainer:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 10, -10)
     frame.tabContainer:SetPoint("RIGHT", -10, 0)
     frame.tabContainer.children = {}
 
-    function frame.tabContainer:AcquireTabButtons()
-        for _, child in pairs(frame.tabContainer.children) do
-            TabButton:Release(child)
-        end
-
-        local width = 0
-        local rows = 1
-        for tabID, _ in addon:pairs(tabs) do
-            local tabButton = TabButton:Acquire()
-            tabButton:SetParent(frame.tabContainer)
-            tabButton:Show()
-            frame.tabContainer.children[tabID] = tabButton
-
-            tabButton:SetTab(tabID)
-            tabButton:ClearAllPoints()
-            local buttonWidth = tabButton:GetWidth()
-
-            if tabID == 1 then
-                tabButton:SetPoint("BOTTOMLEFT")
-                width = buttonWidth
-            elseif (width + buttonWidth + ((tabID - 1) * 2)) > frame.tabContainer:GetWidth() then
-                tabButton:SetPoint("BOTTOM", frame.tabContainer.children[tabID - 1], "TOP", 0, -2)
-                tabButton:SetPoint("LEFT")
-                width = buttonWidth
-                rows = rows + 1
-            else
-                tabButton:SetPoint("LEFT", frame.tabContainer.children[tabID - 1], "RIGHT", 2, 0)
-                width = width + buttonWidth
-            end
-        end
-
-        frame.tabContainer:SetHeight((20 * rows) + ((rows - 1) * 2))
-    end
-
     -- [[ Content ]]
-    frame.content = CreateFrame("Frame", nil, frame, addonName .. "CollectionFrame")
+    frame.content = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsCollectionFrame")
     frame.content:SetPoint("TOPLEFT", frame.tabContainer, "BOTTOMLEFT")
     frame.content:SetPoint("RIGHT", frame.tabContainer, "RIGHT")
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
     private:AddBackdrop(frame.content, "insetColor")
 
     function frame:SelectTab(tabID)
-        frame.content:ReleaseAll()
-        tabs[tabID].onClick(frame.content)
+        self.selectedTab = tabID
+        self.content:ReleaseAll()
+        tabs[tabID].onClick(self.content)
     end
 
     -- [[ Scripts ]]
     frame:SetScript("OnSizeChanged", function(self)
-        self.tabContainer:AcquireTabButtons()
-    end)
+        self.tabContainer:ReleaseAll()
+
+        local width, height = 0, 0
+
+        for tabID, info in addon:pairs(tabs) do
+            local tab = self.tabContainer:Acquire("GuildBankSnapshotsTabButton")
+            tab:SetTab(tabID, info)
+            if tabID == self.selectedTab then
+                -- Ensure active tab stays selected when frame size changes, since the tabs are being released and redrawn
+                tab:SetSelected(true)
+            end
+            tab:SetCallback("OnClick", function()
+                self:SelectTab(tabID)
+            end)
+
+            local tabWidth = tab:GetWidth()
+            local tabHeight = tab:GetHeight()
+
+            if (width + tabWidth + ((tabID - 1) * 2)) > self.tabContainer:GetWidth() then
+                width = 0
+                height = height + tabHeight
+            end
+
+            tab:SetPoint("BOTTOMLEFT", width, height)
+            width = width + tabWidth
+
+            self.tabContainer:SetHeight(height + tabHeight)
+        end
+    end, true)
 
     private:InitializeReviewTab()
 end
@@ -177,7 +175,12 @@ end
 function private:LoadFrame()
     private.frame:Show()
     if not loaded then
+        -- Load default tab
         loaded = true
-        private.frame:SelectTab(1)
+        for tab, _ in private.frame.tabContainer:EnumerateActive() do
+            if tab:GetTabID() == 1 then
+                tab:Fire("OnClick")
+            end
+        end
     end
 end
