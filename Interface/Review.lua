@@ -29,16 +29,15 @@ end
 --*----------[[ Data ]]----------*--
 local sidebarSections = {
     {
-        header = "Sorting",
-        collapsed = true,
-        onLoad = function(sidebar, height, padding)
+        header = L["Sorting"],
+        collapsed = false,
+        onLoad = function(content, height)
             for i = 1, 8 do
-                local test = sidebar:Acquire("GuildBankSnapshotsFontFrame")
-                -- test:SetHeight(20)
-                test:SetPoint("TOPLEFT", padding, -height)
-                test:SetPoint("RIGHT", -padding, 0)
+                local test = content:Acquire("GuildBankSnapshotsFontFrame")
+                test:SetPoint("TOPLEFT", 5, -height)
+                test:SetPoint("RIGHT", -5, 0)
                 test:SetText("Sorting stuff " .. i)
-                test:SetJustifyH("LEFT")
+                test:Justify("LEFT")
                 test:Show()
                 height = height + test:GetHeight()
             end
@@ -47,16 +46,33 @@ local sidebarSections = {
         end,
     },
     {
-        header = "Filters",
+        header = L["Filters"],
         collapsed = false,
-        onLoad = function(sidebar, height, padding)
+        onLoad = function(content, height)
             for i = 1, 50 do
-                local test = sidebar:Acquire("GuildBankSnapshotsFontFrame")
-                -- test:SetHeight(20)
-                test:SetPoint("TOPLEFT", padding, -height)
-                test:SetPoint("RIGHT", -padding, 0)
+                local test = content:Acquire("GuildBankSnapshotsFontFrame")
+                test:SetPoint("TOPLEFT", 5, -height)
+                test:SetPoint("RIGHT", -5, 0)
                 test:SetText("Filtering stuff " .. i)
-                test:SetJustifyH("LEFT")
+                test:Justify("LEFT")
+                test:Show()
+                height = height + test:GetHeight()
+            end
+
+            return height
+        end,
+    },
+    {
+        header = L["Tools"],
+        collapsed = false,
+        onLoad = function(content, height)
+            print("Load Tools")
+            for i = 1, 10 do
+                local test = content:Acquire("GuildBankSnapshotsFontFrame")
+                test:SetPoint("TOPLEFT", 5, -height)
+                test:SetPoint("RIGHT", -5, 0)
+                test:SetText("Tools stuff " .. i)
+                test:Justify("LEFT")
                 test:Show()
                 height = height + test:GetHeight()
             end
@@ -254,67 +270,7 @@ local function LoadRow(row, elementData)
 
             cell:SetData(col, elementData)
         end
-
-        -- for colID, cell in addon:pairs(self.cells) do
-        --     cell:SetSize(self:GetWidth() / addon:tcount(tableCols) * tableCols[colID].width, self:GetHeight())
-        --     cell:SetPoint("LEFT", width, 0)
-        --     width = width + cell:GetWidth()
-        -- end
     end, true)
-
-    -- frame:SetText(elementData.name)
-    -- -- TODO
-
-    -- frame.cells = frame.cells or {}
-    -- frame.pool = frame.pool or private:GetPool("Button", frame, "GuildBankSnapshotsTableCell")
-
-    -- -- Methods
-    -- function frame:AcquireCells()
-    --     self:ReleaseCells()
-
-    --     for dataID, data in addon:pairs(tableData) do
-    --         cell = self.pool:Acquire()
-    --         cell:SetParent(self)
-    --         self.cells[dataID] = cell
-    --         cell:Show()
-
-    --         cell:SetSize(self:GetWidth() / addon:tcount(tableData) * data.width, self:GetHeight())
-
-    --         if dataID == 1 then
-    --             cell:SetPoint("LEFT")
-    --         else
-    --             cell:SetPoint("LEFT", self.cells[dataID - 1], "RIGHT")
-    --         end
-
-    --         cell.data = data
-    --         cell.elementData = elementData
-    --         cell.entryID = frame:GetOrderIndex()
-    --         cell:Update()
-    --     end
-    -- end
-
-    -- function frame:ReleaseCells()
-    --     for dataID, cell in pairs(self.cells) do
-    --         self.pool:Release(cell)
-    --     end
-    -- end
-
-    -- -- Scripts
-    -- frame:SetScript("OnEnter", function(self)
-    --     private:SetColorTexture(self.bg, "highlightColor")
-    -- end)
-
-    -- frame:SetScript("OnLeave", function(self)
-    --     self.bg:SetTexture()
-    -- end)
-
-    -- frame:SetScript("OnSizeChanged", function(self)
-    --     self:AcquireCells()
-    -- end)
-
-    -- -- Acquire cells
-    -- frame:AcquireCells()
-    -- -- TODO ^^
 end
 
 --*----------[[ Methods ]]----------*--
@@ -391,12 +347,12 @@ function private:LoadSidebar()
     local content = sidebar.content
     content:ReleaseAll()
 
-    local height = 10
-    local padding = 2
+    local height = 0
 
     local searchBox = content:Acquire("GuildBankSnapshotsSearchBox")
-    searchBox:SetSize(content:GetWidth() - 20, 20)
-    searchBox:SetPoint("TOP", 0, -height)
+    searchBox:SetHeight(20)
+    searchBox:SetPoint("TOPLEFT", 10, -height)
+    searchBox:SetPoint("TOPRIGHT", -5, -height)
 
     searchBox:SetCallback("OnTextChanged", function(self, userInput)
         local text = self:GetText()
@@ -413,44 +369,34 @@ function private:LoadSidebar()
 
     height = height + searchBox:GetHeight() + 10
 
-    -- for sectionID, info in addon:pairs(sidebarSections) do
-    --     local button = sidebar:Acquire("GuildBankSnapshotsButton")
-    --     button:SetHeight(20)
-    --     button:SetText(info.header)
-    --     button:Show()
+    for sectionID, info in addon:pairs(sidebarSections) do
+        local header = content:Acquire("GuildBankSnapshotsButton")
+        header:SetHeight(20)
+        header:SetText(info.header)
 
-    --     button:SetCallback("OnShow", function(...)
-    --         print("OnShow", ...)
-    --     end)
+        header:SetPoint("TOPLEFT", 5, -height)
+        header:SetPoint("RIGHT", -5, 0)
 
-    --     button:SetCallback("OnClick", function(...)
-    --         print("OnClick", ...)
-    --     end)
+        height = height + header:GetHeight()
 
-    --     -- button.onClick = function(self)
-    --     --     local isCollapsed = info.collapsed
-    --     --     if isCollapsed then
-    --     --         sidebarSections[sectionID].collapsed = false
-    --     --     else
-    --     --         sidebarSections[sectionID].collapsed = true
-    --     --     end
+        if not info.collapsed then
+            height = info.onLoad(content, height)
+        end
 
-    --     --     ignoreSearch = searchBox:GetText()
-    --     --     private:LoadReviewSidebar(sidebar)
-    --     -- end
+        header:SetCallback("OnClick", function()
+            local isCollapsed = info.collapsed
+            if isCollapsed then
+                sidebarSections[sectionID].collapsed = false
+            else
+                sidebarSections[sectionID].collapsed = true
+            end
 
-    --     button:SetPoint("TOPLEFT", 0, -height)
-    --     button:SetPoint("RIGHT", -padding, 0)
+            private:LoadSidebar()
+        end)
+    end
 
-    --     height = height + button:GetHeight()
-
-    --     if not info.collapsed then
-    --         height = info.onLoad(sidebar, height, padding)
-    --     end
-    -- end
-
-    sidebar.content:MarkDirty()
-    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+    content:MarkDirty()
+    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
 end
 
 function private:LoadTable()

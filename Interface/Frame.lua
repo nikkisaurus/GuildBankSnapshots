@@ -2,8 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local loaded
-
+--*----------[[ Data ]]----------*--
 local tabs = {
     {
         header = L["Review"],
@@ -27,64 +26,7 @@ local tabs = {
     },
 }
 
-local function CreateTabButton()
-    local button = CreateFrame("Button", nil, UIParent)
-    button:SetHeight(20)
-
-    -- Textures
-    button:SetNormalTexture(private:AddBackdrop(button, "elementColor"))
-
-    -- Text
-    button:SetText("")
-    button:SetNormalFontObject(GameFontNormal)
-    button:SetHighlightFontObject(GameFontHighlight)
-    button:SetPushedTextOffset(0, 0)
-
-    -- Methods
-    function button:SetTab(tabID)
-        self.tabID = tabID
-        self:UpdateText()
-        self:UpdateWidth()
-    end
-
-    function button:UpdateText()
-        button:SetText("")
-
-        if not self.tabID then
-            return
-        end
-
-        button:SetText(tabs[self.tabID].header)
-    end
-
-    function button:UpdateWidth()
-        self:SetWidth(150)
-
-        if not self.tabID then
-            return
-        end
-
-        self:SetWidth(self:GetTextWidth() + 20)
-    end
-
-    -- Scripts
-    button:SetScript("OnClick", function(self)
-        if not self.tabID then
-            return
-        end
-
-        private.frame:SelectTab(self.tabID)
-    end)
-
-    return button
-end
-
-local function ResetTabButton(_, button)
-    button:Hide()
-end
-
-local TabButton = CreateObjectPool(CreateTabButton, ResetTabButton)
-
+--*----------[[ Methods ]]----------*--
 function private:InitializeFrame()
     local frame = CreateFrame("Frame", "GuildBankSnapshotsFrame", UIParent, "BackdropTemplate")
     frame:SetSize(1000, 500)
@@ -172,6 +114,7 @@ function private:InitializeFrame()
     private:InitializeReviewTab()
 end
 
+local loaded
 function private:LoadFrame()
     private.frame:Show()
     if not loaded then

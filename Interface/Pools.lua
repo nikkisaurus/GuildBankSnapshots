@@ -514,8 +514,8 @@ local function ListScrollFrame_OnLoad(frame)
 
     -- ScrollBar
     frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
-    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -5)
-    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, 0)
+    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
     -- frame.scrollBar:SetFrameLevel(1)
 
     -- ScrollBox
@@ -543,13 +543,13 @@ local function ListScrollFrame_OnLoad(frame)
 
     -- ScrollUtil
     local anchorsWithBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
-        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -10, -5),
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, -10),
+        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -5, 10),
     }
 
     local anchorsWithoutBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
-        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0),
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, -10),
+        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 10),
     }
 
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
@@ -570,12 +570,20 @@ end
 
 local function ScrollFrame_OnLoad(frame)
     frame = Mixin(frame, WidgetMixin)
-    frame:InitScripts()
+    frame:InitScripts({
+        OnSizeChanged = function(self)
+            self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+        end,
+
+        OnRelease = function(self)
+            self.content:ReleaseAll()
+        end,
+    })
 
     -- ScrollBar
     frame.scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
-    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -5)
-    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+    frame.scrollBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, 0)
+    frame.scrollBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
     -- frame.scrollBar:SetFrameLevel(1)
 
     -- ScrollBox
@@ -586,37 +594,24 @@ local function ScrollFrame_OnLoad(frame)
     frame.scrollView:SetPanExtent(50)
 
     -- Content
-    frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
-    frame.content = Mixin(frame.content, ContainerMixin, CollectionMixin)
+    frame.content = Mixin(CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame"), ContainerMixin, CollectionMixin)
+    frame.content.scrollable = true
     frame.content:InitPools()
     frame.content:SetAllPoints(frame.scrollBox)
-    frame.content.scrollable = true
-
-    frame.content.scripts.OnSizeChanged = function()
-        frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
-    end
 
     -- ScrollUtil
     local anchorsWithBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
-        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -10, -5),
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, -10),
+        CreateAnchor("BOTTOMRIGHT", frame.scrollBar, "BOTTOMLEFT", -5, 10),
     }
 
     local anchorsWithoutBar = {
-        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, 0),
-        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0),
+        CreateAnchor("TOPLEFT", frame, "TOPLEFT", 0, -10),
+        CreateAnchor("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 10),
     }
 
     ScrollUtil.AddManagedScrollBarVisibilityBehavior(frame.scrollBox, frame.scrollBar, anchorsWithBar, anchorsWithoutBar)
     ScrollUtil.InitScrollBoxWithScrollBar(frame.scrollBox, frame.scrollBar, frame.scrollView)
-    frame.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
-
-    -- Scripts
-    frame.scripts.OnRelease = function()
-        frame.content:ReleaseAll()
-    end
-
-    frame:InitializeScripts()
 end
 
 local function SearchBox_OnLoad(editbox)
