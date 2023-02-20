@@ -243,6 +243,26 @@ GetFilters = function()
             end,
         },
 
+        tabs = {
+            list = {},
+            values = {},
+            func = function(self, elementData)
+                if addon:tcount(self.values) == 0 then
+                    return
+                end
+
+                for _, key in pairs({ "tabID", "moveOrigin", "moveDestination" }) do
+                    for tabName, _ in pairs(self.values) do
+                        if tabName == private:GetTabName(ReviewTab.guildID, elementData[key]) then
+                            return
+                        end
+                    end
+                end
+
+                return true
+            end,
+        },
+
         transactionType = {
             values = {},
             func = function(self, elementData)
@@ -388,6 +408,54 @@ LoadSidebar = function()
 end
 
 LoadSidebarFilters = function(content, height)
+    local tabNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    tabNameLabel:SetPoint("TOPLEFT", 5, -height)
+    tabNameLabel:SetPoint("RIGHT", -5, 0)
+    tabNameLabel:SetText(L["Tab"])
+    tabNameLabel:Justify("LEFT")
+
+    height = height + tabNameLabel:GetHeight()
+
+    local tabName = content:Acquire("GuildBankSnapshotsDropdownButton")
+    tabName:SetPoint("TOPLEFT", 5, -height)
+    tabName:SetPoint("RIGHT", -5, 0)
+    tabName:Justify("LEFT")
+
+    tabName:SetStyle({ multiSelect = true, hasClear = true })
+    tabName:SetInfo(function()
+        local info = {}
+
+        for tabName, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.list) do
+            tinsert(info, {
+                id = tabName,
+                text = tabName,
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values[tabName] = dropdown:GetSelected(tabName) and true or nil
+                    LoadTable()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    tabName:SetCallback("OnClear", function()
+        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values)
+        LoadTable()
+    end)
+
+    tabName:SetCallback("OnShow", function(self)
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values) do
+            self:SelectByID(value)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
+
+    height = height + tabName:GetHeight() + 5
+
+    -----------------------
+
     local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
     transactionTypeLabel:SetPoint("RIGHT", -5, 0)
@@ -676,6 +744,7 @@ LoadTable = function()
             -- Filter defaults
             -- tinsert(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.list, elementData.transactionDate)
             ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = true
+            ReviewTab.guilds[ReviewTab.guildID].filters.tabs.list[private:GetTabName(ReviewTab.guildID, elementData.tabID)] = true
             if elementData.itemLink then
                 ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list[private:GetItemName(elementData.itemLink)] = true
             end
