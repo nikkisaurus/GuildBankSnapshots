@@ -11,8 +11,9 @@ function private:InitializeReviewTab()
         guildID = private.db.global.settings.preferences.defaultGuild,
         searchQuery = false,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
-        filters = {},
+        guilds = {},
         entriesPerFrame = 50,
+        maxEntries = 25000,
     }
 end
 
@@ -20,14 +21,14 @@ end
 local sidebarSections = {
     {
         header = L["Sorting"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarSorters(...)
         end,
     },
     {
         header = L["Filters"],
-        collapsed = true,
+        collapsed = false,
         onLoad = function(...)
             return LoadSidebarFilters(...)
         end,
@@ -194,8 +195,8 @@ GetFilters = function()
                     return
                 end
 
-                for _, data in pairs(self.values) do
-                    if elementData.name == data.text then
+                for name, _ in pairs(self.values) do
+                    if name == elementData.name then
                         return
                     end
                 end
@@ -211,8 +212,8 @@ GetFilters = function()
                     return
                 end
 
-                for _, data in pairs(self.values) do
-                    if elementData.transactionType == data.text then
+                for transactionType, _ in pairs(self.values) do
+                    if transactionType == elementData.transactionType then
                         return
                     end
                 end
@@ -224,7 +225,7 @@ GetFilters = function()
 end
 
 IsFiltered = function(elementData)
-    for filterID, filter in pairs(ReviewTab.filters[ReviewTab.guildID]) do
+    for filterID, filter in pairs(ReviewTab.guilds[ReviewTab.guildID].filters) do
         if filter.func(filter, elementData) then
             return true
         end
@@ -291,13 +292,9 @@ LoadSidebar = function()
     searchBox:SetPoint("TOPLEFT", 10, -height)
     searchBox:SetPoint("TOPRIGHT", -5, -height)
 
-    searchBox:SetCallback("OnTextChanged", function(self, userInput)
-        local text = self:GetText()
-
-        if userInput then
-            ReviewTab.searchQuery = self:IsValidText() and text
-            LoadTable()
-        end
+    searchBox:SetCallback("OnEnterPressed", function(self)
+        ReviewTab.searchQuery = self:IsValidText() and self:GetText()
+        LoadTable()
     end)
 
     searchBox:SetCallback("OnClear", function()
@@ -310,14 +307,6 @@ LoadSidebar = function()
     end
 
     height = height + searchBox:GetHeight() + 5
-
-    local progress = content:Acquire("GuildBankSnapshotsFontFrame")
-    progress:SetHeight(20)
-    progress:SetPoint("TOPLEFT", 5, -height)
-    progress:SetPoint("RIGHT", -5, 0)
-    ReviewTab.progress = progress
-
-    height = height + progress:GetHeight()
 
     for sectionID, info in addon:pairs(sidebarSections) do
         local header = content:Acquire("GuildBankSnapshotsButton")
@@ -356,13 +345,13 @@ LoadSidebarFilters = function(content, height)
 
     -- duplicates:SetText(L["Remove duplicates"] .. "*")
     -- duplicates:SetCallback("OnClick", function(self)
-    --     ReviewTab.filters[ReviewTab.guildID].duplicates.value = self:GetChecked()
+    --     ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value = self:GetChecked()
     -- end)
     -- duplicates:SetTooltipInitializer(function()
     --     GameTooltip:AddLine(L["Experimental"])
     -- end)
 
-    -- duplicates:SetCheckedState(ReviewTab.filters[ReviewTab.guildID].duplicates.value)
+    -- duplicates:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value)
 
     -- height = height + duplicates:GetHeight()
 
@@ -385,21 +374,12 @@ LoadSidebarFilters = function(content, height)
     transactionType:SetInfo(function()
         local info = {}
 
-        for _, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "repair", "withdraw", "withdrawForTab" }) do
+        for transactionTypeID, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "repair", "withdraw", "withdrawForTab" }) do
             tinsert(info, {
-                value = transactionType,
+                id = transactionType,
                 text = transactionType,
-                func = function(dropdown, buttonID, elementData)
-                    if not dropdown then
-                        return
-                    end
-
-                    if dropdown.selected[buttonID] then
-                        ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = elementData
-                    else
-                        ReviewTab.filters[ReviewTab.guildID].transactionType.values[buttonID] = nil
-                    end
-
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values[transactionType] = dropdown:GetSelected(transactionType) or nil
                     LoadTable()
                 end,
             })
@@ -408,8 +388,8 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
 
-    for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].transactionType.values) do
-        transactionType:SelectValue(data.value, true)
+    for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
+        transactionType:SelectByID(data.value)
     end
 
     height = height + transactionType:GetHeight() + 5
@@ -433,21 +413,12 @@ LoadSidebarFilters = function(content, height)
     name:SetInfo(function()
         local info = {}
 
-        for name, _ in addon:pairs(ReviewTab.filters[ReviewTab.guildID].names.list) do
+        for name, transactionID in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.list) do
             tinsert(info, {
-                value = name,
+                id = name,
                 text = name,
-                func = function(dropdown, buttonID, elementData)
-                    if not dropdown then
-                        return
-                    end
-
-                    if dropdown.selected[buttonID] then
-                        ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = elementData
-                    else
-                        ReviewTab.filters[ReviewTab.guildID].names.values[buttonID] = nil
-                    end
-
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters.names.values[name] = dropdown:GetSelected(name) or nil
                     LoadTable()
                 end,
             })
@@ -456,8 +427,8 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
 
-    for buttonID, data in pairs(ReviewTab.filters[ReviewTab.guildID].names.values) do
-        name:SelectValue(data.value, true)
+    for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
+        name:SelectByID(data.value)
     end
 
     height = height + name:GetHeight() + 5
@@ -466,6 +437,23 @@ LoadSidebarFilters = function(content, height)
 end
 
 LoadSidebarSorters = function(content, height)
+    local enableMultiSort = content:Acquire("GuildBankSnapshotsCheckButton")
+    enableMultiSort:SetPoint("TOPLEFT", 5, -height)
+    enableMultiSort:SetPoint("RIGHT", -5, 0)
+
+    enableMultiSort:SetText(L["Enable multi-sorting"] .. "*")
+    enableMultiSort:SetCallback("OnClick", function(self)
+        ReviewTab.guilds[ReviewTab.guildID].multiSort = self:GetChecked()
+        LoadTable()
+    end)
+    enableMultiSort:SetTooltipInitializer(function()
+        GameTooltip:AddLine(L["Not recommended for large tables, as it may cause the game to freeze for extended periods of time"])
+    end)
+
+    enableMultiSort:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].multiSort)
+
+    height = height + enableMultiSort:GetHeight()
+
     for sortID, colID in addon:pairs(private.db.global.settings.preferences.sortHeaders) do
         local sorter = content:Acquire("GuildBankSnapshotsTableSorter")
         sorter:SetPoint("TOPLEFT", 5, -height)
@@ -476,51 +464,24 @@ LoadSidebarSorters = function(content, height)
             LoadTable()
         end)
 
-        -- local moveUp = content:Acquire("GuildBankSnapshotsButton")
-        -- moveUp:SetPoint("TOPLEFT", 5, -height)
-        -- moveUp:SetSize(16, 16)
-        -- moveUp:SetNormalFontObject(NumberFont_Shadow_Tiny)
-        -- moveUp:SetText("▲")
-
-        -- local moveDown = content:Acquire("GuildBankSnapshotsButton")
-        -- moveDown:SetPoint("LEFT", moveUp, "RIGHT", 2, 0)
-        -- moveDown:SetSize(16, 16)
-        -- moveDown:SetNormalFontObject(NumberFont_Shadow_Tiny)
-        -- moveDown:SetText("▼")
-
-        -- moveUp:SetText("▼")
-        -- moveUp:SetPadding(4, 4)
-        -- moveUp:SetText(col.header)
-
-        -- moveUp:SetSize(self:GetWidth() / addon:tcount(tableCols) * col.width, self:GetHeight())
-        -- moveUp:SetPoint("LEFT", width, 0)
-        -- width = width + moveUp:GetWidth()
-
         height = height + sorter:GetHeight() + 2
     end
-    -- for i = 1, 8 do
-    --     local test = content:Acquire("GuildBankSnapshotsFontFrame")
-    --     test:SetPoint("TOPLEFT", 5, -height)
-    --     test:SetPoint("RIGHT", -5, 0)
-    --     test:SetText("Sorting stuff " .. i)
-    --     test:Justify("LEFT")
-    --     test:Show()
-    --     height = height + test:GetHeight()
-    -- end
 
     return height
 end
 
 LoadSidebarTools = function(content, height)
-    -- for i = 1, 1 do
-    --     local test = content:Acquire("GuildBankSnapshotsFontFrame")
-    --     test:SetPoint("TOPLEFT", 5, -height)
-    --     test:SetPoint("RIGHT", -5, 0)
-    --     test:SetText("Tools stuff " .. i)
-    --     test:Justify("LEFT")
-    --     test:Show()
-    --     height = height + test:GetHeight()
-    -- end
+    local tblSize = #private.db.global.guilds[ReviewTab.guildID].masterScan
+    if tblSize > 5000 then
+        local largeTableWarning = content:Acquire("GuildBankSnapshotsFontFrame")
+        largeTableWarning:SetPoint("TOPLEFT", 5, -height)
+        largeTableWarning:SetPoint("RIGHT", -5, 0)
+        largeTableWarning:SetAutoHeight(true)
+        largeTableWarning:SetText(format(L["This table has %d entries and may cause performance issues while reviewing. It is recommended that you export (for use in Excel) and then purge older entries."], tblSize))
+        largeTableWarning:Justify("LEFT")
+
+        height = height + largeTableWarning:GetHeight()
+    end
 
     return height
 end
@@ -530,64 +491,57 @@ LoadTable = function()
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
-
         local validEntries = 0
-        local index = 1
-        tableContainer:SetCallback("OnUpdate", function()
-            local upper = min(index + ReviewTab.entriesPerFrame, #masterScan)
-            for lower = index, upper do
-                local transaction = masterScan[lower]
-                if transaction then
-                    ReviewTab.progress:SetText(L["Loading transactions"] .. ": " .. addon:round((lower / #masterScan) * 100) .. "%")
-                    ReviewTab.progress:SetHeight(20)
-                    local elementData = transaction.info
-                    elementData.transactionID = transaction.transactionID
-                    elementData.scanID = transaction.scanID
 
-                    ReviewTab.filters[ReviewTab.guildID].names.list[elementData.name] = true
+        for transactionID, transaction in ipairs(masterScan) do
+            local elementData = transaction.info
+            elementData.transactionID = transaction.transactionID
+            elementData.scanID = transaction.scanID
 
-                    if IsQueryMatch(elementData) and not IsFiltered(elementData) then
-                        validEntries = validEntries + 1
-                        elementData.entryID = validEntries
-                        provider:Insert(elementData)
-                    end
+            ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = transactionID
+
+            if IsQueryMatch(elementData) and not IsFiltered(elementData) then
+                validEntries = validEntries + 1
+                elementData.entryID = validEntries
+                provider:Insert(elementData)
+
+                if validEntries >= ReviewTab.maxEntries then
+                    addon:Printf(L["Table is larger than %d and has stopped loading. Please export and purge your table."], ReviewTab.maxEntries)
+                    return
                 end
             end
-            index = upper
+        end
 
-            if index == #masterScan then
-                tableContainer:UnregisterCallback("OnUpdate", nil)
-                ReviewTab.progress:SetText("")
-                ReviewTab.progress:SetHeight(0)
+        provider:SetSortComparator(function(a, b)
+            for sortID, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
+                if not ReviewTab.guilds[ReviewTab.guildID].multiSort and sortID > 1 then
+                    break
+                end
 
-                provider:SetSortComparator(function(a, b)
-                    for _, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
-                        local sortValue = tableCols[id].sortValue
-                        local des = private.db.global.settings.preferences.descendingHeaders[id]
+                local sortValue = tableCols[id].sortValue
+                local des = private.db.global.settings.preferences.descendingHeaders[id]
 
-                        local sortA = sortValue(a)
-                        local sortB = sortValue(b)
+                local sortA = sortValue(a)
+                local sortB = sortValue(b)
 
-                        if type(sortA) ~= type(sortB) then
-                            sortA = tostring(sortA)
-                            sortB = tostring(sortB)
-                        end
+                if type(sortA) ~= type(sortB) then
+                    sortA = tostring(sortA)
+                    sortB = tostring(sortB)
+                end
 
-                        if sortA > sortB then
-                            if des then
-                                return true
-                            else
-                                return false
-                            end
-                        elseif sortA < sortB then
-                            if des then
-                                return false
-                            else
-                                return true
-                            end
-                        end
+                if sortA > sortB then
+                    if des then
+                        return true
+                    else
+                        return false
                     end
-                end)
+                elseif sortA < sortB then
+                    if des then
+                        return false
+                    else
+                        return true
+                    end
+                end
             end
         end)
         -- print(provider:GetSize())
@@ -613,7 +567,7 @@ function private:LoadReviewTab(content)
         for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
             local text = private:GetGuildDisplayName(guildID)
             tinsert(info, {
-                value = guildID,
+                id = guildID,
                 text = text,
                 isRadio = true,
                 checked = function()
@@ -621,7 +575,10 @@ function private:LoadReviewTab(content)
                 end,
                 func = function()
                     ReviewTab.guildID = guildID
-                    ReviewTab.filters[guildID] = ReviewTab.filters[guildID] or GetFilters()
+                    ReviewTab.guilds[guildID] = ReviewTab.guilds[guildID] or {
+                        filters = GetFilters(),
+                        multiSort = #private.db.global.guilds[guildID].masterScan < 5000,
+                    }
                     LoadSidebar()
                     LoadTable()
                 end,
@@ -661,7 +618,7 @@ function private:LoadReviewTab(content)
     -- It's now safe to initialize the dropdown
     guildDropdown:SetCallback("OnShow", function()
         if ReviewTab.guildID then
-            guildDropdown:SelectValue(ReviewTab.guildID, true)
+            guildDropdown:SelectByID(ReviewTab.guildID)
         end
     end, true)
 end

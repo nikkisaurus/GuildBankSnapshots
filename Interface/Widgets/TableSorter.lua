@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsTableSorter_OnLoad(sorter)
     sorter = private:MixinText(sorter)
-    sorter = private:MixinWidget(sorter)
+
     sorter:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 20)

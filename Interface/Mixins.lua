@@ -43,9 +43,8 @@ function ContainerMixin:ReleaseAllByTemplate(template)
 end
 
 function private:MixinContainer(tbl)
-    tbl = private:MixinCollection(tbl)
     tbl = private:MixinWidget(tbl)
-    tbl:InitScripts()
+    tbl = private:MixinCollection(tbl)
     tbl = Mixin(tbl, ContainerMixin)
     return tbl
 end
@@ -96,7 +95,9 @@ function TextMixin:SetWordWrap(canWordWrap)
 end
 
 function private:MixinText(tbl)
-    return Mixin(tbl, TextMixin)
+    tbl = private:MixinWidget(tbl)
+    tbl = Mixin(tbl, TextMixin)
+    return tbl
 end
 
 -----------------------
@@ -209,7 +210,9 @@ function WidgetMixin:UnregisterCallback(script)
 end
 
 function private:MixinWidget(tbl)
-    return Mixin(tbl, WidgetMixin)
+    tbl = Mixin(tbl, WidgetMixin)
+    tbl:InitScripts()
+    return tbl
 end
 
 --*----------[[ Collection pool ]]----------*--

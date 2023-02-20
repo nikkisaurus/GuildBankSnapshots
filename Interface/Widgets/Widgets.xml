@@ -65,6 +65,11 @@
         </Scripts>
     </Button>
 
+    <Button name="GuildBankSnapshotsDropdownMenu" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsDropdownMenu_OnLoad" />
+        </Scripts>
+    </Button>
 
     <Button name="GuildBankSnapshotsTableCell" virtual="true">
         <Scripts>

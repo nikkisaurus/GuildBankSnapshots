@@ -2,116 +2,31 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+--*----------[[ Menus ]]----------*--
 local menus = {}
 
 function private:CloseMenus(ignoredMenu)
     for _, menu in pairs(menus) do
         if menu ~= ignoredMenu then
-            menu:Hide()
+            menu:Close()
         end
     end
 end
-local DropdownMenuMixin = {}
-local DropdownMenuStyle = {
-    width = "auto",
-    buttonHeight = 20,
-    buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
-    maxButtons = 10,
-    anchor = "TOPLEFT",
-    relAnchor = "BOTTOMLEFT",
-    xOffset = 0,
-    yOffset = 0,
-    justifyH = "LEFT",
-    justifyV = "MIDDLE",
-    paddingX = 3,
-    paddingY = 3,
-    hasCheckBox = true,
-    checkAlignment = "LEFT",
-    hasSearch = false,
-    multiSelect = false,
-}
 
-function DropdownMenuMixin:DrawButtons()
-    local style = self.style
-    self:ReleaseAll()
-
-    local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
-
-    if style.hasSearch then
-        local searchBox = self:Acquire("GuildBankSnapshotsSearchBox")
-        searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 10, -5)
-        searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, 0)
-        searchBox:SetHeight(20)
-        self:SetHeight(self:GetHeight() + 25)
-
-        searchBox:SetCallback("OnTextChanged", function(_, userInput)
-            local text = searchBox:GetText()
-
-            if userInput then
-                local provider = listFrame:SetDataProvider(function(provider)
-                    for _, info in pairs(self.info) do
-                        if strfind(strupper(info.value), strupper(text)) then
-                            provider:Insert(info)
-                        end
-                    end
-                end)
-
-                self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight) + 25)
-            end
-        end)
-
-        searchBox:SetCallback("OnClear", function(...)
-            local provider = listFrame:SetDataProvider(function(provider)
-                provider:InsertTable(self.info)
-            end)
-            self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight) + 25)
-        end)
-
-        listFrame:SetPoint("TOP", searchBox, "BOTTOM")
-        listFrame:SetPoint("LEFT", self, "LEFT")
-        listFrame:SetPoint("BOTTOM", self, "BOTTOM")
-    else
-        listFrame:SetAllPoints(self)
-    end
-
-    listFrame.scrollView:Initialize(style.buttonHeight, function(frame, elementData)
-        frame.menu = self
-        frame.dropdown = frame.menu.dropdown
-
-        frame:SetStyle(style)
-        frame:SetElementData(frame:GetOrderIndex(), elementData)
-    end, "GuildBankSnapshotsDropdownListButton")
-
-    local provider = listFrame:SetDataProvider(function(provider)
-        provider:InsertTable(self.info)
-    end)
-    self:SetHeight(min((provider:GetSize() + 1) * style.buttonHeight, (style.maxButtons + 1) * style.buttonHeight))
-end
-
-function DropdownMenuMixin:InitStyle()
-    self.style = addon:CloneTable(DropdownMenuStyle)
-end
-
-function DropdownMenuMixin:SetAnchors()
-    self:SetPoint(self.style.anchor, self.dropdown, self.style.relAnchor, self.style.xOffset, self.style.yOffset)
-end
-
-function DropdownMenuMixin:SetMenuWidth()
-    self:SetWidth(self.style.width == "auto" and self.dropdown:GetWidth() or self.style.width)
-end
-
+--*----------[[ Widgets ]]----------*--
 function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
+    dropdown.selected = {}
     dropdown = private:MixinText(dropdown)
-    dropdown = private:MixinWidget(dropdown)
+
     dropdown:InitScripts({
         OnAcquire = function(self)
-            self:SetButtonHidden(false)
-            self:Justify("RIGHT", "MIDDLE")
-            self:SetText("")
             self:SetSize(150, 20)
             self.arrow:SetSize(20, 20)
             self.text:SetHeight(20)
-            self.menu:InitStyle()
+            self:SetButtonHidden(false)
+            self:Justify("RIGHT", "MIDDLE")
+            self:SetText("")
+            self.menu:InitializeStyle()
         end,
 
         OnClick = function(self)
@@ -123,7 +38,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end,
 
         OnRelease = function(self)
-            self.menu.info = nil
+            self.info = nil
             wipe(self.selected)
         end,
 
@@ -163,33 +78,47 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     dropdown.text:SetPoint("RIGHT", dropdown.arrow, "LEFT", -5, 0)
 
     -- Menu
-    dropdown.menu = Mixin(CreateFrame("Frame", nil, UIParent, "GuildBankSnapshotsContainer"), DropdownMenuMixin)
-    dropdown.menu = private:MixinContainer(dropdown.menu)
-    tinsert(menus, dropdown.menu)
-    dropdown.menu.dropdown = dropdown
-    dropdown.menu:SetFrameLevel(1000)
+    dropdown.menu = CreateFrame("Frame", nil, UIParent, "GuildBankSnapshotsDropdownMenu")
     dropdown.menu:Hide()
-    private:AddBackdrop(dropdown.menu, "insetColor")
-
-    dropdown.selected = {}
+    dropdown.menu.dropdown = dropdown
+    tinsert(menus, dropdown.menu)
 
     -- Methods
-    function dropdown:SelectValue(value, callback)
-        if not self.menu.info then
-            return
-        end
+    function dropdown:GetInfo(id)
+        assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
 
-        for infoID, info in pairs(self.menu.info) do
-            if info.value == value then
+        if id then
+            for _, info in pairs(self:GetInfo()) do
+                if info.id == id then
+                    return info
+                end
+            end
+        else
+            return self.info()
+        end
+    end
+
+    function dropdown:GetSelected(searchID)
+        for selectedID, enabled in addon:pairs(self.selected) do
+            if selectedID == searchID and enabled then
+                return self:GetInfo(selectedID)
+            end
+        end
+    end
+
+    function dropdown:SelectByID(value)
+        assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
+
+        for infoID, info in pairs(self:GetInfo()) do
+            if info.id == value then
                 if self.menu.style.multiSelect then
-                    self.selected[infoID] = not self.selected[infoID]
+                    self.selected[info.id] = not self.selected[info.id]
                     self:UpdateMultiText()
                 else
                     self:SetText(info.text)
                 end
-                if callback then
-                    info.func()
-                end
+                -- self:UpdateText()
+                info.func(self)
             end
         end
     end
@@ -203,11 +132,8 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:SetInfo(info)
-        if type(info) == "function" then
-            info = info()
-        end
-
-        self.menu.info = info
+        assert(type(info) == "function", "GuildBankSnapshotsDropdownButton: info must be a callback function")
+        self.info = info
     end
 
     function dropdown:SetStyle(style)
@@ -220,25 +146,22 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         private:CloseMenus(self.menu)
 
         if self.menu:IsVisible() then
-            self.menu:ClearAllPoints()
-            self.menu:Hide()
+            self.menu:Close()
         else
-            self.menu:SetAnchors()
-            self.menu:SetMenuWidth()
-            self.menu:DrawButtons()
-            self.menu:Show()
+            self.menu:Open()
         end
     end
 
     function dropdown:UpdateMultiText()
-        if not self.menu.info then
+        if not self.info then
             return
         end
 
         local text
-        for infoID, enabled in addon:pairs(self.selected) do
+        for selectedID, enabled in addon:pairs(self.selected) do
             if enabled then
-                local info = self.menu.info[infoID]
+                local info = dropdown:GetInfo(selectedID)
+
                 if not text then
                     text = info.text
                 else
@@ -253,7 +176,7 @@ end
 
 function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button = private:MixinText(button)
-    button = private:MixinWidget(button)
+
     button:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 20)
@@ -261,7 +184,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         end,
 
         OnClick = function(self)
-            self.dropdown:SelectValue(self.elementData.value, true)
+            self.dropdown:SelectByID(self.info.id)
 
             if self.menu.style.multiSelect then
                 self:SetChecked()
@@ -270,12 +193,21 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
             end
         end,
 
+        OnShow = function(self)
+            assert(self.info, "GuildBankSnapshotsDropdownListButton: info has not been initialized")
+
+            self:Update()
+        end,
+
         OnRelease = function(self)
-            self.style = nil
-            self.elementData = nil
+            self.menu = nil
+            self.dropdown = nil
+            self.buttonID = nil
+            self.info = nil
         end,
     })
 
+    -- Textures
     button.checkBox = button:CreateTexture(nil, "ARTWORK")
     button.checkBox:SetTexture(130755)
 
@@ -284,17 +216,17 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button.checked:SetTexture(130751)
     button.checked:Hide()
 
-    button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-
-    -- Textures
-    button:SetHighlightTexture(button:CreateTexture(nil, "ARTWORK"))
-    button.highlight = button:GetHighlightTexture()
+    button.highlight = button:CreateTexture(nil, "ARTWORK")
     button.highlight:SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
     button.highlight:SetAllPoints(button)
+    button:SetHighlightTexture(button.highlight)
+
+    -- Text
+    button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 
     -- Methods
     function button:SetAnchors()
-        local style = self.style
+        local style = self.menu.style
         local leftAligned = style.checkAlignment == "LEFT"
         local xMod = leftAligned and 1 or -1
         local height = self:GetHeight() - (style.paddingX * 2)
@@ -314,14 +246,14 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     end
 
     function button:SetChecked()
-        if not self.id then
-            return
-        end
-
-        local checked = self.menu.style.multiSelect and self.dropdown.selected[self.id] or self.elementData.checked
-
-        if type(checked) == "function" then
-            checked = checked()
+        local checked
+        if self.menu.style.multiSelect then
+            checked = self.dropdown:GetSelected(self.info.id)
+        else
+            checked = self.info.checked
+            if type(checked) == "function" then
+                checked = checked()
+            end
         end
 
         if checked then
@@ -331,21 +263,123 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         end
     end
 
-    function button:SetElementData(id, elementData)
-        self.id = id
-        self.elementData = elementData
-        self:SetText(elementData.text)
-        self:SetChecked()
-        if elementData.func then
-            self:SetCallback("OnClick", function()
-                elementData.func(self.dropdown, id, elementData)
-            end)
-        end
+    function button:SetInfo(menu, buttonID, info)
+        self.menu = menu
+        self.dropdown = menu.dropdown
+        self.buttonID = buttonID
+        self.info = info
+
+        button:Update()
     end
 
-    function button:SetStyle(style)
-        self.style = style
+    function button:Update()
+        self:Justify(self.menu.style.justifyH, self.menu.style.justifyV)
         self:SetAnchors()
-        self:Justify(style.justifyH, style.justifyV)
+        self:SetText(self.info.text)
+        self:SetChecked()
+    end
+end
+
+function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
+    menu = private:MixinContainer(menu)
+    menu:SetFrameLevel(1000)
+    private:AddBackdrop(menu, "insetColor")
+
+    -- Methods
+    function menu:Close()
+        self:ClearAllPoints()
+        self:Hide()
+    end
+
+    function menu:DrawButton(frame, info)
+        frame:SetInfo(self, frame:GetOrderIndex(), info)
+    end
+
+    function menu:InitializeListFrame()
+        self:ReleaseAll()
+
+        local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
+
+        if self.style.hasSearch then
+            local searchBox = self:Acquire("GuildBankSnapshotsSearchBox")
+            searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 10, -5)
+            searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, 0)
+            searchBox:SetHeight(20)
+            self:SetHeight(self:GetHeight() + 25)
+
+            searchBox:SetCallback("OnTextChanged", function(_, userInput)
+                local text = searchBox:GetText()
+
+                if userInput then
+                    listFrame:SetDataProvider(function(provider)
+                        for _, info in pairs(self.dropdown:GetInfo()) do
+                            if strfind(strupper(info.id), strupper(text)) then
+                                provider:Insert(info)
+                            end
+                        end
+                        self:SetMenuHeight(provider)
+                    end)
+                end
+            end)
+
+            searchBox:SetCallback("OnClear", function(...)
+                listFrame:SetDataProvider(function(provider)
+                    provider:InsertTable(self.dropdown:GetInfo())
+                    self:SetMenuHeight(provider)
+                end)
+            end)
+
+            listFrame:SetPoint("TOP", searchBox, "BOTTOM")
+            listFrame:SetPoint("LEFT", self, "LEFT")
+            listFrame:SetPoint("BOTTOM", self, "BOTTOM")
+        else
+            listFrame:SetAllPoints(self)
+        end
+
+        listFrame.scrollView:Initialize(self.style.buttonHeight, GenerateClosure(self.DrawButton, self), "GuildBankSnapshotsDropdownListButton")
+        listFrame:SetDataProvider(function(provider)
+            provider:InsertTable(self.dropdown:GetInfo())
+            self:SetMenuHeight(provider)
+        end)
+    end
+
+    function menu:InitializeStyle()
+        self.style = {
+            width = "auto",
+            buttonHeight = 20,
+            buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
+            maxButtons = 10,
+            anchor = "TOPLEFT",
+            relAnchor = "BOTTOMLEFT",
+            xOffset = 0,
+            yOffset = 0,
+            justifyH = "LEFT",
+            justifyV = "MIDDLE",
+            paddingX = 3,
+            paddingY = 3,
+            hasCheckBox = true,
+            checkAlignment = "LEFT",
+            hasSearch = false,
+            multiSelect = false,
+        }
+    end
+
+    function menu:Open()
+        self:SetMenuWidth()
+        self:SetAnchors()
+        self:InitializeListFrame()
+        self:Show()
+    end
+
+    function menu:SetAnchors()
+        self:SetPoint(self.style.anchor, self.dropdown, self.style.relAnchor, self.style.xOffset, self.style.yOffset)
+    end
+
+    function menu:SetMenuHeight(provider)
+        self:SetHeight(min((provider:GetSize() + 1) * self.style.buttonHeight, (self.style.maxButtons + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0))
+    end
+
+    function menu:SetMenuWidth()
+        self:SetWidth(self.style.width == "auto" and self.dropdown:GetWidth() or self.style.width)
     end
 end

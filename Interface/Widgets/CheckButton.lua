@@ -5,7 +5,6 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 function GuildBankSnapshotsCheckButton_OnLoad(button)
     button:EnableMouse(true)
     button = private:MixinText(button)
-    button = private:MixinWidget(button)
 
     button:InitScripts({
         OnAcquire = function(self)

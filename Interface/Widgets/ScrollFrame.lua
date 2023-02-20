@@ -30,7 +30,6 @@ function GuildBankSnapshotsScrollFrame_OnLoad(frame)
     -- Content
     frame.content = CreateFrame("Frame", nil, frame.scrollBox, "ResizeLayoutFrame")
     frame.content = private:MixinContainer(frame.content)
-    frame.content = private:MixinCollection(frame.content)
     frame.content.scrollable = true
     frame.content:SetAllPoints(frame.scrollBox)
 

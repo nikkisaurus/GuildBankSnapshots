@@ -4,6 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsButton_OnLoad(button)
     button = private:MixinWidget(button)
+
     button:InitScripts({
         OnRelease = function()
             button:SetSize(150, 20)

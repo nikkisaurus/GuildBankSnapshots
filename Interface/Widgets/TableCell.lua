@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsTableCell_OnLoad(cell)
     cell = private:MixinText(cell)
-    cell = private:MixinWidget(cell)
+
     cell:InitScripts({
         -- Scripts
         OnEnter = function(self, ...)

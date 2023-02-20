@@ -7,7 +7,6 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
     frame.text = frame:CreateFontString(nil, "OVERLAY")
 
     frame = private:MixinText(frame)
-    frame = private:MixinWidget(frame)
 
     frame:InitScripts({
         OnAcquire = function(self)

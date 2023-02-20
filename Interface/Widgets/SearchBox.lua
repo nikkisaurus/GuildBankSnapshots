@@ -4,9 +4,14 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsSearchBox_OnLoad(editbox)
     editbox = private:MixinWidget(editbox)
+
     editbox:InitScripts({
         OnAcquire = function(self)
             self:SetText("")
+        end,
+
+        OnEnterPressed = function(self)
+            self:ClearFocus()
         end,
     })
 
