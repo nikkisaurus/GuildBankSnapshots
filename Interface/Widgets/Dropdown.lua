@@ -29,6 +29,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self.menu:InitializeStyle()
             self:SetEnabled(true)
             self:SetBackdropColor(private.interface.colors.dark)
+            self.arrow:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
         end,
 
         OnClick = function(self)
@@ -54,11 +55,15 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     -- Textures
     dropdown.bg, dropdown.border, dropdown.highlight = private:AddBackdrop(dropdown)
 
-    dropdown.arrow = dropdown:CreateTexture(nil, "ARTWORK", nil, 7)
+    dropdown.arrow = CreateFrame("Button", nil, dropdown)
+    dropdown.arrow = private:MixinText(dropdown.arrow)
     dropdown.arrow:SetPoint("RIGHT", -5)
-    dropdown.arrow:SetTexture(136961)
-    dropdown.arrow:SetTexCoord(4 / 64, 27 / 64, 8 / 64, 24 / 64)
-    dropdown.arrow:SetVertexColor(1, 1, 1, 1)
+    dropdown.arrow.text = dropdown.arrow:CreateFontString(nil, "OVERLAY", "NumberFont_Small")
+    dropdown.arrow.text:SetAllPoints(dropdown.arrow)
+    dropdown.arrow:SetText("▼")
+    dropdown.arrow:SetScript("OnClick", function(self, ...)
+        dropdown:Fire("OnClick", ...)
+    end)
 
     -- Text
     dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -121,7 +126,11 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:SetDisabled(isDisabled)
-        self.arrow:SetVertexColor(private.interface.colors[isDisabled and "dimmedWhite" or "white"]:GetRGBA())
+        if isDisabled then
+            self.arrow:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "dimmedClass" or "dimmedFlair"]:GetRGBA())
+        else
+            self.arrow:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+        end
         self:SetEnabled(not isDisabled)
     end
 

@@ -71,7 +71,7 @@ end
 
 function TextMixin:SetFontObject(fontObject)
     TextMixin_Validate(self)
-    self.text:SetFontObject(fontObject or GameFontNormalSmall)
+    self.text:SetFontObject(fontObject or GameFontHighlightSmall)
 end
 
 function TextMixin:SetPadding(x, y)
@@ -160,8 +160,14 @@ function WidgetMixin:Reset()
     self:Hide()
 end
 
-function WidgetMixin:SetBackdropColor(color)
-    self.bg:SetColorTexture(color:GetRGBA())
+function WidgetMixin:SetBackdropColor(bgColor, highlightColor)
+    if bgColor then
+        self.bg:SetColorTexture(bgColor:GetRGBA())
+    end
+
+    if highlightColor then
+        self.highlight:SetColorTexture(highlightColor:GetRGBA())
+    end
 end
 
 function WidgetMixin:SetCallback(script, callback, init)

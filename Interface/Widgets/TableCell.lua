@@ -12,7 +12,7 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
             local parent = self:GetParent()
             parent:GetScript("OnEnter")(parent, ...)
             -- Highlight text
-            self.text:SetFontObject(GameFontNormalSmall)
+            self.text:SetFontObject(GameFontHighlightSmall)
 
             -- Show tooltips
             if not self.data then

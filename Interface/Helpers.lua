@@ -78,6 +78,8 @@ function private:InitializeInterface()
     symbolFontDisabled:SetFontObject(symbolFont)
     symbolFontDisabled:SetTextColor(1, 1, 1, 0.25)
 
+    local r, g, b = private:GetClassColor()
+
     private.interface = {
         backdrop = {
             bgFile = [[Interface\Buttons\WHITE8x8]],
@@ -97,6 +99,10 @@ function private:InitializeInterface()
 
             dimmedWhite = CreateColor(1, 1, 1, 0.25),
             white = CreateColor(1, 1, 1, 1),
+
+            dimmedClass = CreateColor(r, g, b, 0.25),
+            lightClass = CreateColor(r, g, b, 0.5),
+            class = CreateColor(r, g, b, 1),
 
             dimmedFlair = CreateColor(1, 0.82, 0, 0.25),
             lightFlair = CreateColor(1, 0.82, 0, 0.5),

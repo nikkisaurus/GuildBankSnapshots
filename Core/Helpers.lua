@@ -12,6 +12,10 @@ private.timeInSeconds = {
     year = 31540000,
 }
 
+function private:GetClassColor()
+    return GetClassColor(select(2, UnitClass("player")))
+end
+
 function private:GetGuildDisplayName(guildID)
     if not guildID then
         return ""

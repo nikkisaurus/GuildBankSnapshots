@@ -3,7 +3,7 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsTabButton_OnLoad(tab)
-    tab = private:MixinWidget(tab)
+    tab = private:MixinText(tab)
 
     tab:InitScripts({
         OnAcquire = function(self)
@@ -11,6 +11,10 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
             self:SetSize(150, 20)
             self:UpdateText()
             self:UpdateWidth()
+        end,
+
+        OnEnter = function(self)
+            self:SetTextColor(private.interface.colors.white:GetRGBA())
         end,
 
         OnClick = function(self)
@@ -21,6 +25,12 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
                 if tab:GetTabID() ~= self.tabID then
                     tab:SetSelected()
                 end
+            end
+        end,
+
+        OnLeave = function(self)
+            if not self.isSelected then
+                self:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
             end
         end,
 
@@ -35,14 +45,13 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     tab:SetNormalTexture(tab.bg)
 
     tab.selected = tab:CreateTexture(nil, "BACKGROUND")
-    tab.selected:SetColorTexture(private.interface.colors.lightFlair:GetRGBA())
+    tab.selected:SetColorTexture(private.interface.colors[private.db.global.settings.preferences.useClassColor and "lightClass" or "lightFlair"]:GetRGBA())
     tab.selected:SetAllPoints(tab.bg)
 
     -- Text
-    tab:SetText("")
-    tab:SetNormalFontObject(GameFontNormal)
-    tab:SetHighlightFontObject(GameFontHighlight)
-    tab:SetPushedTextOffset(0, 0)
+    tab.text = tab:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    tab.text:SetAllPoints(tab)
+    -- tab:SetPushedTextOffset(0, 0)
 
     -- Methods
     function tab:GetTabID()
@@ -50,8 +59,15 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     end
 
     function tab:SetSelected(isSelected)
-        tab:SetNormalFontObject(isSelected and GameFontHighlight or GameFontNormal)
-        tab:SetNormalTexture(isSelected and tab.selected or tab.bg)
+        self.isSelected = isSelected
+
+        if isSelected then
+            self:SetTextColor(private.interface.colors.white:GetRGBA())
+        else
+            self:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+        end
+
+        self:SetNormalTexture(isSelected and self.selected or self.bg)
     end
 
     function tab:SetTab(tabID, info)
@@ -62,13 +78,13 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     end
 
     function tab:UpdateText()
-        tab:SetText("")
+        self:SetText("")
 
         if not self.tabID then
             return
         end
 
-        tab:SetText(self.info.header)
+        self:SetText(self.info.header)
     end
 
     function tab:UpdateWidth()
@@ -78,6 +94,6 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
             return
         end
 
-        self:SetWidth(self:GetTextWidth() + 20)
+        self:SetWidth(self.text:GetStringWidth() + 20)
     end
 end
