@@ -35,7 +35,7 @@ local sidebarSections = {
     },
     {
         header = L["Tools"],
-        collapsed = true,
+        collapsed = false,
         onLoad = function(...)
             return LoadSidebarTools(...)
         end,
@@ -486,12 +486,22 @@ end
 
 LoadSidebarTools = function(content, height)
     local tblSize = #private.db.global.guilds[ReviewTab.guildID].masterScan
+
+    local numEntries = content:Acquire("GuildBankSnapshotsFontFrame")
+    numEntries:SetPoint("TOPLEFT", 5, -height)
+    numEntries:SetPoint("RIGHT", -5, 0)
+    numEntries:SetAutoHeight(true)
+    numEntries:SetText(format("%s: %s", L["Number of entries"], addon:iformat(tblSize, 1)))
+    numEntries:Justify("LEFT")
+
+    height = height + numEntries:GetHeight()
+
     if tblSize > 5000 then
         local largeTableWarning = content:Acquire("GuildBankSnapshotsFontFrame")
         largeTableWarning:SetPoint("TOPLEFT", 5, -height)
         largeTableWarning:SetPoint("RIGHT", -5, 0)
         largeTableWarning:SetAutoHeight(true)
-        largeTableWarning:SetText(format(L["This table has %d entries and may cause performance issues while reviewing. It is recommended that you export (for use in Excel) and then purge older entries."], tblSize))
+        largeTableWarning:SetText("*" .. L["Due to this table's large size, reviewing may cause performance issues and possibly Lua errors. It is recommended that you reduce the table size using the cleanup feature. Optionally, you may export the data before purging."])
         largeTableWarning:SetTextColor(1, 0, 0, 1)
         largeTableWarning:Justify("LEFT")
 
@@ -526,8 +536,8 @@ LoadTable = function()
                 provider:Insert(elementData)
 
                 if validEntries >= ReviewTab.maxEntries then
-                    addon:Printf(L["Table is larger than %d and has stopped loading. Please export and purge your table."], ReviewTab.maxEntries)
-                    return
+                    addon:Printf(L["The results of this query exceed the maximum allowed entries (%s); loading has stopped and review data is incomplete. To prevent this error, please limit the query through filters or reduce the size of the table using the cleanup feature (optionally, you may first export the table for use in Excel)."], addon:iformat(ReviewTab.maxEntries, 1))
+                    break
                 end
             end
         end
