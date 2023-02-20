@@ -215,9 +215,9 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button.checked:Hide()
 
     button.highlight = button:CreateTexture(nil, "ARTWORK")
-    button.highlight:SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
     button.highlight:SetAllPoints(button)
     button:SetHighlightTexture(button.highlight)
+    button:GetHighlightTexture():SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
 
     -- Text
     button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -227,19 +227,20 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         local style = self.menu.style
         local leftAligned = style.checkAlignment == "LEFT"
         local xMod = leftAligned and 1 or -1
-        local height = self:GetHeight() - (style.paddingX * 2)
-        local width = self:GetWidth() - (style.paddingX * (style.hasCheckBox and 3 or 2) - (style.hasCheckBox and height or 0))
 
         if style.hasCheckBox then
-            self.checkBox:SetSize(height, height)
+            self.checkBox:SetPoint("TOP", 0, -style.paddingY)
             self.checkBox:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, 0)
+            self.checkBox:SetPoint("BOTTOM", 0, style.paddingY)
+            self.checkBox:SetWidth(self.checkBox:GetHeight())
             self.text:SetPoint(style.checkAlignment, self.checkBox, leftAligned and "RIGHT" or "LEFT", xMod * style.paddingX, 0)
             self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
         else
             self.checkBox:ClearAllPoints()
-            self.text:SetSize(width, height)
-            self.text:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, 0)
+            self.text:SetPoint("TOP", 0, -style.paddingY)
+            self.text:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, -style.paddingY)
             self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
+            self.text:SetPoint("BOTTOM", 0, style.paddingY)
         end
     end
 
@@ -262,6 +263,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     end
 
     function button:Update()
+        self:GetHighlightTexture():SetColorTexture(self.menu.style.buttonHighlight:GetRGBA())
         self:Justify(self.menu.style.justifyH, self.menu.style.justifyV)
         self:SetAnchors()
         self:SetText(self.info.text)
