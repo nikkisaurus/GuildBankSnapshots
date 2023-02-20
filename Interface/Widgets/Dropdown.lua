@@ -315,6 +315,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
 
         local searchBox = self:Acquire("GuildBankSnapshotsEditBox")
+        searchBox.bg:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
         searchBox:SetSearchTemplate(true)
         searchBox:SetHeight(20)
         if self.style.hasSearch then

@@ -9,7 +9,6 @@ local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideB
 function private:InitializeReviewTab()
     ReviewTab = {
         guildID = private.db.global.settings.preferences.defaultGuild,
-        searchQuery = false,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
         guilds = {},
         entriesPerFrame = 50,
@@ -255,12 +254,12 @@ IsFiltered = function(elementData)
 end
 
 IsQueryMatch = function(elementData)
-    if not ReviewTab.searchQuery then
+    if not ReviewTab.guilds[ReviewTab.guildID].searchQuery then
         return true
     end
 
     for _, key in pairs(ReviewTab.searchKeys) do
-        local found = elementData[key] and strfind(strupper(elementData[key]), strupper(ReviewTab.searchQuery))
+        local found = elementData[key] and strfind(strupper(elementData[key]), strupper(ReviewTab.guilds[ReviewTab.guildID].searchQuery))
         if found then
             return true
         end
@@ -318,17 +317,17 @@ LoadSidebar = function()
     searchBox:SetPoint("TOPRIGHT", -5, -height)
 
     searchBox:SetCallback("OnEnterPressed", function(self)
-        ReviewTab.searchQuery = self:IsValidText() and self:GetText()
+        ReviewTab.guilds[ReviewTab.guildID].searchQuery = self:IsValidText() and self:GetText()
         LoadTable()
     end)
 
     searchBox:SetCallback("OnClear", function()
-        ReviewTab.searchQuery = nil
+        ReviewTab.guilds[ReviewTab.guildID].searchQuery = nil
         LoadTable()
     end)
 
-    if ReviewTab.searchQuery then
-        searchBox:SetText(ReviewTab.searchQuery)
+    if ReviewTab.guilds[ReviewTab.guildID].searchQuery then
+        searchBox:SetText(ReviewTab.guilds[ReviewTab.guildID].searchQuery)
     end
 
     height = height + searchBox:GetHeight() + 5
@@ -690,6 +689,7 @@ function private:LoadReviewTab(content)
                 func = function()
                     ReviewTab.guildID = guildID
                     ReviewTab.guilds[guildID] = ReviewTab.guilds[guildID] or {
+                        searchQuery = false,
                         filters = GetFilters(),
                         multiSort = #private.db.global.guilds[guildID].masterScan < 5000,
                     }
