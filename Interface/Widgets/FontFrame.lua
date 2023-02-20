@@ -20,7 +20,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
         OnEnter = function(self)
             -- Show full text if truncated
-            if self.text:GetStringWidth() > self.text:GetWidth() then
+            if not self.autoHeight and self.text:GetStringWidth() > self.text:GetWidth() then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
                     local text = self.text:GetText()
                     GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
