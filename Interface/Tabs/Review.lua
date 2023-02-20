@@ -482,7 +482,7 @@ LoadSidebarFilters = function(content, height)
     itemName:SetPoint("RIGHT", -5, 0)
     itemName:Justify("LEFT")
 
-    itemName:SetStyle({ multiSelect = true, hasSearch = true, hasClear = true })
+    itemName:SetStyle({ height = "auto", multiSelect = true, hasSearch = true, hasClear = true })
     itemName:SetInfo(function()
         local info = {}
 

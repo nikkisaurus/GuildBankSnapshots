@@ -172,6 +172,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 end
 
+local buttons = {}
 function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button = private:MixinText(button)
 
@@ -191,11 +192,16 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
             end
         end,
 
-        OnShow = function(self)
-            assert(self.info, "GuildBankSnapshotsDropdownListButton: info has not been initialized")
-
-            self:Update()
+        OnEnter = function(self)
+            if self.text:GetStringWidth() > self.text:GetWidth() then
+                private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
+                    local text = self.text:GetText()
+                    GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
+                end)
+            end
         end,
+
+        OnLeave = GenerateClosure(private.HideTooltip, private),
 
         OnRelease = function(self)
             self.menu = nil
@@ -206,11 +212,19 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     })
 
     -- Textures
+    button.container = button:CreateTexture(nil, "BACKGROUND")
+
+    button.checkBoxBorder = button:CreateTexture(nil, "ARTWORK")
+    button.checkBoxBorder:SetColorTexture(0, 0, 0, 1)
+
     button.checkBox = button:CreateTexture(nil, "ARTWORK")
-    button.checkBox:SetTexture(130755)
+    button.checkBox:SetPoint("TOPLEFT", button.checkBoxBorder, "TOPLEFT", 1, -1)
+    button.checkBox:SetPoint("BOTTOMRIGHT", button.checkBoxBorder, "BOTTOMRIGHT", -1, 1)
+    button.checkBox:SetColorTexture(private.interface.colors.bgColor:GetRGBA())
 
     button.checked = button:CreateTexture(nil, "OVERLAY")
-    button.checked:SetAllPoints(button.checkBox)
+    button.checked:SetPoint("TOPLEFT", button.checkBoxBorder, "TOPLEFT", -4, 4)
+    button.checked:SetPoint("BOTTOMRIGHT", button.checkBoxBorder, "BOTTOMRIGHT", 4, -4)
     button.checked:SetTexture(130751)
     button.checked:Hide()
 
@@ -229,18 +243,20 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         local xMod = leftAligned and 1 or -1
 
         if style.hasCheckBox then
-            self.checkBox:SetPoint("TOP", 0, -style.paddingY)
-            self.checkBox:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, 0)
-            self.checkBox:SetPoint("BOTTOM", 0, style.paddingY)
-            self.checkBox:SetWidth(self.checkBox:GetHeight())
-            self.text:SetPoint(style.checkAlignment, self.checkBox, leftAligned and "RIGHT" or "LEFT", xMod * style.paddingX, 0)
+            local size = min(self.container:GetHeight(), 12)
+            self.checkBoxBorder:SetSize(size, size)
+            self.checkBoxBorder:SetPoint("TOP", self.container, "TOP")
+            self.checkBoxBorder:SetPoint(style.checkAlignment, self.container, style.checkAlignment)
+            self.text:SetPoint("TOP", self.checkBoxBorder, "TOP")
+            self.text:SetPoint(style.checkAlignment, self.checkBoxBorder, leftAligned and "RIGHT" or "LEFT", xMod * style.paddingX, 0)
             self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
+            self.text:SetPoint("BOTTOM", self.container, "BOTTOM")
         else
-            self.checkBox:ClearAllPoints()
-            self.text:SetPoint("TOP", 0, -style.paddingY)
-            self.text:SetPoint(style.checkAlignment, self, style.checkAlignment, xMod * style.paddingX, -style.paddingY)
-            self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
-            self.text:SetPoint("BOTTOM", 0, style.paddingY)
+            self.checkBoxBorder:ClearAllPoints()
+            self.text:SetPoint("TOP", self.container, "TOP")
+            self.text:SetPoint(style.checkAlignment, self.container, style.checkAlignment)
+            self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self.container, leftAligned and "RIGHT" or "LEFT")
+            self.text:SetPoint("BOTTOM", self.container, "BOTTOM")
         end
     end
 
@@ -263,10 +279,19 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     end
 
     function button:Update()
+        if not self.info then
+            return
+        end
+
+        self.container:SetPoint("TOPLEFT", self.menu.style.paddingX, -self.menu.style.paddingY)
+        self.container:SetPoint("BOTTOMRIGHT", -self.menu.style.paddingX, self.menu.style.paddingY)
+
         self:GetHighlightTexture():SetColorTexture(self.menu.style.buttonHighlight:GetRGBA())
+
         self:Justify(self.menu.style.justifyH, self.menu.style.justifyV)
-        self:SetAnchors()
         self:SetText(self.info.text)
+
+        self:SetAnchors()
         self:SetChecked()
     end
 end
@@ -282,10 +307,6 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         self:Hide()
     end
 
-    function menu:DrawButton(frame, info)
-        frame:SetInfo(self, frame:GetOrderIndex(), info)
-    end
-
     function menu:InitializeListFrame()
         self:ReleaseAll()
 
@@ -296,6 +317,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         if self.style.hasSearch then
             searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 10, -5)
             searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, 0)
+            self:SetHeight(self:GetHeight() + 30)
         end
 
         searchBox:SetCallback("OnTextChanged", function(_, userInput)
@@ -308,7 +330,6 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
                             provider:Insert(info)
                         end
                     end
-                    self:SetMenuHeight(provider)
                 end)
             end
         end)
@@ -316,7 +337,6 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         searchBox:SetCallback("OnClear", function(...)
             listFrame:SetDataProvider(function(provider)
                 provider:InsertTable(self.dropdown:GetInfo())
-                self:SetMenuHeight(provider)
             end)
         end)
 
@@ -331,6 +351,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
                 clearButton:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
                 clearButton:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, 0)
             end
+            self:SetHeight(self:GetHeight() + 30)
         end
 
         clearButton:SetCallback("OnClick", function()
@@ -350,10 +371,12 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             listFrame:SetAllPoints(self)
         end
 
-        listFrame.scrollView:Initialize(self.style.buttonHeight, GenerateClosure(self.DrawButton, self), "GuildBankSnapshotsDropdownListButton")
+        listFrame.scrollView:Initialize(self.style.buttonHeight, function(frame, elementData)
+            frame:SetInfo(self, frame:GetOrderIndex(), elementData)
+        end, "GuildBankSnapshotsDropdownListButton")
         listFrame:SetDataProvider(function(provider)
             provider:InsertTable(self.dropdown:GetInfo())
-            self:SetMenuHeight(provider)
+            self:SetHeight(min(self:GetHeight() + ((provider:GetSize() + 1) * self.style.buttonHeight), self.style.maxHeight))
         end)
     end
 
@@ -362,13 +385,13 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             width = "auto",
             buttonHeight = 20,
             buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
-            maxButtons = 10,
+            maxHeight = 200,
             anchor = "TOPLEFT",
             relAnchor = "BOTTOMLEFT",
             xOffset = 0,
             yOffset = 0,
             justifyH = "LEFT",
-            justifyV = "MIDDLE",
+            justifyV = "TOP",
             paddingX = 3,
             paddingY = 3,
             hasCheckBox = true,
@@ -380,6 +403,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     end
 
     function menu:Open()
+        self:SetHeight(0)
         self:SetMenuWidth()
         self:SetAnchors()
         self:InitializeListFrame()
@@ -388,10 +412,6 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
 
     function menu:SetAnchors()
         self:SetPoint(self.style.anchor, self.dropdown, self.style.relAnchor, self.style.xOffset, self.style.yOffset)
-    end
-
-    function menu:SetMenuHeight(provider)
-        self:SetHeight(min((provider:GetSize() + 1) * self.style.buttonHeight, (self.style.maxButtons + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + (self.style.hasClear and 30 or 0))
     end
 
     function menu:SetMenuWidth()
