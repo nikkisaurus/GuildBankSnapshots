@@ -15,7 +15,9 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
         end,
 
         OnEnter = function(self)
-            self.border:SetColorTexture(1, 1, 1, 0.75)
+            if self:IsEnabled() then
+                self.border:SetColorTexture(1, 1, 1, 0.75)
+            end
         end,
 
         OnEnterPressed = function(self)
@@ -66,6 +68,18 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
     -- Methods
     function editbox:IsValidText()
         return private:strcheck(editbox:GetText())
+    end
+
+    function editbox:SetDisabled(isDisabled)
+        if isDisabled then
+            self:SetEnabled()
+            self:SetBackdropColor(private.interface.colors.dark)
+            self.searchIcon:SetVertexColor(private.interface.colors.dimmedWhite:GetRGBA())
+        else
+            self:SetEnabled(true)
+            self:SetBackdropColor(private.interface.colors.light)
+            self.searchIcon:SetVertexColor(private.interface.colors.white:GetRGBA())
+        end
     end
 
     function editbox:SetSearchTemplate(isSearchBox)

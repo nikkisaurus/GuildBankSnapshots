@@ -328,9 +328,13 @@ LoadSidebar = function()
         LoadTable()
     end)
 
-    if ReviewTab.guilds[ReviewTab.guildID].searchQuery then
-        searchBox:SetText(ReviewTab.guilds[ReviewTab.guildID].searchQuery)
-    end
+    searchBox:SetCallback("OnShow", function(self)
+        if ReviewTab.guilds[ReviewTab.guildID].searchQuery then
+            self:SetText(ReviewTab.guilds[ReviewTab.guildID].searchQuery)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
 
     height = height + searchBox:GetHeight() + 5
 
@@ -561,6 +565,12 @@ LoadSidebarFilters = function(content, height)
     rank:SetMinMaxValues(0, 5, function(self, range, value)
         print(range, value)
     end)
+
+    rank:SetCallback("OnShow", function(self)
+        -- TODO set min max
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
 
     height = height + rank:GetHeight() + 5
 

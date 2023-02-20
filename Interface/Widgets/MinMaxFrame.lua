@@ -61,6 +61,11 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     end)
 
     -- Methods
+    function frame:SetDisabled(isDisabled)
+        frame.lower:SetDisabled(isDisabled)
+        frame.upper:SetDisabled(isDisabled)
+    end
+
     function frame:SetMaxValue(maxValue)
         frame.upper:SetText(maxValue)
     end
