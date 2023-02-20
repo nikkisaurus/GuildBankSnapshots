@@ -9,7 +9,7 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
             self:SetSize(100, 20)
             self:SetFontObject(GameFontHighlightSmall)
             self:SetText("")
-            self.bg:SetColorTexture(private.interface.colors.insetColor:GetRGBA())
+            self:SetBackdropColor(private.interface.colors.light)
             self:SetAutoFocus(false)
             self:SetTextInsets(5, 5, 2, 2)
         end,
@@ -27,7 +27,7 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
         end,
 
         OnLeave = function(self)
-            self.border:SetColorTexture(private.interface.colors.borderColor:GetRGBA())
+            self.border:SetColorTexture(private.interface.colors.black:GetRGBA())
         end,
 
         OnTextChanged = function(self)
@@ -44,7 +44,7 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
     })
 
     -- Textures
-    editbox.bg, editbox.border = private:AddBackdrop(editbox, { bgColor = "insetColor" })
+    editbox.bg, editbox.border = private:AddBackdrop(editbox)
 
     editbox.searchIcon = editbox:CreateTexture(nil, "ARTWORK")
     editbox.searchIcon:SetPoint("LEFT", 5, 0)

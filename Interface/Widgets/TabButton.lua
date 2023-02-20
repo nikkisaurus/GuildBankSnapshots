@@ -31,11 +31,11 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     })
 
     -- Textures
-    tab.bg, tab.border = private:AddBackdrop(tab, { bgColor = "elementColor" })
+    tab.bg, tab.border = private:AddBackdrop(tab, { bgColor = "dark" })
     tab:SetNormalTexture(tab.bg)
 
     tab.selected = tab:CreateTexture(nil, "BACKGROUND")
-    tab.selected:SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
+    tab.selected:SetColorTexture(private.interface.colors.lightFlair:GetRGBA())
     tab.selected:SetAllPoints(tab.bg)
 
     -- Text

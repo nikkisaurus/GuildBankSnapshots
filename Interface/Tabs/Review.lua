@@ -2,6 +2,8 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local dividerString, divider = ".................................................................."
+
 --*----------[[ Initialize tab ]]----------*--
 local ReviewTab
 local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideBar, LoadSidebarFilters, LoadSidebarSorters, LoadSidebarTools, LoadTable
@@ -271,7 +273,7 @@ LoadRow = function(row, elementData)
     row.bg:SetAllPoints(row)
 
     row:SetCallback("OnEnter", function(self)
-        private:SetColorTexture(self.bg, "highlightColor")
+        private:SetColorTexture(self.bg, "lightest")
     end)
 
     row:SetCallback("OnLeave", function(self)
@@ -366,8 +368,8 @@ LoadSidebarFilters = function(content, height)
     local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
     transactionTypeLabel:SetPoint("RIGHT", -5, 0)
-    transactionTypeLabel:SetText(L["Transaction Type"])
-    transactionTypeLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
+    transactionTypeLabel:SetText(L["Type"])
+    transactionTypeLabel:SetTextColor(private.interface.colors.flair:GetRGBA())
     transactionTypeLabel:Justify("LEFT")
 
     height = height + transactionTypeLabel:GetHeight()
@@ -412,11 +414,22 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
     local nameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     nameLabel:SetPoint("TOPLEFT", 5, -height)
     nameLabel:SetPoint("RIGHT", -5, 0)
     nameLabel:SetText(L["Name"])
-    nameLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
+    nameLabel:SetTextColor(private.interface.colors.flair:GetRGBA())
     nameLabel:Justify("LEFT")
 
     height = height + nameLabel:GetHeight()
@@ -461,11 +474,22 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
     local itemNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     itemNameLabel:SetPoint("TOPLEFT", 5, -height)
     itemNameLabel:SetPoint("RIGHT", -5, 0)
     itemNameLabel:SetText(L["Item"])
-    itemNameLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
+    itemNameLabel:SetTextColor(private.interface.colors.flair:GetRGBA())
     itemNameLabel:Justify("LEFT")
 
     height = height + itemNameLabel:GetHeight()
@@ -510,18 +534,32 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
     local rankLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     rankLabel:SetPoint("TOPLEFT", 5, -height)
     rankLabel:SetPoint("RIGHT", -5, 0)
     rankLabel:SetText(L["Item Rank"])
-    rankLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
+    rankLabel:SetTextColor(private.interface.colors.flair:GetRGBA())
     rankLabel:Justify("LEFT")
 
-    height = height + rankLabel:GetHeight() + 5
+    height = height + rankLabel:GetHeight()
 
     local rank = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     rank:SetPoint("TOPLEFT", 5, -height)
     rank:SetPoint("RIGHT", -5, 0)
+    rank:SetMinMaxValues(0, 5, function(self, range, value)
+        print(range, value)
+    end)
 
     height = height + rank:GetHeight() + 5
 
@@ -671,6 +709,7 @@ function private:LoadReviewTab(content)
     guildDropdown:SetPoint("TOPLEFT", 10, -10)
     guildDropdown:SetSize(200, 20)
     guildDropdown:SetText(L["Select a guild"])
+    guildDropdown:SetBackdropColor(private.interface.colors.darker)
     ReviewTab.guildDropdown = guildDropdown
 
     guildDropdown:SetInfo(function()
@@ -708,13 +747,13 @@ function private:LoadReviewTab(content)
     sidebar:SetWidth(guildDropdown:GetWidth())
     sidebar:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT")
     sidebar:SetPoint("BOTTOM", 0, 10)
-    sidebar.bg, sidebar.border = private:AddBackdrop(sidebar)
+    sidebar.bg, sidebar.border = private:AddBackdrop(sidebar, { bgColor = "darker" })
     ReviewTab.sidebar = sidebar
 
     local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
     tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
     tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
-    tableContainer.bg, tableContainer.border = private:AddBackdrop(tableContainer)
+    tableContainer.bg, tableContainer.border = private:AddBackdrop(tableContainer, { bgColor = "dark" })
     ReviewTab.tableContainer = tableContainer
 
     local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
@@ -722,7 +761,7 @@ function private:LoadReviewTab(content)
     tableHeaders:SetPoint("LEFT", tableContainer.scrollBox, "LEFT")
     tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
     tableHeaders:SetPoint("BOTTOM", tableContainer, "TOP")
-    tableHeaders.bg, tableHeaders.border = private:AddBackdrop(tableHeaders)
+    tableHeaders.bg, tableHeaders.border = private:AddBackdrop(tableHeaders, { bgColor = "darker" })
     ReviewTab.tableHeaders = ReviewTab.tableHeaders
 
     tableHeaders:SetCallback("OnSizeChanged", function()

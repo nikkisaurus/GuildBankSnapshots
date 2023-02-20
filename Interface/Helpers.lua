@@ -19,10 +19,10 @@ function private:AddBackdrop(frame, options)
     options = type(options) == "table" and options or {}
     -- options = options and options or {}
     local bg, border, highlight
-    local bgColor = options.bgColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.bgColor or "bgColor"]
-    local borderColor = options.borderColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.borderColor or "borderColor"]
+    local bgColor = options.bgColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.bgColor or "darker"]
+    local borderColor = options.borderColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.borderColor or "black"]
     local borderSize = options.borderSize or 1
-    local highlightColor = options.highlightColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.highlightColor or "highlightColor"]
+    local highlightColor = options.highlightColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.highlightColor or "lightest"]
     local hasBorder = options.hasBorder
     local hasHighlight = options.hasHighlight
 
@@ -85,26 +85,28 @@ function private:InitializeInterface()
             edgeSize = 1,
         },
         colors = {
-            borderColor = CreateColor(0, 0, 0, 1),
-            emphasizeColor = CreateColor(1, 0.82, 0, 0.5),
-            elementColor = CreateColor(0.05, 0.05, 0.05, 1),
-            elementHighlightColor = CreateColor(0.1, 0.1, 0.1, 1),
-            bgColor = CreateColor(0.1, 0.1, 0.1, 1),
-            insetColor = CreateColor(0.15, 0.15, 0.15, 1),
-            highlightColor = CreateColor(0.3, 0.3, 0.3, 1),
-            fontColor = CreateColor(1, 1, 1, 1),
-            emphasizedFontColor = CreateColor(1, 0.82, 0, 1),
+            darker = CreateColor(0.05, 0.05, 0.05, 1),
+            dark = CreateColor(0.1, 0.1, 0.1, 1),
+            normal = CreateColor(0.15, 0.15, 0.15, 1),
+            light = CreateColor(0.2, 0.2, 0.2, 1),
+            lighter = CreateColor(0.25, 0.25, 0.25, 1),
+            lightest = CreateColor(0.3, 0.3, 0.3, 1),
+
+            dimmedBlack = CreateColor(0, 0, 0, 0.25),
+            black = CreateColor(0, 0, 0, 1),
+
+            dimmedWhite = CreateColor(1, 1, 1, 0.25),
+            white = CreateColor(1, 1, 1, 1),
+
+            dimmedFlair = CreateColor(1, 0.82, 0, 0.25),
+            lightFlair = CreateColor(1, 0.82, 0, 0.5),
+            flair = CreateColor(1, 0.82, 0, 1),
         },
         fonts = {
             symbolFont = symbolFont,
             symbolFontDisabled = symbolFontDisabled,
         },
     }
-    -- LibStub("LibDropDown"):RegisterStyle(addonName, {
-    --     backdrop = private.interface.backdrop,
-    --     backdropBorderColor = private.interface.colors.borderColor,
-    --     backdropColor = private.interface.colors.insetColor,
-    -- })
 end
 
 function private:InitializeTooltip(frame, anchor, callback, ...)
@@ -120,7 +122,7 @@ function private:SetColorTexture(texture, color)
         return
     end
 
-    local color = color == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[color or "elementColor"]
+    local color = color == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[color or "dark"]
 
     texture:SetColorTexture(color:GetRGBA())
 end

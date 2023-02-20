@@ -40,7 +40,7 @@ function private:InitializeFrame()
 
     -- [[ Title bar ]]
     frame.titleBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.titleBar:SetHeight(26)
+    frame.titleBar:SetHeight(20)
     frame.titleBar:SetPoint("TOPLEFT")
     frame.titleBar:SetPoint("RIGHT")
     frame.titleBar.bg, frame.titleBar.border = private:AddBackdrop(frame.titleBar)
@@ -71,7 +71,7 @@ function private:InitializeFrame()
     frame.content:SetPoint("TOPLEFT", frame.tabContainer, "BOTTOMLEFT")
     frame.content:SetPoint("RIGHT", frame.tabContainer, "RIGHT")
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
-    frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "insetColor" })
+    frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "dark" })
 
     function frame:SelectTab(tabID)
         self.selectedTab = tabID

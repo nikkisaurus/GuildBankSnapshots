@@ -160,6 +160,10 @@ function WidgetMixin:Reset()
     self:Hide()
 end
 
+function WidgetMixin:SetBackdropColor(color)
+    self.bg:SetColorTexture(color:GetRGBA())
+end
+
 function WidgetMixin:SetCallback(script, callback, init)
     local success, err = pcall(self.SetScript, self, script, callback)
     assert(success or validScripts[script], "WidgetMixin: invalid script")

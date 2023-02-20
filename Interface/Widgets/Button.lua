@@ -6,14 +6,14 @@ function GuildBankSnapshotsButton_OnLoad(button)
     button = private:MixinWidget(button)
 
     button:InitScripts({
-        OnRelease = function()
-            button:SetSize(150, 20)
-            button:SetNormalFontObject("GameFontNormalSmall")
+        OnAcquire = function(self)
+            self:SetSize(150, 20)
+            self:SetNormalFontObject("GameFontNormalSmall")
+            self:SetBackdropColor(private.interface.colors.dark)
         end,
     })
-    button:SetNormalFontObject("GameFontNormalSmall")
 
     -- Textures
-    button.bg, button.border, button.highlight = private:AddBackdrop(button, { bgColor = "elementColor", hasHighlight = true, highlightColor = "elementHighlightColor" })
+    button.bg, button.border, button.highlight = private:AddBackdrop(button, { hasHighlight = true, highlightColor = "lightest" })
     button:SetHighlightTexture(button.highlight)
 end

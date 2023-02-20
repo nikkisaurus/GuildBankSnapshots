@@ -42,7 +42,6 @@ L["The results of this query exceed the maximum allowed entries (%s); loading ha
 L["Tools"] = true
 L["Transaction Date"] = true
 L["Transaction ID"] = true
-L["Transaction Type"] = true
 L["Type"] = true
 L["Upper"] = true
 

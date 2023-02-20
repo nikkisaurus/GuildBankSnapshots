@@ -67,7 +67,7 @@ local function CreateSorter()
     -- Scripts
     sorter:SetScript("OnDragStart", function(self)
         private.frame.sorters.dragging = self.sorterID
-        self:SetBackdropColor(private.interface.colors.emphasizeColor:GetRGBA())
+        self:SetBackdropColor(private.interface.colors.dimmedFlair:GetRGBA())
     end)
 
     sorter:SetScript("OnDragStop", function(self)

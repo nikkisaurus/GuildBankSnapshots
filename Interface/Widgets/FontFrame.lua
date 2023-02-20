@@ -24,7 +24,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
             if not self.autoHeight and self.text:GetStringWidth() > self.text:GetWidth() then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
                     local text = self.text:GetText()
-                    GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
+                    GameTooltip:AddLine(text, unpack(private.interface.colors.white))
                 end)
             end
         end,

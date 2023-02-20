@@ -28,6 +28,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self:SetText("")
             self.menu:InitializeStyle()
             self:SetEnabled(true)
+            self:SetBackdropColor(private.interface.colors.dark)
         end,
 
         OnClick = function(self)
@@ -51,8 +52,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     })
 
     -- Textures
-    dropdown.bg, dropdown.border, dropdown.highlight = private:AddBackdrop(dropdown, { bgColor = "elementColor", hasHighlight = true, highlightColor = "elementHighlightColor" })
-    dropdown:SetHighlightTexture(dropdown.highlight)
+    dropdown.bg, dropdown.border, dropdown.highlight = private:AddBackdrop(dropdown)
 
     dropdown.arrow = dropdown:CreateTexture(nil, "ARTWORK", nil, 7)
     dropdown.arrow:SetPoint("RIGHT", -5)
@@ -121,7 +121,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:SetDisabled(isDisabled)
-        self.arrow:SetVertexColor(1, 1, 1, isDisabled and 0.25 or 1)
+        self.arrow:SetVertexColor(private.interface.colors[isDisabled and "dimmedWhite" or "white"]:GetRGBA())
         self:SetEnabled(not isDisabled)
     end
 
@@ -192,7 +192,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
             if self.text:GetStringWidth() > self.text:GetWidth() then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
                     local text = self.text:GetText()
-                    GameTooltip:AddLine(text, unpack(private.interface.colors.fontColor))
+                    GameTooltip:AddLine(text, unpack(private.interface.colors.white))
                 end)
             end
         end,
@@ -214,12 +214,12 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button.container = button:CreateTexture(nil, "BACKGROUND")
 
     button.checkBoxBorder = button:CreateTexture(nil, "BORDER")
-    button.checkBoxBorder:SetColorTexture(0, 0, 0, 1)
+    button.checkBoxBorder:SetColorTexture(private.interface.colors.black:GetRGBA())
 
     button.checkBox = button:CreateTexture(nil, "ARTWORK")
     button.checkBox:SetPoint("TOPLEFT", button.checkBoxBorder, "TOPLEFT", 1, -1)
     button.checkBox:SetPoint("BOTTOMRIGHT", button.checkBoxBorder, "BOTTOMRIGHT", -1, 1)
-    button.checkBox:SetColorTexture(private.interface.colors.bgColor:GetRGBA())
+    button.checkBox:SetColorTexture(private.interface.colors.light:GetRGBA())
 
     button.checked = button:CreateTexture(nil, "OVERLAY")
     button.checked:SetPoint("TOPLEFT", button.checkBoxBorder, "TOPLEFT", -4, 4)
@@ -229,7 +229,6 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
 
     button.highlight = button:CreateTexture(nil, "BACKGROUND")
     button.highlight:SetAllPoints(button)
-    button.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
     button.highlight:Hide()
 
     -- Text
@@ -300,7 +299,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     menu:SetFrameLevel(1000)
 
     -- Textures
-    menu.bg, menu.border = private:AddBackdrop(menu, { bgColor = "insetColor" })
+    menu.bg, menu.border = private:AddBackdrop(menu, { bgColor = "dark" })
 
     -- Methods
     function menu:Close()
@@ -315,7 +314,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
 
         local searchBox = self:Acquire("GuildBankSnapshotsEditBox")
-        searchBox.bg:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
+        searchBox.bg:SetColorTexture(private.interface.colors.lightest:GetRGBA())
         searchBox:SetSearchTemplate(true)
         searchBox:SetHeight(20)
         if self.style.hasSearch then
@@ -391,7 +390,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         self.style = {
             width = "auto",
             buttonHeight = 20,
-            buttonHighlight = private.interface.colors.highlightColor,
+            buttonHighlight = private.interface.colors.lightest,
             maxHeight = 200,
             anchor = "TOPLEFT",
             relAnchor = "BOTTOMLEFT",

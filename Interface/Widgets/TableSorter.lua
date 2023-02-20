@@ -28,7 +28,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
                 draggingID = nil
             end)
 
-            self.bg:SetColorTexture(private.interface.colors.insetColor:GetRGBA())
+            self.bg:SetColorTexture(private.interface.colors.dark:GetRGBA())
         end,
 
         OnEnter = function(self)
@@ -67,11 +67,11 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         end,
 
         OnMouseDown = function(self)
-            self.bg:SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
+            self.bg:SetColorTexture(private.interface.colors.dimmedFlair:GetRGBA())
         end,
 
         OnMouseUp = function(self)
-            self.bg:SetColorTexture(private.interface.colors.insetColor:GetRGBA())
+            self.bg:SetColorTexture(private.interface.colors.dark:GetRGBA())
         end,
 
         OnReceiveDrag = function(self)
@@ -104,7 +104,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
 
     -- Textures
 
-    sorter.bg, sorter.border, sorter.highlight = private:AddBackdrop(sorter, { bgColor = "insetColor", hasHighlight = true, highlightColor = "highlightColor" })
+    sorter.bg, sorter.border, sorter.highlight = private:AddBackdrop(sorter, { bgColor = "dark", hasHighlight = true, highlightColor = "lightest" })
     sorter.highlight:Hide()
 
     sorter.upper = sorter:CreateTexture(nil, "OVERLAY")
@@ -183,160 +183,3 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         end
     end
 end
-
--- local function CreateSorter()
---     local sorter = CreateFrame("Frame", nil, private.frame.sorters, "BackdropTemplate")
---     sorter:EnableMouse(true)
---     sorter:RegisterForDrag("LeftButton")
---     sorter:SetHeight(20)
-
---     -- Textures
---     private:AddBackdrop(sorter)
-
---     -- Text
---     sorter.orderText = private:CreateFontString(sorter)
---     sorter.orderText:SetSize(20, 20)
---     sorter.orderText:SetPoint("RIGHT", -4, 0)
-
---     sorter.text = private:CreateFontString(sorter)
---     sorter.text:SetHeight(20)
---     sorter.text:SetPoint("TOPLEFT", 4, -4)
---     sorter.text:SetPoint("RIGHT", sorter.orderText, "LEFT", -4, 0)
---     sorter.text:SetPoint("BOTTOM", 0, 4)
-
---     -- Methods
---     function sorter:IsDescending()
---         if not self.colID then
---             return
---         end
-
---         return private.db.global.settings.preferences.descendingHeaders[self.colID]
---     end
-
---     function sorter:SetColID(sorterID, colID)
---         sorter.sorterID = sorterID
---         sorter.colID = colID
---         self:UpdateText()
---     end
-
---     function sorter:SetDescending(bool)
---         if not self.colID then
---             return
---         end
-
---         private.db.global.settings.preferences.descendingHeaders[self.colID] = bool
---     end
-
---     function sorter:UpdateText(insertSorter)
---         if not self.colID then
---             self.orderText:SetText("")
---             self.text:SetText("")
---             return
---         end
-
---         local order = self:IsDescending() and "▼" or "▲"
---         self.orderText:SetText(order)
-
---         local header = cols[self.colID].header
---         self.text:SetText(format("%s%s%s", insertSorter or "", insertSorter and " " or "", header))
---     end
-
---     function sorter:UpdateWidth()
---         self:SetWidth((self:GetParent():GetWidth() - 10) / addon:tcount(cols))
---     end
-
---     -- Scripts
---     sorter:SetScript("OnDragStart", function(self)
---         private.frame.sorters.dragging = self.sorterID
---         self:SetBackdropColor(unpack(private.defaults.gui.emphasizeBgColor))
---     end)
-
---     sorter:SetScript("OnDragStop", function(self)
---         -- Must reset dragging ID in this script in addition to the receiving sorter in case it isn't dropped on a valid sorter
---         -- Need to delay to make sure the ID is still accessible to the receiving sorter
---         C_Timer.After(1, function()
---             private.frame.sorters.dragging = nil
---         end)
-
---         sorter:SetBackdropColor(unpack(private.defaults.gui.bgColor))
---     end)
-
---     sorter:SetScript("OnEnter", function(self)
---         -- Emphasize highlighted text
---         self.text:SetTextColor(unpack(private.defaults.gui.emphasizeFontColor))
-
---         -- Add indicator for sorting insertion
---         local sorterID = self.sorterID
---         local draggingID = private.frame.sorters.dragging
-
---         if draggingID and draggingID ~= sorterID then
---             if sorterID < draggingID then
---                 -- Insert before
---                 self:UpdateText("<")
---             else
---                 -- Insert after
---                 self:UpdateText(">")
---             end
-
---             -- Highlight frame to indicate where dragged header is moving
---             sorter:SetBackdropColor(unpack(private.defaults.gui.highlightBgColor))
---         end
-
---         -- Show tooltip if text is truncated
---         if not self.colID or self.text:GetWidth() > self.text:GetStringWidth() then
---             return
---         end
-
---         private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, cols)
---             GameTooltip:AddLine(cols[self.colID].header, 1, 1, 1)
---         end, self, cols)
---     end)
-
---     sorter:SetScript("OnLeave", function(self)
---         -- Restore default text color
---         sorter.text:SetTextColor(unpack(private.defaults.gui.fontColor))
-
---         -- Remove sorting indicator
---         self:UpdateText()
---         if self.sorterID ~= private.frame.sorters.dragging then
---             -- Don't reset backdrop on dragging frame; this is done in OnDragStop
---             self:SetBackdropColor(unpack(private.defaults.gui.bgColor))
---         end
-
---         -- Hide tooltips
---         private:ClearTooltip()
---     end)
-
---     sorter:SetScript("OnMouseUp", function(self)
---         -- Changes sorting order
---         self:SetDescending(not private.db.global.settings.preferences.descendingHeaders[sorter.colID])
---         self:UpdateText()
---         private.frame.scrollBox.Sort()
---     end)
-
---     sorter:SetScript("OnReceiveDrag", function(self)
---         local sorterID = self.sorterID
---         local draggingID = private.frame.sorters.dragging
-
---         if not draggingID or draggingID == sorterID then
---             return
---         end
-
---         -- Get the colID to be inserted and remove the col from the sorting table
---         -- The insert will go before/after by default because of the removed entry
---         local colID = private.frame.sorters.children[draggingID].colID
---         tremove(private.db.global.settings.preferences.sortHeaders, draggingID)
---         tinsert(private.db.global.settings.preferences.sortHeaders, sorterID, colID)
-
---         -- Reset sorters based on new order
---         self:GetParent():LoadSorters()
---     end)
-
---     return sorter
--- end
-
--- local function ResetSorter(__, frame)
---     frame:Hide()
--- end
-
--- local Sorter = CreateObjectPool(CreateSorter, ResetSorter)
