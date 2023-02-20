@@ -89,6 +89,10 @@ function TextMixin:SetText(text)
     end
 end
 
+function TextMixin:SetTextColor(...)
+    self.text:SetTextColor(...)
+end
+
 function TextMixin:SetWordWrap(canWordWrap)
     TextMixin_Validate(self)
     self.text:SetWordWrap(canWordWrap or "")

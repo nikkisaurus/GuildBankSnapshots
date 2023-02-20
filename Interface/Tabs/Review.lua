@@ -478,6 +478,7 @@ LoadSidebarTools = function(content, height)
         largeTableWarning:SetPoint("RIGHT", -5, 0)
         largeTableWarning:SetAutoHeight(true)
         largeTableWarning:SetText(format(L["This table has %d entries and may cause performance issues while reviewing. It is recommended that you export (for use in Excel) and then purge older entries."], tblSize))
+        largeTableWarning:SetTextColor(1, 0, 0, 1)
         largeTableWarning:Justify("LEFT")
 
         height = height + largeTableWarning:GetHeight()

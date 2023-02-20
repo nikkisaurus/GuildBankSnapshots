@@ -16,6 +16,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
             self:Justify("CENTER", "MIDDLE")
             self:SetText("")
             self:SetPadding(0, 0)
+            self:SetTextColor(1, 1, 1, 1)
         end,
 
         OnEnter = function(self)
