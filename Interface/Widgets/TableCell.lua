@@ -6,13 +6,17 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
     cell = private:MixinText(cell)
 
     cell:InitScripts({
-        -- Scripts
+        OnAcquire = function(self)
+            self.bg:Hide()
+            self:SetBackdropColor(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"])
+        end,
+
         OnEnter = function(self, ...)
+            self.bg:Show()
+
             -- Enable row highlight
             local parent = self:GetParent()
             parent:GetScript("OnEnter")(parent, ...)
-            -- Highlight text
-            self.text:SetFontObject(GameFontHighlightSmall)
 
             -- Show tooltips
             if not self.data then
@@ -38,11 +42,11 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
         end,
 
         OnLeave = function(self, ...)
+            self.bg:Hide()
+
             -- Disable row highlight
             local parent = self:GetParent()
             parent:GetScript("OnLeave")(parent, ...)
-            -- Unhighlight text
-            self.text:SetFontObject(GameFontHighlightSmall)
             -- Hide tooltips
             private:ClearTooltip()
         end,
@@ -62,6 +66,9 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
     cell:SetHeight(20)
 
     -- Textures
+    cell.bg = cell:CreateTexture(nil, "BACKGROUND")
+    cell.bg:SetAllPoints(cell)
+
     cell.icon = cell:CreateTexture(nil, "BACKGROUND")
     cell.icon:SetScript("OnEnter", GenerateClosure(cell.GetScript, cell, "OnEnter"))
     cell.icon:SetScript("OnLeave", GenerateClosure(cell.GetScript, cell, "OnLeave"))

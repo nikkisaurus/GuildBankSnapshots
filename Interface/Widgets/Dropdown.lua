@@ -29,7 +29,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self.menu:InitializeStyle()
             self:SetEnabled(true)
             self:SetBackdropColor(private.interface.colors.dark)
-            self.arrow:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+            self.arrow:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
         end,
 
         OnClick = function(self)
@@ -127,9 +127,9 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
     function dropdown:SetDisabled(isDisabled)
         if isDisabled then
-            self.arrow:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "dimmedClass" or "dimmedFlair"]:GetRGBA())
+            self.arrow:SetTextColor(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"]:GetRGBA())
         else
-            self.arrow:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+            self.arrow:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
         end
         self:SetEnabled(not isDisabled)
     end
@@ -399,7 +399,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         self.style = {
             width = "auto",
             buttonHeight = 20,
-            buttonHighlight = private.interface.colors.lightest,
+            buttonHighlight = private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"],
             maxHeight = 200,
             anchor = "TOPLEFT",
             relAnchor = "BOTTOMLEFT",

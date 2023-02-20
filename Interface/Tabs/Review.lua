@@ -338,7 +338,7 @@ LoadSidebar = function()
         local header = content:Acquire("GuildBankSnapshotsButton")
         header:SetHeight(20)
         header:SetText(info.header)
-        header:SetBackdropColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "lightClass" or "lightFlair"], private.interface.colors.light)
+        header:SetBackdropColor(private.interface.colors[private:UseClassColor() and "lightClass" or "lightFlair"], private.interface.colors.light)
         header:SetTextColor(private.interface.colors.white:GetRGBA())
 
         header:SetPoint("TOPLEFT", 0, -height)

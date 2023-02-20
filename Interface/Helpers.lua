@@ -159,3 +159,7 @@ function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
         self:GetParent():StopMovingOrSizing()
     end)
 end
+
+function private:UseClassColor()
+    return private.db.global.settings.preferences.useClassColor
+end

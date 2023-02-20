@@ -67,7 +67,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         end,
 
         OnMouseDown = function(self)
-            self.bg:SetColorTexture(private.interface.colors[private.db.global.settings.preferences.useClassColor and "dimmedClass" or "dimmedFlair"]:GetRGBA())
+            self.bg:SetColorTexture(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"]:GetRGBA())
         end,
 
         OnMouseUp = function(self)

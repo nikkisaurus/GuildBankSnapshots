@@ -30,7 +30,7 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
 
         OnLeave = function(self)
             if not self.isSelected then
-                self:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+                self:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
             end
         end,
 
@@ -45,7 +45,7 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     tab:SetNormalTexture(tab.bg)
 
     tab.selected = tab:CreateTexture(nil, "BACKGROUND")
-    tab.selected:SetColorTexture(private.interface.colors[private.db.global.settings.preferences.useClassColor and "lightClass" or "lightFlair"]:GetRGBA())
+    tab.selected:SetColorTexture(private.interface.colors[private:UseClassColor() and "lightClass" or "lightFlair"]:GetRGBA())
     tab.selected:SetAllPoints(tab.bg)
 
     -- Text
@@ -64,7 +64,7 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
         if isSelected then
             self:SetTextColor(private.interface.colors.white:GetRGBA())
         else
-            self:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+            self:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
         end
 
         self:SetNormalTexture(isSelected and self.selected or self.bg)

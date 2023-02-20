@@ -59,7 +59,7 @@ function private:InitializeFrame()
     frame.title:SetText(L.addonName)
     frame.title:SetPoint("TOPLEFT", 4, -2)
     frame.title:SetPoint("BOTTOMRIGHT", -4, 2)
-    frame.title:SetTextColor(private.interface.colors[private.db.global.settings.preferences.useClassColor and "class" or "flair"]:GetRGBA())
+    frame.title:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
 
     -- [[ Tabs ]]
     frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsContainer")
