@@ -186,6 +186,26 @@ GetFilters = function()
             end,
         },
 
+        itemLevels = {
+            list = {},
+            minValue = 0,
+            maxValue = 418,
+            func = function(self, elementData)
+                local itemLink = elementData.itemLink
+                local iLvl = itemLink and self.list[itemLink]
+
+                if self.minValue == 0 and (not itemLink or not iLvl) then
+                    return
+                end
+
+                if iLvl and iLvl >= self.minValue and iLvl <= self.maxValue then
+                    return
+                end
+
+                return true
+            end,
+        },
+
         itemNames = {
             list = {},
             values = {},
@@ -408,6 +428,37 @@ LoadSidebar = function()
 end
 
 LoadSidebarFilters = function(content, height)
+    local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
+    duplicates:SetPoint("TOPLEFT", 5, -height)
+    duplicates:SetPoint("RIGHT", -5, 0)
+
+    duplicates:SetText(L["Remove duplicates"] .. "*")
+    duplicates:SetCallback("OnClick", function(self)
+        ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value = self:GetChecked()
+    end)
+    duplicates:SetTooltipInitializer(function()
+        GameTooltip:AddLine(L["Experimental"])
+    end)
+
+    duplicates:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value)
+    duplicates:SetDisabled(true)
+
+    height = height + duplicates:GetHeight()
+
+    -----------------------
+
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
     local tabNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     tabNameLabel:SetPoint("TOPLEFT", 5, -height)
     tabNameLabel:SetPoint("RIGHT", -5, 0)
@@ -453,6 +504,18 @@ LoadSidebarFilters = function(content, height)
     end, true)
 
     height = height + tabName:GetHeight() + 5
+
+    -----------------------
+
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
+
+    height = height + divider:GetHeight() + 5
 
     -----------------------
 
@@ -659,6 +722,43 @@ LoadSidebarFilters = function(content, height)
 
     height = height + rank:GetHeight() + 5
 
+    -----------------------
+
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
+    local itemLevelLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    itemLevelLabel:SetPoint("TOPLEFT", 5, -height)
+    itemLevelLabel:SetPoint("RIGHT", -5, 0)
+    itemLevelLabel:SetText(L["Item Level"])
+    itemLevelLabel:Justify("LEFT")
+
+    height = height + itemLevelLabel:GetHeight()
+
+    local itemLevel = content:Acquire("GuildBankSnapshotsMinMaxFrame")
+    itemLevel:SetPoint("TOPLEFT", 5, -height)
+    itemLevel:SetPoint("RIGHT", -5, 0)
+    itemLevel:SetMinMaxValues(0, 418, function(self, range, value)
+        ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = value
+        LoadTable()
+    end)
+
+    itemLevel:SetCallback("OnShow", function(self)
+        self:SetValues(ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels.minValue, ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels.maxValue)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
+
+    height = height + itemLevel:GetHeight() + 5
+
     return height
 end
 
@@ -746,6 +846,19 @@ LoadTable = function()
             ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = true
             ReviewTab.guilds[ReviewTab.guildID].filters.tabs.list[private:GetTabName(ReviewTab.guildID, elementData.tabID)] = true
             if elementData.itemLink then
+                addon:CacheItem(elementData.itemLink, function(success, itemID, callback)
+                    if success then
+                        local _, itemLink, _, _, _, itemType = GetItemInfo(itemID)
+                        if itemType == "Armor" or itemType == "Weapon" then
+                            local iLvl = GetDetailedItemLevelInfo(itemID)
+                            callback(itemLink, iLvl)
+                        end
+                    end
+                end, {
+                    function(itemLink, itemLevel)
+                        ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels.list[itemLink] = itemLevel
+                    end,
+                })
                 ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list[private:GetItemName(elementData.itemLink)] = true
             end
 

@@ -10,7 +10,9 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         OnAcquire = function(self)
             self:SetSize(150, 20)
             self:Justify("LEFT", "TOP")
-            button:SetAutoHeight(true)
+            self:SetAutoHeight(true)
+            self:SetDisabled()
+            self:SetAnchors()
         end,
 
         OnClick = function(self, ...)
@@ -29,22 +31,32 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     })
 
     -- Textures
+    button.checkBoxBorder = button:CreateTexture(nil, "BORDER")
+    button.checkBoxBorder:SetColorTexture(private.interface.colors.black:GetRGBA())
+
     button.checkBox = button:CreateTexture(nil, "ARTWORK")
-    button.checkBox:SetTexture(130755)
-    button.checkBox:SetPoint("TOPLEFT")
-    button.checkBox:SetSize(16, 16)
+    button.checkBox:SetPoint("TOPLEFT", button.checkBoxBorder, "TOPLEFT", 1, -1)
+    button.checkBox:SetPoint("BOTTOMRIGHT", button.checkBoxBorder, "BOTTOMRIGHT", -1, 1)
+    button.checkBox:SetColorTexture(private.interface.colors.light:GetRGBA())
 
     button.checked = button:CreateTexture(nil, "OVERLAY")
-    button.checked:SetAllPoints(button.checkBox)
+    button.checked:SetPoint("TOPLEFT", button.checkBoxBorder, "TOPLEFT", -4, 4)
+    button.checked:SetPoint("BOTTOMRIGHT", button.checkBoxBorder, "BOTTOMRIGHT", 4, -4)
     button.checked:SetTexture(130751)
     button.checked:Hide()
 
     -- Text
     button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    button.text:SetPoint("TOPLEFT", button.checkBox, "TOPRIGHT", 2, 0)
-    button.text:SetPoint("RIGHT", -2, 0)
 
     -- Methods
+    function button:SetAnchors()
+        local size = min(self:GetHeight(), 12)
+        self.checkBoxBorder:SetSize(size, size)
+        self.checkBoxBorder:SetPoint("TOPLEFT", self, "TOPLEFT")
+        self.text:SetPoint("TOPLEFT", self.checkBox, "TOPRIGHT", 5, 0)
+        self.text:SetPoint("RIGHT", -5, 0)
+    end
+
     function button:GetChecked()
         return self.isChecked
     end
@@ -63,6 +75,11 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         self.isChecked = isChecked
         self:SetChecked(isChecked)
         self.handlers.OnClick(self)
+    end
+
+    function button:SetDisabled(isDisabled)
+        self:SetTextColor(private.interface.colors[isDisabled and "dimmedWhite" or "white"]:GetRGBA())
+        self:SetEnabled(not isDisabled)
     end
 
     function button:SetTooltipInitializer(tooltip)

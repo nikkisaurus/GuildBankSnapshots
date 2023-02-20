@@ -15,6 +15,7 @@ L["Experimental"] = true
 L["Filters"] = true
 L["Help"] = true
 L["Item"] = true
+L["Item Level"] = true
 L["Item Rank"] = true
 L["Item/Amount"] = true
 L["Line"] = true
