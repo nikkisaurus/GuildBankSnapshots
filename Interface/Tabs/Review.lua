@@ -21,14 +21,14 @@ end
 local sidebarSections = {
     {
         header = L["Sorting"],
-        collapsed = true,
+        collapsed = false,
         onLoad = function(...)
             return LoadSidebarSorters(...)
         end,
     },
     {
         header = L["Filters"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarFilters(...)
         end,
@@ -134,7 +134,7 @@ local tableCols = {
         width = 1,
     },
     [9] = {
-        header = "Scan ID",
+        header = L["Scan Date"],
         icon = 374216,
         sortValue = function(data)
             return data.scanID
