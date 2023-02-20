@@ -328,12 +328,13 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             local text = searchBox:GetText()
 
             if userInput then
-                listFrame:SetDataProvider(function(provider)
+                local provider = listFrame:SetDataProvider(function(provider)
                     for _, info in pairs(self.dropdown:GetInfo()) do
                         if strfind(strupper(info.id), strupper(text)) then
                             provider:Insert(info)
                         end
                     end
+                    self:SetHeight(min(((provider:GetSize() + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + (self.style.hasClear and 30 or 0), self.style.maxHeight))
                 end)
             end
         end)
@@ -341,6 +342,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         searchBox:SetCallback("OnClear", function(...)
             listFrame:SetDataProvider(function(provider)
                 provider:InsertTable(self.dropdown:GetInfo())
+                self:SetHeight(min(((provider:GetSize() + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + (self.style.hasClear and 30 or 0), self.style.maxHeight))
             end)
         end)
 
