@@ -21,7 +21,7 @@ end
 local sidebarSections = {
     {
         header = L["Sorting"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarSorters(...)
         end,
@@ -44,7 +44,7 @@ local sidebarSections = {
 
 local tableCols = {
     [1] = {
-        header = "Date",
+        header = L["Date"],
         sortValue = function(data)
             return private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour)
         end,
@@ -54,7 +54,7 @@ local tableCols = {
         width = 1,
     },
     [2] = {
-        header = "Tab",
+        header = L["Tab"],
         sortValue = function(data)
             return private:GetTabName(ReviewTab.guildID, data.tabID)
         end,
@@ -64,7 +64,7 @@ local tableCols = {
         width = 1,
     },
     [3] = {
-        header = "Type",
+        header = L["Type"],
         sortValue = function(data)
             return data.transactionType
         end,
@@ -74,7 +74,7 @@ local tableCols = {
         width = 1,
     },
     [4] = {
-        header = "Name",
+        header = L["Name"],
         sortValue = function(data)
             return data.name
         end,
@@ -84,7 +84,7 @@ local tableCols = {
         width = 1,
     },
     [5] = {
-        header = "Item/Amount",
+        header = L["Item/Amount"],
         icon = function(data)
             return data.itemLink and GetItemIcon(data.itemLink)
         end,
@@ -104,7 +104,7 @@ local tableCols = {
         width = 2.25,
     },
     [6] = {
-        header = "Quantity",
+        header = L["Quantity"],
         sortValue = function(data)
             return data.count or 0
         end,
@@ -114,7 +114,7 @@ local tableCols = {
         width = 0.5,
     },
     [7] = {
-        header = "Move Origin",
+        header = L["Move Origin"],
         sortValue = function(data)
             return data.moveOrigin or 0
         end,
@@ -124,7 +124,7 @@ local tableCols = {
         width = 1,
     },
     [8] = {
-        header = "Move Destination",
+        header = L["Move Destination"],
         sortValue = function(data)
             return data.moveDestination or 0
         end,
@@ -461,7 +461,7 @@ LoadSidebarSorters = function(content, height)
         LoadTable()
     end)
     enableMultiSort:SetTooltipInitializer(function()
-        GameTooltip:AddLine(L["Not recommended for large tables, as it may cause the game to freeze for extended periods of time"])
+        GameTooltip:AddLine(L["Not recommended for large tables as it may cause the game to freeze for extended periods of time"])
     end)
 
     enableMultiSort:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].multiSort)

@@ -6,19 +6,24 @@ L.addonName = "Guild Bank Snapshots"
 
 L["Analyze"] = true
 L["Clear"] = true
+L["Date"] = true
 L["Enable multi-sorting"] = true
 L["Entry"] = true
 L["Experimental"] = true
 L["Filters"] = true
 L["Help"] = true
+L["Item/Amount"] = true
 L["Line"] = true
 L["Loading transactions"] = true
 L["Money Tab"] = true
+L["Move Destination"] = true
 L["Move Destination ID"] = true
+L["Move Origin"] = true
 L["Move Origin ID"] = true
 L["Name"] = true
-L["Not recommended for large tables, as it may cause the game to freeze for extended periods of time"] = true
+L["Not recommended for large tables as it may cause the game to freeze for extended periods of time"] = true
 L["Page"] = true
+L["Quantity"] = true
 L["Remove duplicates"] = true
 L["Review"] = true
 L["Scan Date"] = true
@@ -32,6 +37,7 @@ L["This table has %d entries and may cause performance issues while reviewing. I
 L["Tools"] = true
 L["Transaction ID"] = true
 L["Transaction Type"] = true
+L["Type"] = true
 
 -- -- OLD STRINGS:
 -- L["Buy Tab"] = true
