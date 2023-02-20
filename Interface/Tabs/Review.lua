@@ -226,6 +226,23 @@ GetFilters = function()
             end,
         },
 
+        rank = {
+            minValue = 0,
+            maxValue = 5,
+            func = function(self, elementData)
+                if not elementData.itemLink then
+                    return
+                end
+
+                local tier = tonumber(elementData.itemLink:match("|A.-Tier(%d).-|a")) or 0
+                if tier >= self.minValue and tier <= self.maxValue then
+                    return
+                end
+
+                return true
+            end,
+        },
+
         transactionType = {
             values = {},
             func = function(self, elementData)
@@ -563,12 +580,12 @@ LoadSidebarFilters = function(content, height)
     rank:SetPoint("TOPLEFT", 5, -height)
     rank:SetPoint("RIGHT", -5, 0)
     rank:SetMinMaxValues(0, 5, function(self, range, value)
-        print(range, value)
+        ReviewTab.guilds[ReviewTab.guildID].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = value
+        LoadTable()
     end)
 
     rank:SetCallback("OnShow", function(self)
-        -- TODO set min max
-
+        self:SetValues(ReviewTab.guilds[ReviewTab.guildID].filters.rank.minValue, ReviewTab.guilds[ReviewTab.guildID].filters.rank.maxValue)
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
     end, true)
 

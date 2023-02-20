@@ -67,7 +67,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     end
 
     function frame:SetMaxValue(maxValue)
-        frame.upper:SetText(maxValue)
+        frame.upper:SetText(maxValue or "")
     end
 
     function frame:SetMinMaxValues(minValue, maxValue, callback)
@@ -77,7 +77,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     end
 
     function frame:SetMinValue(minValue)
-        frame.lower:SetText(minValue)
+        frame.lower:SetText(minValue or "")
     end
 
     function frame:SetValues(minValue, maxValue)
