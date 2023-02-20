@@ -17,6 +17,11 @@ function private:GetGuildDisplayName(guildID)
     return guildFormat
 end
 
+function private:GetItemName(itemLink)
+    assert(type(itemLink) == "string", "GetItemName: itemLink must be a string")
+    return select(3, strfind(select(3, strfind(itemLink, "|H(.+)|h")) or "", "%[(.+)%]"))
+end
+
 function private:GetTabName(guildID, tabID)
     if not guildID then
         private:dprint("Invalid guildID:", guildID)

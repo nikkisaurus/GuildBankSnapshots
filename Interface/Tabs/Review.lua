@@ -28,14 +28,14 @@ local sidebarSections = {
     },
     {
         header = L["Filters"],
-        collapsed = true,
+        collapsed = false,
         onLoad = function(...)
             return LoadSidebarFilters(...)
         end,
     },
     {
         header = L["Tools"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarTools(...)
         end,
@@ -89,9 +89,7 @@ local tableCols = {
             return data.itemLink and GetItemIcon(data.itemLink)
         end,
         sortValue = function(data)
-            local itemString = select(3, strfind(data.itemLink or "", "|H(.+)|h"))
-            local itemName = select(3, strfind(itemString or "", "%[(.+)%]"))
-            return itemName or data.amount
+            return data.itemLink and private:GetItemName(data.itemLink) or data.amount
         end,
         text = function(data)
             return data.itemLink or GetCoinTextureString(data.amount)
@@ -184,6 +182,28 @@ GetFilters = function()
             value = true,
             func = function(self, elementData)
                 -- TODO filter duplicates
+            end,
+        },
+
+        itemNames = {
+            list = {},
+            values = {},
+            func = function(self, elementData)
+                if not elementData.itemLink then
+                    return true
+                end
+
+                if addon:tcount(self.values) == 0 then
+                    return
+                end
+
+                for itemName, _ in pairs(self.values) do
+                    if itemName == private:GetItemName(elementData.itemLink) then
+                        return
+                    end
+                end
+
+                return true
             end,
         },
 
@@ -378,12 +398,12 @@ LoadSidebarFilters = function(content, height)
     transactionType:SetInfo(function()
         local info = {}
 
-        for transactionTypeID, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "move", "repair", "withdraw", "withdrawForTab" }) do
+        for _, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "move", "repair", "withdraw", "withdrawForTab" }) do
             tinsert(info, {
                 id = transactionType,
                 text = transactionType,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values[transactionType] = dropdown:GetSelected(transactionType) or nil
+                    ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values[transactionType] = dropdown:GetSelected(transactionType) and true or nil
                     LoadTable()
                 end,
             })
@@ -422,12 +442,12 @@ LoadSidebarFilters = function(content, height)
     name:SetInfo(function()
         local info = {}
 
-        for name, transactionID in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.list) do
+        for name, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.list) do
             tinsert(info, {
                 id = name,
                 text = name,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.names.values[name] = dropdown:GetSelected(name) or nil
+                    ReviewTab.guilds[ReviewTab.guildID].filters.names.values[name] = dropdown:GetSelected(name) and true or nil
                     LoadTable()
                 end,
             })
@@ -446,6 +466,50 @@ LoadSidebarFilters = function(content, height)
     end
 
     height = height + name:GetHeight() + 5
+
+    local itemNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    itemNameLabel:SetPoint("TOPLEFT", 5, -height)
+    itemNameLabel:SetPoint("RIGHT", -5, 0)
+    itemNameLabel:SetText(L["Item"])
+    itemNameLabel:SetFontObject(GameFontNormalSmall)
+    itemNameLabel:Justify("LEFT")
+    itemNameLabel:Show()
+
+    height = height + itemNameLabel:GetHeight()
+
+    local itemName = content:Acquire("GuildBankSnapshotsDropdownButton")
+    itemName:SetPoint("TOPLEFT", 5, -height)
+    itemName:SetPoint("RIGHT", -5, 0)
+    itemName:Justify("LEFT")
+
+    itemName:SetStyle({ multiSelect = true, hasSearch = true, hasClear = true })
+    itemName:SetInfo(function()
+        local info = {}
+
+        for itemName, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list) do
+            tinsert(info, {
+                id = itemName,
+                text = itemName,
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values[itemName] = dropdown:GetSelected(itemName) and true or nil
+                    LoadTable()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    itemName:SetCallback("OnClear", function()
+        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values)
+        LoadTable()
+    end)
+
+    for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values) do
+        itemName:SelectByID(data.value)
+    end
+
+    height = height + itemName:GetHeight() + 5
 
     return height
 end
@@ -528,7 +592,10 @@ LoadTable = function()
             elementData.transactionID = transaction.transactionID
             elementData.scanID = transaction.scanID
 
-            ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = transactionID
+            ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = true
+            if elementData.itemLink then
+                ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list[private:GetItemName(elementData.itemLink)] = true
+            end
 
             if IsQueryMatch(elementData) and not IsFiltered(elementData) then
                 validEntries = validEntries + 1
