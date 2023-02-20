@@ -109,15 +109,15 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     function dropdown:SelectByID(value)
         assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
 
-        for infoID, info in pairs(self:GetInfo()) do
+        for _, info in pairs(self:GetInfo()) do
             if info.id == value then
                 if self.menu.style.multiSelect then
                     self.selected[info.id] = not self.selected[info.id]
-                    self:UpdateMultiText()
                 else
-                    self:SetText(info.text)
+                    wipe(self.selected)
+                    self.selected[info.id] = true
                 end
-                -- self:UpdateText()
+                self:UpdateText()
                 info.func(self)
             end
         end
@@ -152,10 +152,8 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end
     end
 
-    function dropdown:UpdateMultiText()
-        if not self.info then
-            return
-        end
+    function dropdown:UpdateText()
+        self:SetText("")
 
         local text
         for selectedID, enabled in addon:pairs(self.selected) do
