@@ -244,16 +244,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     end
 
     function button:SetChecked()
-        local checked
-        if self.menu.style.multiSelect then
-            checked = self.dropdown:GetSelected(self.info.id)
-        else
-            checked = self.info.checked
-            if type(checked) == "function" then
-                checked = checked()
-            end
-        end
-
+        local checked = self.dropdown:GetSelected(self.info.id)
         if checked then
             self.checked:Show()
         else
@@ -296,38 +287,60 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     function menu:InitializeListFrame()
         self:ReleaseAll()
 
-        local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
-
+        local searchBox = self:Acquire("GuildBankSnapshotsSearchBox")
+        searchBox:SetHeight(20)
         if self.style.hasSearch then
-            local searchBox = self:Acquire("GuildBankSnapshotsSearchBox")
             searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 10, -5)
             searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, 0)
-            searchBox:SetHeight(20)
-            self:SetHeight(self:GetHeight() + 25)
+        end
 
-            searchBox:SetCallback("OnTextChanged", function(_, userInput)
-                local text = searchBox:GetText()
+        searchBox:SetCallback("OnTextChanged", function(_, userInput)
+            local text = searchBox:GetText()
 
-                if userInput then
-                    listFrame:SetDataProvider(function(provider)
-                        for _, info in pairs(self.dropdown:GetInfo()) do
-                            if strfind(strupper(info.id), strupper(text)) then
-                                provider:Insert(info)
-                            end
-                        end
-                        self:SetMenuHeight(provider)
-                    end)
-                end
-            end)
-
-            searchBox:SetCallback("OnClear", function(...)
+            if userInput then
                 listFrame:SetDataProvider(function(provider)
-                    provider:InsertTable(self.dropdown:GetInfo())
+                    for _, info in pairs(self.dropdown:GetInfo()) do
+                        if strfind(strupper(info.id), strupper(text)) then
+                            provider:Insert(info)
+                        end
+                    end
                     self:SetMenuHeight(provider)
                 end)
-            end)
+            end
+        end)
 
-            listFrame:SetPoint("TOP", searchBox, "BOTTOM")
+        searchBox:SetCallback("OnClear", function(...)
+            listFrame:SetDataProvider(function(provider)
+                provider:InsertTable(self.dropdown:GetInfo())
+                self:SetMenuHeight(provider)
+            end)
+        end)
+
+        local clearButton = self:Acquire("GuildBankSnapshotsButton")
+        clearButton:SetText(L["Clear"])
+        clearButton:SetHeight(20)
+        if self.style.hasClear then
+            if self.style.hasSearch then
+                clearButton:SetPoint("TOPLEFT", searchBox, "BOTTOMLEFT", -5, -5)
+                clearButton:SetPoint("TOPRIGHT", searchBox, "BOTTOMRIGHT", 5, 0)
+            else
+                clearButton:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
+                clearButton:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, 0)
+            end
+        end
+
+        clearButton:SetCallback("OnClick", function()
+            self:Close()
+            wipe(self.dropdown.selected)
+            self.dropdown:UpdateText()
+            if self.dropdown.handlers.OnClear then
+                self.dropdown.handlers.OnClear(self.dropdown)
+            end
+        end)
+
+        local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
+        if self.style.hasClear or self.style.hasSearch then
+            listFrame:SetPoint("TOP", self.style.hasClear and clearButton or self.style.hasSearch and searchBox, "BOTTOM", 0, -5)
             listFrame:SetPoint("LEFT", self, "LEFT")
             listFrame:SetPoint("BOTTOM", self, "BOTTOM")
         else
@@ -359,6 +372,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             checkAlignment = "LEFT",
             hasSearch = false,
             multiSelect = false,
+            hasClear = false,
         }
     end
 
@@ -374,7 +388,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     end
 
     function menu:SetMenuHeight(provider)
-        self:SetHeight(min((provider:GetSize() + 1) * self.style.buttonHeight, (self.style.maxButtons + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0))
+        self:SetHeight(min((provider:GetSize() + 1) * self.style.buttonHeight, (self.style.maxButtons + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + (self.style.hasClear and 30 or 0))
     end
 
     function menu:SetMenuWidth()

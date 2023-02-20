@@ -5,6 +5,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 L.addonName = "Guild Bank Snapshots"
 
 L["Analyze"] = true
+L["Clear"] = true
 L["Enable multi-sorting"] = true
 L["Entry"] = true
 L["Experimental"] = true

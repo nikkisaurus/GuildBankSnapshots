@@ -285,6 +285,10 @@ LoadSidebar = function()
     local content = sidebar.content
     content:ReleaseAll()
 
+    if not ReviewTab.guildID then
+        return
+    end
+
     local height = 0
 
     local searchBox = content:Acquire("GuildBankSnapshotsSearchBox")
@@ -370,11 +374,11 @@ LoadSidebarFilters = function(content, height)
     transactionType:SetPoint("RIGHT", -5, 0)
     transactionType:Justify("LEFT")
 
-    transactionType:SetStyle({ multiSelect = true })
+    transactionType:SetStyle({ multiSelect = true, hasClear = true })
     transactionType:SetInfo(function()
         local info = {}
 
-        for transactionTypeID, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "repair", "withdraw", "withdrawForTab" }) do
+        for transactionTypeID, transactionType in addon:pairs({ "buyTab", "deposit", "depositSummary", "move", "repair", "withdraw", "withdrawForTab" }) do
             tinsert(info, {
                 id = transactionType,
                 text = transactionType,
@@ -386,6 +390,11 @@ LoadSidebarFilters = function(content, height)
         end
 
         return info
+    end)
+
+    transactionType:SetCallback("OnClear", function()
+        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values)
+        LoadTable()
     end)
 
     for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
@@ -409,7 +418,7 @@ LoadSidebarFilters = function(content, height)
     name:SetPoint("RIGHT", -5, 0)
     name:Justify("LEFT")
 
-    name:SetStyle({ multiSelect = true, hasSearch = true })
+    name:SetStyle({ multiSelect = true, hasSearch = true, hasClear = true })
     name:SetInfo(function()
         local info = {}
 
@@ -425,6 +434,11 @@ LoadSidebarFilters = function(content, height)
         end
 
         return info
+    end)
+
+    name:SetCallback("OnClear", function()
+        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.names.values)
+        LoadTable()
     end)
 
     for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
@@ -489,6 +503,11 @@ end
 
 LoadTable = function()
     tableContainer = ReviewTab.tableContainer
+    if not ReviewTab.guildID then
+        tableContainer.scrollBox:Flush()
+        return
+    end
+
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
@@ -571,9 +590,6 @@ function private:LoadReviewTab(content)
                 id = guildID,
                 text = text,
                 isRadio = true,
-                checked = function()
-                    return guildID == ReviewTab.guildID
-                end,
                 func = function()
                     ReviewTab.guildID = guildID
                     ReviewTab.guilds[guildID] = ReviewTab.guilds[guildID] or {

@@ -82,6 +82,7 @@ function private:InitializeFrame()
     -- [[ Scripts ]]
     frame:SetScript("OnSizeChanged", function(self)
         self.tabContainer:ReleaseAll()
+        private:CloseMenus()
 
         local width, height = 0, 0
 
