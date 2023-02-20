@@ -27,6 +27,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self:Justify("RIGHT", "MIDDLE")
             self:SetText("")
             self.menu:InitializeStyle()
+            self:SetEnabled(true)
         end,
 
         OnClick = function(self)
@@ -129,6 +130,11 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         else
             dropdown.arrow:Show()
         end
+    end
+
+    function dropdown:SetDisabled(isDisabled)
+        self.arrow:SetVertexColor(1, 1, 1, isDisabled and 0.25 or 1)
+        self:SetEnabled(not isDisabled)
     end
 
     function dropdown:SetInfo(info)

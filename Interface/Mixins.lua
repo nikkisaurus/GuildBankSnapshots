@@ -236,13 +236,14 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsContainer", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownButton", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownListButton", Resetter)
+    tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsDualSlider", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsFontFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsListScrollFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollFrame", Resetter)
     tbl.pool:CreatePool("EditBox", parent or tbl, "GuildBankSnapshotsSearchBox", Resetter)
+    tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsSlider", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTabButton", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableCell", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableSorter", Resetter)
-
     return tbl
 end

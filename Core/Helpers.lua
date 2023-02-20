@@ -2,6 +2,16 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+private.timeInSeconds = {
+    second = 1,
+    minute = 60,
+    hour = 3600,
+    day = 86400,
+    week = 604800,
+    month = 2628000,
+    year = 31540000,
+}
+
 function private:GetGuildDisplayName(guildID)
     if not guildID then
         return ""
@@ -38,7 +48,7 @@ function private:GetTabName(guildID, tabID)
 end
 
 function private:GetTransactionDate(scanTime, year, month, day, hour)
-    local sec = (hour * 60 * 60) + (day * 60 * 60 * 24) + (month * 60 * 60 * 24 * 31) + (year * 60 * 60 * 24 * 31 * 12)
+    local sec = (hour * private.timeInSeconds.hour) + (day * private.timeInSeconds.day) + (month * private.timeInSeconds.month) + (year * private.timeInSeconds.year)
     return scanTime - sec
 end
 

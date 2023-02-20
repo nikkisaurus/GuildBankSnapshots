@@ -76,4 +76,16 @@
             <OnLoad function="GuildBankSnapshotsTableCell_OnLoad" />
         </Scripts>
     </Button>
+
+    <Frame name="GuildBankSnapshotsDualSlider" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsDualSlider_OnLoad" />
+        </Scripts>
+    </Frame>
+
+    <Slider name="GuildBankSnapshotsSlider" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsSlider_OnLoad" />
+        </Scripts>
+    </Slider>
 </Ui>

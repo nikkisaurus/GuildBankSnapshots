@@ -4,6 +4,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 
 L.addonName = "Guild Bank Snapshots"
 
+L["Amount"] = true
 L["Analyze"] = true
 L["Clear"] = true
 L["Date"] = true
@@ -14,9 +15,11 @@ L["Experimental"] = true
 L["Filters"] = true
 L["Help"] = true
 L["Item"] = true
+L["Item Rank"] = true
 L["Item/Amount"] = true
 L["Line"] = true
 L["Loading transactions"] = true
+L["Lower"] = true
 L["Money Tab"] = true
 L["Move Destination"] = true
 L["Move Destination ID"] = true
@@ -37,9 +40,11 @@ L["Tab ID"] = true
 L["Tab"] = true
 L["The results of this query exceed the maximum allowed entries (%s); loading has stopped and review data is incomplete. To prevent this error, please limit the query through filters or reduce the size of the table using the cleanup feature (optionally, you may first export the table for use in Excel)."] = true
 L["Tools"] = true
+L["Transaction Date"] = true
 L["Transaction ID"] = true
 L["Transaction Type"] = true
 L["Type"] = true
+L["Upper"] = true
 
 -- -- OLD STRINGS:
 -- L["Buy Tab"] = true

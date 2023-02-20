@@ -46,10 +46,10 @@ local tableCols = {
     [1] = {
         header = L["Date"],
         sortValue = function(data)
-            return private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour)
+            return data.transactionDate
         end,
         text = function(data)
-            return date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(data.scanID, data.year, data.month, data.day, data.hour))
+            return date(private.db.global.settings.preferences.dateFormat, data.transactionDate)
         end,
         width = 1,
     },
@@ -178,6 +178,7 @@ end
 
 GetFilters = function()
     return {
+
         duplicates = {
             value = true,
             func = function(self, elementData)
@@ -222,6 +223,20 @@ GetFilters = function()
                 end
 
                 return true
+            end,
+        },
+
+        amount = {
+            list = {},
+            func = function(self, elementData)
+                -- if not self.lower or not self.upper then
+                --     return
+                -- end
+
+                -- if elementData.transactionDate >= self.lower and elementData.transactionDate <= self.upper then
+                --     return
+                -- end
+                -- return true
             end,
         },
 
@@ -363,29 +378,12 @@ LoadSidebar = function()
 end
 
 LoadSidebarFilters = function(content, height)
-    -- local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
-    -- duplicates:SetPoint("TOPLEFT", 5, -height)
-    -- duplicates:SetPoint("RIGHT", -5, 0)
-
-    -- duplicates:SetText(L["Remove duplicates"] .. "*")
-    -- duplicates:SetCallback("OnClick", function(self)
-    --     ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value = self:GetChecked()
-    -- end)
-    -- duplicates:SetTooltipInitializer(function()
-    --     GameTooltip:AddLine(L["Experimental"])
-    -- end)
-
-    -- duplicates:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value)
-
-    -- height = height + duplicates:GetHeight()
-
     local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
     transactionTypeLabel:SetPoint("RIGHT", -5, 0)
     transactionTypeLabel:SetText(L["Transaction Type"])
-    transactionTypeLabel:SetFontObject(GameFontNormalSmall)
+    transactionTypeLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
     transactionTypeLabel:Justify("LEFT")
-    transactionTypeLabel:Show()
 
     height = height + transactionTypeLabel:GetHeight()
 
@@ -417,19 +415,24 @@ LoadSidebarFilters = function(content, height)
         LoadTable()
     end)
 
-    for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
-        transactionType:SelectByID(data.value)
-    end
+    transactionType:SetCallback("OnShow", function(self)
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
+            self:SelectByID(value)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
 
     height = height + transactionType:GetHeight() + 5
+
+    -----------------------
 
     local nameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     nameLabel:SetPoint("TOPLEFT", 5, -height)
     nameLabel:SetPoint("RIGHT", -5, 0)
     nameLabel:SetText(L["Name"])
-    nameLabel:SetFontObject(GameFontNormalSmall)
+    nameLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
     nameLabel:Justify("LEFT")
-    nameLabel:Show()
 
     height = height + nameLabel:GetHeight()
 
@@ -461,19 +464,24 @@ LoadSidebarFilters = function(content, height)
         LoadTable()
     end)
 
-    for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
-        name:SelectByID(data.value)
-    end
+    name:SetCallback("OnShow", function(self)
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
+            self:SelectByID(value)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
 
     height = height + name:GetHeight() + 5
+
+    -----------------------
 
     local itemNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     itemNameLabel:SetPoint("TOPLEFT", 5, -height)
     itemNameLabel:SetPoint("RIGHT", -5, 0)
     itemNameLabel:SetText(L["Item"])
-    itemNameLabel:SetFontObject(GameFontNormalSmall)
+    itemNameLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
     itemNameLabel:Justify("LEFT")
-    itemNameLabel:Show()
 
     height = height + itemNameLabel:GetHeight()
 
@@ -505,11 +513,63 @@ LoadSidebarFilters = function(content, height)
         LoadTable()
     end)
 
-    for buttonID, data in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values) do
-        itemName:SelectByID(data.value)
-    end
+    itemName:SetCallback("OnShow", function(self)
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values) do
+            self:SelectByID(value)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
 
     height = height + itemName:GetHeight() + 5
+
+    -----------------------
+
+    local rankLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    rankLabel:SetPoint("TOPLEFT", 5, -height)
+    rankLabel:SetPoint("RIGHT", -5, 0)
+    rankLabel:SetText(L["Item Rank"])
+    rankLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
+    rankLabel:Justify("LEFT")
+
+    height = height + rankLabel:GetHeight()
+
+    local rank = content:Acquire("GuildBankSnapshotsDualSlider")
+    rank:SetPoint("TOPLEFT", 5, -height)
+    rank:SetPoint("RIGHT", -5, 0)
+    rank:SetWidth(content:GetWidth() - 10)
+    rank:SetMinMaxValues(0, 5, 1, nil, true)
+
+    rank:SetCallback("OnShow", function(self)
+        -- local maxValue, minValue = time()
+        -- for _, value in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.list) do
+        --     minValue = minValue and min(minValue, value) or value
+        -- end
+
+        -- if minValue then
+        --     ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.lower = minValue
+        --     ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.upper = maxValue
+
+        --     self:SetMinMaxValues(minValue, maxValue, 60, function(value)
+        --         return date(private.db.global.settings.preferences.dateFormat, value)
+        --     end)
+
+        --     self:SetMinValue(minValue)
+        --     self:SetMaxValue(maxValue)
+        -- else
+        --     self:SetMinMaxValues(0, 0)
+        -- end
+
+        -- self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
+
+    rank:SetCallback("OnValueChanged", function(frame, range, slider, ...)
+        print(slider:GetValue())
+        -- ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate[range] = slider:GetValue()
+        -- LoadTable()
+    end)
+
+    height = height + rank:GetHeight()
 
     return height
 end
@@ -538,8 +598,8 @@ LoadSidebarSorters = function(content, height)
         sorter:SetPoint("RIGHT", -5, 0)
         sorter:SetText(tableCols[colID].header)
         sorter:SetSorterData(sortID, addon:tcount(tableCols), function()
-            LoadSidebar()
             LoadTable()
+            LoadSidebar()
         end)
 
         height = height + sorter:GetHeight() + 2
@@ -583,20 +643,24 @@ LoadTable = function()
     end
 
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
-    tableContainer:SetDataProvider(function(provider)
+    local provider = tableContainer:SetDataProvider(function(provider)
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
         local validEntries = 0
 
         for transactionID, transaction in ipairs(masterScan) do
             local elementData = transaction.info
+            elementData.transactionDate = private:GetTransactionDate(elementData.scanID, elementData.year, elementData.month, elementData.day, elementData.hour)
             elementData.transactionID = transaction.transactionID
             elementData.scanID = transaction.scanID
 
+            -- Filter defaults
+            -- tinsert(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.list, elementData.transactionDate)
             ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = true
             if elementData.itemLink then
                 ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list[private:GetItemName(elementData.itemLink)] = true
             end
 
+            -- Insert into provider
             if IsQueryMatch(elementData) and not IsFiltered(elementData) then
                 validEntries = validEntries + 1
                 elementData.entryID = validEntries
@@ -641,8 +705,9 @@ LoadTable = function()
                 end
             end
         end)
-        -- print(provider:GetSize())
     end)
+
+    return provider:GetSize()
 end
 
 ------------------------
@@ -673,8 +738,8 @@ function private:LoadReviewTab(content)
                         filters = GetFilters(),
                         multiSort = #private.db.global.guilds[guildID].masterScan < 5000,
                     }
-                    LoadSidebar()
                     LoadTable()
+                    LoadSidebar()
                 end,
             })
         end
