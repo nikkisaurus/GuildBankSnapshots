@@ -51,20 +51,8 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     })
 
     -- Textures
-    dropdown.border = dropdown:CreateTexture(nil, "BACKGROUND")
-    dropdown.border:SetAllPoints(dropdown)
-    dropdown.border:SetColorTexture(0, 0, 0, 1)
-
-    dropdown:SetNormalTexture(dropdown:CreateTexture(nil, "ARTWORK"))
-    dropdown.bg = dropdown:GetNormalTexture()
-    dropdown.bg:SetColorTexture(0.1, 0.1, 0.1, 1)
-    dropdown.bg:SetPoint("TOPLEFT", dropdown.border, "TOPLEFT", 1, -1)
-    dropdown.bg:SetPoint("BOTTOMRIGHT", dropdown.border, "BOTTOMRIGHT", -1, 1)
-
-    dropdown:SetHighlightTexture(dropdown:CreateTexture(nil, "ARTWORK"))
-    dropdown.highlight = dropdown:GetHighlightTexture()
-    dropdown.highlight:SetColorTexture(0.2, 0.2, 0.2, 1)
-    dropdown.highlight:SetAllPoints(dropdown.bg)
+    dropdown.bg, dropdown.border, dropdown.highlight = private:AddBackdrop(dropdown, { bgColor = "elementColor", hasHighlight = true, highlightColor = "elementHighlightColor" })
+    dropdown:SetHighlightTexture(dropdown.highlight)
 
     dropdown.arrow = dropdown:CreateTexture(nil, "ARTWORK", nil, 7)
     dropdown.arrow:SetPoint("RIGHT", -5)
@@ -199,6 +187,8 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         end,
 
         OnEnter = function(self)
+            self.highlight:Show()
+
             if self.text:GetStringWidth() > self.text:GetWidth() then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
                     local text = self.text:GetText()
@@ -207,7 +197,10 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
             end
         end,
 
-        OnLeave = GenerateClosure(private.HideTooltip, private),
+        OnLeave = function(self)
+            self.highlight:Hide()
+            private:HideTooltip()
+        end,
 
         OnRelease = function(self)
             self.menu = nil
@@ -220,7 +213,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     -- Textures
     button.container = button:CreateTexture(nil, "BACKGROUND")
 
-    button.checkBoxBorder = button:CreateTexture(nil, "ARTWORK")
+    button.checkBoxBorder = button:CreateTexture(nil, "BORDER")
     button.checkBoxBorder:SetColorTexture(0, 0, 0, 1)
 
     button.checkBox = button:CreateTexture(nil, "ARTWORK")
@@ -234,10 +227,10 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button.checked:SetTexture(130751)
     button.checked:Hide()
 
-    button.highlight = button:CreateTexture(nil, "ARTWORK")
+    button.highlight = button:CreateTexture(nil, "BACKGROUND")
     button.highlight:SetAllPoints(button)
-    button:SetHighlightTexture(button.highlight)
-    button:GetHighlightTexture():SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
+    button.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
+    button.highlight:Hide()
 
     -- Text
     button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -292,7 +285,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         self.container:SetPoint("TOPLEFT", self.menu.style.paddingX, -self.menu.style.paddingY)
         self.container:SetPoint("BOTTOMRIGHT", -self.menu.style.paddingX, self.menu.style.paddingY)
 
-        self:GetHighlightTexture():SetColorTexture(self.menu.style.buttonHighlight:GetRGBA())
+        self.highlight:SetColorTexture(self.menu.style.buttonHighlight:GetRGBA())
 
         self:Justify(self.menu.style.justifyH, self.menu.style.justifyV)
         self:SetText(self.info.text)
@@ -305,7 +298,9 @@ end
 function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     menu = private:MixinContainer(menu)
     menu:SetFrameLevel(1000)
-    private:AddBackdrop(menu, "insetColor")
+
+    -- Textures
+    menu.bg, menu.border = private:AddBackdrop(menu, { bgColor = "insetColor" })
 
     -- Methods
     function menu:Close()
@@ -315,14 +310,16 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
 
     function menu:InitializeListFrame()
         self:ReleaseAll()
+        self:SetHeight(self:GetHeight() + 2) -- to account for border
 
         local listFrame = self:Acquire("GuildBankSnapshotsListScrollFrame")
 
-        local searchBox = self:Acquire("GuildBankSnapshotsSearchBox")
+        local searchBox = self:Acquire("GuildBankSnapshotsEditBox")
+        searchBox:SetSearchTemplate(true)
         searchBox:SetHeight(20)
         if self.style.hasSearch then
-            searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 10, -5)
-            searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -10, 0)
+            searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
+            searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, 0)
             self:SetHeight(self:GetHeight() + 30)
         end
 
@@ -351,8 +348,8 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         clearButton:SetHeight(20)
         if self.style.hasClear then
             if self.style.hasSearch then
-                clearButton:SetPoint("TOPLEFT", searchBox, "BOTTOMLEFT", -5, -5)
-                clearButton:SetPoint("TOPRIGHT", searchBox, "BOTTOMRIGHT", 5, 0)
+                clearButton:SetPoint("TOPLEFT", searchBox, "BOTTOMLEFT", 0, -5)
+                clearButton:SetPoint("TOPRIGHT", searchBox, "BOTTOMRIGHT", 0, 0)
             else
                 clearButton:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
                 clearButton:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, 0)
@@ -371,10 +368,11 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
 
         if self.style.hasClear or self.style.hasSearch then
             listFrame:SetPoint("TOP", self.style.hasClear and clearButton or self.style.hasSearch and searchBox, "BOTTOM", 0, -5)
-            listFrame:SetPoint("LEFT", self, "LEFT")
-            listFrame:SetPoint("BOTTOM", self, "BOTTOM")
+            listFrame:SetPoint("LEFT", self.bg, "LEFT")
+            listFrame:SetPoint("BOTTOM", self.bg, "BOTTOM")
         else
-            listFrame:SetAllPoints(self)
+            listFrame:SetPoint("TOPLEFT", self.bg, "TOPLEFT")
+            listFrame:SetPoint("BOTTOMRIGHT", self.bg, "BOTTOMRIGHT")
         end
 
         listFrame.scrollView:Initialize(self.style.buttonHeight, function(frame, elementData)
@@ -390,7 +388,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         self.style = {
             width = "auto",
             buttonHeight = 20,
-            buttonHighlight = CreateColor(1, 0.82, 0, 0.25),
+            buttonHighlight = private.interface.colors.highlightColor,
             maxHeight = 200,
             anchor = "TOPLEFT",
             relAnchor = "BOTTOMLEFT",

@@ -11,47 +11,41 @@ function private:strcheck(str)
     return str and str ~= ""
 end
 
-function private:AddBackdrop(frame, bgColor, borderColor, borderSize, noBorder)
+function private:AddBackdrop(frame, options)
     if not frame then
         return
     end
 
-    local backdrop = private.interface.backdrop
-    if noBorder then
-        backdrop.edgeFile = nil
-        backdrop.edgeSize = nil
+    options = type(options) == "table" and options or {}
+    -- options = options and options or {}
+    local bg, border, highlight
+    local bgColor = options.bgColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.bgColor or "bgColor"]
+    local borderColor = options.borderColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.borderColor or "borderColor"]
+    local borderSize = options.borderSize or 1
+    local highlightColor = options.highlightColor == "r" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[options.highlightColor or "highlightColor"]
+    local hasBorder = options.hasBorder
+    local hasHighlight = options.hasHighlight
+
+    bg = frame:CreateTexture(nil, "BORDER")
+    bg:SetColorTexture(bgColor:GetRGBA())
+
+    if hasBorder ~= false then -- default has border, thus we want to draw border when hasBorder == nil
+        border = frame:CreateTexture(nil, "BACKGROUND")
+        border:SetColorTexture(borderColor:GetRGBA())
+        border:SetAllPoints(frame)
+        bg:SetPoint("TOPLEFT", borderSize, -borderSize)
+        bg:SetPoint("BOTTOMRIGHT", -borderSize, borderSize)
     else
-        backdrop.edgeSize = borderSize or backdrop.edgeSize
+        bg:SetAllPoints(frame)
     end
 
-    bgColor = bgColor == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[bgColor or "bgColor"]
-    borderColor = borderColor == "random" and CreateColor(fastrandom(), fastrandom(), fastrandom()) or private.interface.colors[borderColor or "borderColor"]
-
-    if frame.SetBackdrop then
-        frame:SetBackdrop(backdrop)
-        frame:SetBackdropColor(bgColor:GetRGBA())
-        if not noBorder then
-            frame:SetBackdropBorderColor(borderColor:GetRGBA())
-        end
-    else
-        local border
-        if not noBorder then
-            border = frame:CreateTexture(nil, "BACKGROUND")
-            border:SetAllPoints(frame)
-            border:SetColorTexture(borderColor:GetRGBA())
-        end
-
-        local bg = frame:CreateTexture(nil, "ARTWORK")
-        if noBorder then
-            bg:SetAllPoints(frame)
-        else
-            bg:SetPoint("TOPLEFT", backdrop.edgeSize, -backdrop.edgeSize)
-            bg:SetPoint("BOTTOMRIGHT", -backdrop.edgeSize, backdrop.edgeSize)
-        end
-        bg:SetColorTexture(bgColor:GetRGBA())
-
-        return bg, border
+    if hasHighlight == true then
+        highlight = frame:CreateTexture(nil, "ARTWORK")
+        highlight:SetColorTexture(highlightColor:GetRGBA())
+        highlight:SetAllPoints(bg)
     end
+
+    return bg, border, highlight
 end
 
 function private:AddSpecialFrame(frame)
@@ -94,6 +88,7 @@ function private:InitializeInterface()
             borderColor = CreateColor(0, 0, 0, 1),
             emphasizeColor = CreateColor(1, 0.82, 0, 0.5),
             elementColor = CreateColor(0.05, 0.05, 0.05, 1),
+            elementHighlightColor = CreateColor(0.1, 0.1, 0.1, 1),
             bgColor = CreateColor(0.1, 0.1, 0.1, 1),
             insetColor = CreateColor(0.15, 0.15, 0.15, 1),
             highlightColor = CreateColor(0.3, 0.3, 0.3, 1),

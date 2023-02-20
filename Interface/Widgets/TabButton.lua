@@ -31,25 +31,12 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     })
 
     -- Textures
-    tab.border = tab:CreateTexture(nil, "BACKGROUND")
-    tab.border:SetColorTexture(private.interface.colors.borderColor:GetRGBA())
-    tab.border:SetAllPoints(tab)
-
-    tab.normal = tab:CreateTexture(nil, "BACKGROUND")
-    tab.normal:SetColorTexture(private.interface.colors.elementColor:GetRGBA())
-    tab.normal:SetPoint("TOPLEFT", tab.border, "TOPLEFT", 1, -1)
-    tab.normal:SetPoint("BOTTOMRIGHT", tab.border, "BOTTOMRIGHT", -1, 1)
+    tab.bg, tab.border = private:AddBackdrop(tab, { bgColor = "elementColor" })
+    tab:SetNormalTexture(tab.bg)
 
     tab.selected = tab:CreateTexture(nil, "BACKGROUND")
-    tab.selected:SetColorTexture(private.interface.colors.insetColor:GetRGBA())
-    tab.selected:SetAllPoints(tab.normal)
-
-    tab.highlight = tab:CreateTexture(nil, "BACKGROUND")
-    tab.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
-    tab.highlight:SetAllPoints(tab.normal)
-
-    tab:SetNormalTexture(tab.normal)
-    tab:SetHighlightTexture(tab.highlight)
+    tab.selected:SetColorTexture(private.interface.colors.emphasizeColor:GetRGBA())
+    tab.selected:SetAllPoints(tab.bg)
 
     -- Text
     tab:SetText("")
@@ -63,11 +50,8 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     end
 
     function tab:SetSelected(isSelected)
-        if isSelected then
-            tab:SetNormalTexture(tab.selected)
-        else
-            tab:SetNormalTexture(tab.normal)
-        end
+        tab:SetNormalFontObject(isSelected and GameFontHighlight or GameFontNormal)
+        tab:SetNormalTexture(isSelected and tab.selected or tab.bg)
     end
 
     function tab:SetTab(tabID, info)

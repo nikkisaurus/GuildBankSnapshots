@@ -33,7 +33,7 @@ function private:InitializeFrame()
     frame:SetPoint("CENTER")
     frame:Hide()
 
-    private:AddBackdrop(frame, "bgColor")
+    private.bg, private.border = private:AddBackdrop(frame)
     private:SetFrameSizing(frame, 500, 300, GetScreenWidth() - 400, GetScreenHeight() - 200)
     private:AddSpecialFrame(frame)
     private.frame = frame
@@ -43,7 +43,7 @@ function private:InitializeFrame()
     frame.titleBar:SetHeight(26)
     frame.titleBar:SetPoint("TOPLEFT")
     frame.titleBar:SetPoint("RIGHT")
-    private:AddBackdrop(frame.titleBar, "bgColor")
+    frame.titleBar.bg, frame.titleBar.border = private:AddBackdrop(frame.titleBar)
 
     frame.closeButton = CreateFrame("Button", nil, frame.titleBar)
     frame.closeButton:SetSize(22, 22)
@@ -71,7 +71,7 @@ function private:InitializeFrame()
     frame.content:SetPoint("TOPLEFT", frame.tabContainer, "BOTTOMLEFT")
     frame.content:SetPoint("RIGHT", frame.tabContainer, "RIGHT")
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
-    private:AddBackdrop(frame.content, "insetColor")
+    frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "insetColor" })
 
     function frame:SelectTab(tabID)
         self.selectedTab = tabID

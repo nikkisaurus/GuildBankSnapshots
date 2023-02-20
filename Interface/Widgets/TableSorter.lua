@@ -103,11 +103,8 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
     sorter:RegisterForDrag("LeftButton")
 
     -- Textures
-    sorter.bg, sorter.border = private:AddBackdrop(sorter, "insetColor")
 
-    sorter.highlight = sorter:CreateTexture(nil, "ARTWORK")
-    sorter.highlight:SetAllPoints(sorter.bg)
-    sorter.highlight:SetColorTexture(private.interface.colors.highlightColor:GetRGBA())
+    sorter.bg, sorter.border, sorter.highlight = private:AddBackdrop(sorter, { bgColor = "insetColor", hasHighlight = true, highlightColor = "highlightColor" })
     sorter.highlight:Hide()
 
     sorter.upper = sorter:CreateTexture(nil, "OVERLAY")

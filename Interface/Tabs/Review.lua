@@ -178,7 +178,6 @@ end
 
 GetFilters = function()
     return {
-
         duplicates = {
             value = true,
             func = function(self, elementData)
@@ -223,20 +222,6 @@ GetFilters = function()
                 end
 
                 return true
-            end,
-        },
-
-        amount = {
-            list = {},
-            func = function(self, elementData)
-                -- if not self.lower or not self.upper then
-                --     return
-                -- end
-
-                -- if elementData.transactionDate >= self.lower and elementData.transactionDate <= self.upper then
-                --     return
-                -- end
-                -- return true
             end,
         },
 
@@ -326,9 +311,10 @@ LoadSidebar = function()
 
     local height = 0
 
-    local searchBox = content:Acquire("GuildBankSnapshotsSearchBox")
+    local searchBox = content:Acquire("GuildBankSnapshotsEditBox")
+    searchBox:SetSearchTemplate(true)
     searchBox:SetHeight(20)
-    searchBox:SetPoint("TOPLEFT", 10, -height)
+    searchBox:SetPoint("TOPLEFT", 5, -height)
     searchBox:SetPoint("TOPRIGHT", -5, -height)
 
     searchBox:SetCallback("OnEnterPressed", function(self)
@@ -532,44 +518,13 @@ LoadSidebarFilters = function(content, height)
     rankLabel:SetTextColor(private.interface.colors.emphasizedFontColor:GetRGBA())
     rankLabel:Justify("LEFT")
 
-    height = height + rankLabel:GetHeight()
+    height = height + rankLabel:GetHeight() + 5
 
-    local rank = content:Acquire("GuildBankSnapshotsDualSlider")
+    local rank = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     rank:SetPoint("TOPLEFT", 5, -height)
     rank:SetPoint("RIGHT", -5, 0)
-    rank:SetWidth(content:GetWidth() - 10)
-    rank:SetMinMaxValues(0, 5, 1, nil, true)
 
-    rank:SetCallback("OnShow", function(self)
-        -- local maxValue, minValue = time()
-        -- for _, value in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.list) do
-        --     minValue = minValue and min(minValue, value) or value
-        -- end
-
-        -- if minValue then
-        --     ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.lower = minValue
-        --     ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.upper = maxValue
-
-        --     self:SetMinMaxValues(minValue, maxValue, 60, function(value)
-        --         return date(private.db.global.settings.preferences.dateFormat, value)
-        --     end)
-
-        --     self:SetMinValue(minValue)
-        --     self:SetMaxValue(maxValue)
-        -- else
-        --     self:SetMinMaxValues(0, 0)
-        -- end
-
-        -- self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
-    end, true)
-
-    rank:SetCallback("OnValueChanged", function(frame, range, slider, ...)
-        print(slider:GetValue())
-        -- ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate[range] = slider:GetValue()
-        -- LoadTable()
-    end)
-
-    height = height + rank:GetHeight()
+    height = height + rank:GetHeight() + 5
 
     return height
 end
@@ -753,13 +708,13 @@ function private:LoadReviewTab(content)
     sidebar:SetWidth(guildDropdown:GetWidth())
     sidebar:SetPoint("TOPLEFT", guildDropdown, "BOTTOMLEFT")
     sidebar:SetPoint("BOTTOM", 0, 10)
-    private:AddBackdrop(sidebar, "bgColor")
+    sidebar.bg, sidebar.border = private:AddBackdrop(sidebar)
     ReviewTab.sidebar = sidebar
 
     local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
     tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
     tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
-    private:AddBackdrop(tableContainer)
+    tableContainer.bg, tableContainer.border = private:AddBackdrop(tableContainer)
     ReviewTab.tableContainer = tableContainer
 
     local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
@@ -767,7 +722,7 @@ function private:LoadReviewTab(content)
     tableHeaders:SetPoint("LEFT", tableContainer.scrollBox, "LEFT")
     tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
     tableHeaders:SetPoint("BOTTOM", tableContainer, "TOP")
-    private:AddBackdrop(tableHeaders)
+    tableHeaders.bg, tableHeaders.border = private:AddBackdrop(tableHeaders)
     ReviewTab.tableHeaders = ReviewTab.tableHeaders
 
     tableHeaders:SetCallback("OnSizeChanged", function()

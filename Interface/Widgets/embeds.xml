@@ -3,11 +3,11 @@
     <Include file="CheckButton.lua" />
     <Include file="Container.lua" />
     <Include file="Dropdown.lua" />
+    <Include file="EditBox.lua" />
     <Include file="FontFrame.lua" />
     <Include file="ListScrollFrame.lua" />
+    <Include file="MinMaxFrame.lua" />
     <Include file="ScrollFrame.lua" />
-    <Include file="SearchBox.lua" />
-    <Include file="Slider.lua" />
     <Include file="TabButton.lua" />
     <Include file="TableCell.lua" />
     <Include file="TableSorter.lua" />

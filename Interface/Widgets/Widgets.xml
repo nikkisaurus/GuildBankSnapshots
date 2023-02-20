@@ -29,9 +29,9 @@
         </Scripts>
     </Frame>
 
-    <EditBox name="GuildBankSnapshotsSearchBox" inherits="SearchBoxTemplate" virtual="true">
+    <EditBox name="GuildBankSnapshotsEditBox" virtual="true">
         <Scripts>
-            <OnLoad function="GuildBankSnapshotsSearchBox_OnLoad" />
+            <OnLoad function="GuildBankSnapshotsEditBox_OnLoad" />
         </Scripts>
     </EditBox>
 
@@ -77,15 +77,9 @@
         </Scripts>
     </Button>
 
-    <Frame name="GuildBankSnapshotsDualSlider" virtual="true">
+    <Frame name="GuildBankSnapshotsMinMaxFrame" virtual="true">
         <Scripts>
-            <OnLoad function="GuildBankSnapshotsDualSlider_OnLoad" />
+            <OnLoad function="GuildBankSnapshotsMinMaxFrame_OnLoad" />
         </Scripts>
     </Frame>
-
-    <Slider name="GuildBankSnapshotsSlider" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsSlider_OnLoad" />
-        </Scripts>
-    </Slider>
 </Ui>
