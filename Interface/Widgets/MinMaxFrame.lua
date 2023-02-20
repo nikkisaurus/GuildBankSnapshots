@@ -23,6 +23,10 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
             self.minValue = nil
             self.maxValue = nil
             self.callback = nil
+            self.formatter = nil
+            self.reverseFormatter = nil
+            self.lower.value = nil
+            self.upper.value = nil
         end,
     })
 
@@ -32,14 +36,27 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     frame.lower = frame:Acquire("GuildBankSnapshotsEditBox")
     frame.lower:SetPoint("BOTTOMLEFT")
     frame.lower:SetScript("OnEnterPressed", function(self)
-        frame:ValidateValues(self, frame.minValue)
-        local upper = frame.upper:GetNumber()
-        if self:GetNumber() > upper then
-            self:SetText(upper)
+        self:ClearFocus()
+
+        local text = self:GetText()
+        if frame.reverseFormatter then
+            text = frame.reverseFormatter(text) or tonumber(text)
+        end
+        text = tonumber(text)
+
+        local upper = frame.upper.value
+        if text > upper then
+            frame:SetMinValue(upper)
+        elseif text > frame.maxValue then
+            frame:SetMinValue(frame.maxValue)
+        elseif text < frame.minValue then
+            frame:SetMinValue(frame.minValue)
+        else
+            frame:SetMinValue(text)
         end
 
         if frame.callback then
-            frame.callback(frame, "lower", self:GetNumber())
+            frame.callback(frame, "lower", self:GetText())
         end
     end)
 
@@ -49,14 +66,27 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     frame.upper = frame:Acquire("GuildBankSnapshotsEditBox")
     frame.upper:SetPoint("BOTTOMRIGHT")
     frame.upper:SetScript("OnEnterPressed", function(self)
-        frame:ValidateValues(self, frame.maxValue)
-        local lower = frame.lower:GetNumber()
-        if self:GetNumber() < lower then
-            self:SetText(lower)
+        self:ClearFocus()
+
+        local text = self:GetText()
+        if frame.reverseFormatter then
+            text = frame.reverseFormatter(text) or tonumber(text)
+        end
+        text = tonumber(text)
+
+        local lower = frame.lower.value
+        if text < lower then
+            frame:SetMaxValue(lower)
+        elseif text < frame.minValue then
+            frame:SetMaxValue(frame.minValue)
+        elseif text > frame.maxValue then
+            frame:SetMaxValue(frame.maxValue)
+        else
+            frame:SetMaxValue(text)
         end
 
         if frame.callback then
-            frame.callback(frame, "upper", self:GetNumber())
+            frame.callback(frame, "upper", self:GetText())
         end
     end)
 
@@ -67,17 +97,21 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     end
 
     function frame:SetMaxValue(maxValue)
-        frame.upper:SetText(maxValue or "")
+        frame.upper.value = tonumber(maxValue)
+        frame.upper:SetText(self.formatter and self.formatter(maxValue) or maxValue)
     end
 
-    function frame:SetMinMaxValues(minValue, maxValue, callback)
+    function frame:SetMinMaxValues(minValue, maxValue, callback, formatter, reverseFormatter)
         self.minValue = minValue
         self.maxValue = maxValue
         self.callback = callback
+        self.formatter = formatter
+        self.reverseFormatter = reverseFormatter
     end
 
     function frame:SetMinValue(minValue)
-        frame.lower:SetText(minValue or "")
+        frame.lower.value = tonumber(minValue)
+        frame.lower:SetText(self.formatter and self.formatter(minValue) or minValue)
     end
 
     function frame:SetValues(minValue, maxValue)
@@ -85,17 +119,14 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
         frame:SetMaxValue(maxValue)
     end
 
-    function frame:ValidateValues(editBox, default)
-        local value = tonumber(editBox:GetText())
-
+    function frame:ValidateValues(editBox, value, default)
+        value = tonumber(value)
         if not value then
-            editBox:SetText(default)
+            return true
         elseif value < frame.minValue then
-            editBox:SetText(frame.minValue)
+            frame:SetMinValue(frame.minValue)
         elseif value > frame.maxValue then
-            editBox:SetText(frame.maxValue)
+            frame:SetMaxValue(frame.maxValue)
         end
-
-        editBox:ClearFocus()
     end
 end

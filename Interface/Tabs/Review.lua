@@ -179,6 +179,25 @@ end
 
 GetFilters = function()
     return {
+        amounts = {
+            minValue = 0,
+            maxValue = 10000000000,
+            func = function(self, elementData)
+                -- local itemLink = elementData.itemLink
+                -- local iLvl = itemLink and self.list[itemLink]
+
+                -- if self.minValue == 0 and (not itemLink or not iLvl) then
+                --     return
+                -- end
+
+                -- if iLvl and iLvl >= self.minValue and iLvl <= self.maxValue then
+                --     return
+                -- end
+
+                -- return true
+            end,
+        },
+
         duplicates = {
             value = true,
             func = function(self, elementData)
@@ -711,7 +730,7 @@ LoadSidebarFilters = function(content, height)
     rank:SetPoint("TOPLEFT", 5, -height)
     rank:SetPoint("RIGHT", -5, 0)
     rank:SetMinMaxValues(0, 5, function(self, range, value)
-        ReviewTab.guilds[ReviewTab.guildID].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = value
+        ReviewTab.guilds[ReviewTab.guildID].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
     end)
 
@@ -748,7 +767,7 @@ LoadSidebarFilters = function(content, height)
     itemLevel:SetPoint("TOPLEFT", 5, -height)
     itemLevel:SetPoint("RIGHT", -5, 0)
     itemLevel:SetMinMaxValues(0, 418, function(self, range, value)
-        ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = value
+        ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
     end)
 
@@ -758,6 +777,52 @@ LoadSidebarFilters = function(content, height)
     end, true)
 
     height = height + itemLevel:GetHeight() + 5
+
+    -----------------------
+
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
+    local amountLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    amountLabel:SetPoint("TOPLEFT", 5, -height)
+    amountLabel:SetPoint("RIGHT", -5, 0)
+    amountLabel:SetText(L["Amount"])
+    amountLabel:Justify("LEFT")
+
+    height = height + amountLabel:GetHeight()
+
+    -- Maybe make settext not change the text, but add a spots for validation values
+
+    local amount = content:Acquire("GuildBankSnapshotsMinMaxFrame")
+    amount:SetPoint("TOPLEFT", 5, -height)
+    amount:SetPoint("RIGHT", -5, 0)
+    amount:SetMinMaxValues(0, 10000000000, function(self, range, value)
+        print("text changed")
+    end, function(value)
+        return GetCoinTextureString(value)
+    end, function(value)
+        local gold, silver, copper = strmatch(tostring(value), "^(%d*)g*(%d*)s*(%d*)c*$")
+        local amount = ((tonumber(gold) or 0) * COPPER_PER_GOLD) + ((tonumber(silver) or 0) * COPPER_PER_SILVER) + (tonumber(copper) or 0)
+        return amount
+    end)
+
+    amount:SetCallback("OnShow", function(self)
+        self:SetValues(ReviewTab.guilds[ReviewTab.guildID].filters.amounts.minValue, ReviewTab.guilds[ReviewTab.guildID].filters.amounts.maxValue)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
+
+    height = height + amount:GetHeight() + 5
+
+    -----------------------
 
     return height
 end
