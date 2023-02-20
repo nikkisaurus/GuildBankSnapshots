@@ -421,6 +421,7 @@ LoadSidebarFilters = function(content, height)
     divider:SetHeight(5)
     divider:SetText(dividerString)
     divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
 
     height = height + divider:GetHeight() + 5
 
@@ -480,6 +481,7 @@ LoadSidebarFilters = function(content, height)
     divider:SetHeight(5)
     divider:SetText(dividerString)
     divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
 
     height = height + divider:GetHeight() + 5
 
@@ -539,6 +541,7 @@ LoadSidebarFilters = function(content, height)
     divider:SetHeight(5)
     divider:SetText(dividerString)
     divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
 
     height = height + divider:GetHeight() + 5
 

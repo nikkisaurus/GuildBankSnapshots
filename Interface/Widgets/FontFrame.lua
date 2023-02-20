@@ -21,7 +21,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
         OnEnter = function(self)
             -- Show full text if truncated
-            if not self.autoHeight and self.text:GetStringWidth() > self.text:GetWidth() then
+            if not self.autoHeight and not self.disableTooltip and self.text:GetStringWidth() > self.text:GetWidth() then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
                     local text = self.text:GetText()
                     GameTooltip:AddLine(text, unpack(private.interface.colors.white))
@@ -30,5 +30,14 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
         end,
 
         OnLeave = GenerateClosure(private.HideTooltip, private),
+
+        OnRelease = function(self)
+            self.disableTooltip = nil
+        end,
     })
+
+    -- Methods
+    function frame:DisableTooltip(isDisabled)
+        self.disableTooltip = isDisabled
+    end
 end
