@@ -827,9 +827,11 @@ LoadSidebarSorters = function(content, height)
         sorter:SetPoint("TOPLEFT", 5, -height)
         sorter:SetPoint("RIGHT", -5, 0)
         sorter:SetText(tableCols[colID].header)
-        sorter:SetSorterData(sortID, addon:tcount(tableCols), function()
+        sorter:SetSorterData(sortID, colID, addon:tcount(tableCols), function()
             LoadTable()
             LoadSidebar()
+        end, function()
+            LoadTable()
         end)
 
         height = height + sorter:GetHeight() + 2

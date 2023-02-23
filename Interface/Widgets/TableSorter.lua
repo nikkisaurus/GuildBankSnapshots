@@ -93,9 +93,10 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
 
         OnRelease = function(self)
             self.sortID = nil
-            self.tableCols = nil
             self.colID = nil
+            self.maxSorters = nil
             self.callback = nil
+            self.dCallback = nil
         end,
     })
 
@@ -122,7 +123,6 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
     sorter.lower:Hide()
 
     -- Buttons
-
     sorter.moveUp = CreateFrame("Button", nil, sorter)
     sorter.moveUp:SetPoint("LEFT", 5, 0)
     sorter.moveUp:SetNormalFontObject(private.interface.fonts.symbolFont)
@@ -143,10 +143,21 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         sorter:Move(1)
     end)
 
+    sorter.direction = CreateFrame("Button", nil, sorter)
+    sorter.direction:SetSize(30, 20)
+    sorter.direction:SetPoint("RIGHT", -5, 0)
+    sorter.direction:SetNormalFontObject(GameFontHighlightSmall)
+
+    sorter.direction:SetScript("OnClick", function()
+        private.db.global.settings.preferences.descendingHeaders[sorter.colID] = not private.db.global.settings.preferences.descendingHeaders[sorter.colID]
+        sorter.direction:SetText(private.db.global.settings.preferences.descendingHeaders[sorter.colID] and "DES" or "ASC")
+        sorter.dCallback()
+    end)
+
     -- Text
     sorter.text = sorter:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     sorter.text:SetPoint("LEFT", sorter.moveDown, "RIGHT", 5, 0)
-    sorter.text:SetPoint("RIGHT", -5, 0)
+    sorter.text:SetPoint("RIGHT", sorter.direction, "LEFT", -5, 0)
 
     -- Methods
 
@@ -171,10 +182,14 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         self.moveDown:SetEnabled(true)
     end
 
-    function sorter:SetSorterData(sortID, maxSorters, callback)
+    function sorter:SetSorterData(sortID, colID, tableCols, callback, dCallback)
         self.sortID = sortID
-        self.maxSorters = maxSorters
+        self.colID = colID
+        self.maxSorters = tableCols
         self.callback = callback
+        self.dCallback = dCallback
+
+        sorter.direction:SetText(private.db.global.settings.preferences.descendingHeaders[colID] and "DES" or "ASC")
 
         if sortID == 1 then
             sorter.moveUp:SetEnabled()
