@@ -183,18 +183,17 @@ GetFilters = function()
             minValue = 0,
             maxValue = 10000000000,
             func = function(self, elementData)
-                -- local itemLink = elementData.itemLink
-                -- local iLvl = itemLink and self.list[itemLink]
+                if not elementData.amount then
+                    return self.minValue > 0
+                end
 
-                -- if self.minValue == 0 and (not itemLink or not iLvl) then
-                --     return
-                -- end
+                -- print(elementData.amount, self.minValue, self.maxValue)
 
-                -- if iLvl and iLvl >= self.minValue and iLvl <= self.maxValue then
-                --     return
-                -- end
+                if elementData.amount >= self.minValue and elementData.amount <= self.maxValue then
+                    return
+                end
 
-                -- return true
+                return true
             end,
         },
 
@@ -230,7 +229,7 @@ GetFilters = function()
             values = {},
             func = function(self, elementData)
                 if not elementData.itemLink then
-                    return true
+                    return
                 end
 
                 if addon:tcount(self.values) == 0 then
@@ -800,19 +799,21 @@ LoadSidebarFilters = function(content, height)
 
     height = height + amountLabel:GetHeight()
 
-    -- Maybe make settext not change the text, but add a spots for validation values
-
     local amount = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     amount:SetPoint("TOPLEFT", 5, -height)
     amount:SetPoint("RIGHT", -5, 0)
     amount:SetMinMaxValues(0, 10000000000, function(self, range, value)
-        print("text changed")
+        ReviewTab.guilds[ReviewTab.guildID].filters.amounts[range == "lower" and "minValue" or range == "upper" and "maxValue"] = self[range].value
+
+        LoadTable()
     end, function(value)
         return GetCoinTextureString(value)
     end, function(value)
-        local gold, silver, copper = strmatch(tostring(value), "^(%d*)g*(%d*)s*(%d*)c*$")
-        local amount = ((tonumber(gold) or 0) * COPPER_PER_GOLD) + ((tonumber(silver) or 0) * COPPER_PER_SILVER) + (tonumber(copper) or 0)
-        return amount
+        local gold = strmatch(value, "(%d+)g")
+        local silver = strmatch(value, "(%d+)s")
+        local copper = strmatch(value, "(%d+)c")
+
+        return ((tonumber(gold) or 0) * COPPER_PER_GOLD) + ((tonumber(silver) or 0) * COPPER_PER_SILVER) + (tonumber(copper) or 0)
     end)
 
     amount:SetCallback("OnShow", function(self)
