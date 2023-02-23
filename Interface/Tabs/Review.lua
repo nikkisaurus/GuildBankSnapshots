@@ -229,7 +229,7 @@ GetFilters = function()
             values = {},
             func = function(self, elementData)
                 if not elementData.itemLink then
-                    return
+                    return addon:tcount(self.values) > 0
                 end
 
                 if addon:tcount(self.values) == 0 then
@@ -269,7 +269,7 @@ GetFilters = function()
             maxValue = 5,
             func = function(self, elementData)
                 if not elementData.itemLink then
-                    return
+                    return self.minValue > 0
                 end
 
                 local tier = tonumber(elementData.itemLink:match("|A.-Tier(%d).-|a")) or 0
@@ -705,18 +705,6 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    divider = content:Acquire("GuildBankSnapshotsFontFrame")
-    divider:SetPoint("TOPLEFT", 5, -height)
-    divider:SetPoint("RIGHT", -5, 0)
-    divider:SetHeight(5)
-    divider:SetText(dividerString)
-    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
-    divider:DisableTooltip(true)
-
-    height = height + divider:GetHeight() + 5
-
-    -----------------------
-
     local rankLabel = content:Acquire("GuildBankSnapshotsFontFrame")
     rankLabel:SetPoint("TOPLEFT", 5, -height)
     rankLabel:SetPoint("RIGHT", -5, 0)
@@ -739,18 +727,6 @@ LoadSidebarFilters = function(content, height)
     end, true)
 
     height = height + rank:GetHeight() + 5
-
-    -----------------------
-
-    divider = content:Acquire("GuildBankSnapshotsFontFrame")
-    divider:SetPoint("TOPLEFT", 5, -height)
-    divider:SetPoint("RIGHT", -5, 0)
-    divider:SetHeight(5)
-    divider:SetText(dividerString)
-    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
-    divider:DisableTooltip(true)
-
-    height = height + divider:GetHeight() + 5
 
     -----------------------
 
