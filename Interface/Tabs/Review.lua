@@ -282,7 +282,7 @@ GetFilters = function()
                     return self.minValue > 0
                 end
 
-                local tier = tonumber(elementData.itemLink:match("|A.-Tier(%d).-|a")) or 0
+                local tier = private:GetItemRank(elementData.itemLink)
                 if tier >= self.minValue and tier <= self.maxValue then
                     return
                 end
@@ -551,9 +551,7 @@ LoadSidebarFilters = function(content, height)
                 text = loadoutID,
                 func = function(dropdown)
                     ReviewTab.guilds[ReviewTab.guildID].filters = addon:CloneTable(loadout)
-                    ReviewTab.guilds[ReviewTab.guildID].filterLoadout = loadoutID
                     LoadTable()
-                    -- LoadSidebar()
                 end,
             })
         end
@@ -562,7 +560,6 @@ LoadSidebarFilters = function(content, height)
     end)
 
     filterLoadouts:SetCallback("OnShow", function(self)
-        self:SelectByID(ReviewTab.guilds[ReviewTab.guildID].filterLoadout, true)
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0 or #self:GetInfo() == 0)
     end, true)
 
@@ -592,7 +589,6 @@ LoadSidebarFilters = function(content, height)
         end
 
         private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
-        ReviewTab.guilds[ReviewTab.guildID].filterLoadout = loadoutID
         LoadSidebar()
     end)
 
@@ -605,9 +601,7 @@ LoadSidebarFilters = function(content, height)
 
     clearFilters:SetCallback("OnClick", function()
         ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
-        ReviewTab.guilds[ReviewTab.guildID].filterLoadout = nil
         LoadTable()
-        -- LoadSidebar()
     end)
 
     height = height + clearFilters:GetHeight() + 5
@@ -1071,22 +1065,22 @@ LoadSidebarFilters = function(content, height)
 end
 
 LoadSidebarInfo = function(content, height)
-    local tblSize = #private.db.global.guilds[ReviewTab.guildID].masterScan
-
     local numTransactions = content:Acquire("GuildBankSnapshotsFontFrame")
     numTransactions:SetPoint("TOPLEFT", 5, -height)
     numTransactions:SetPoint("RIGHT", -5, 0)
     numTransactions:SetAutoHeight(true)
-    numTransactions:SetText(format("%s: %s", L["Number of transactions"], addon:iformat(tblSize, 1)))
+    numTransactions:SetText(format("%s: %s", L["Number of transactions"], addon:iformat(#private.db.global.guilds[ReviewTab.guildID].masterScan, 1)))
     numTransactions:Justify("LEFT")
 
     height = height + numTransactions:GetHeight()
+
+    local tblSize = ReviewTab.tableContainer.scrollBox:GetDataProvider():GetSize() or 0
 
     local numEntries = content:Acquire("GuildBankSnapshotsFontFrame")
     numEntries:SetPoint("TOPLEFT", 5, -height)
     numEntries:SetPoint("RIGHT", -5, 0)
     numEntries:SetAutoHeight(true)
-    numEntries:SetText(format("%s: %s", L["Number of entries"], addon:iformat(ReviewTab.tableContainer.scrollBox:GetDataProvider():GetSize() or 0, 1)))
+    numEntries:SetText(format("%s: %s", L["Number of entries"], addon:iformat(tblSize, 1)))
     numEntries:Justify("LEFT")
     ReviewTab.numEntries = ReviewTab.numEntries
 
@@ -1097,7 +1091,7 @@ LoadSidebarInfo = function(content, height)
         largeTableWarning:SetPoint("TOPLEFT", 5, -height)
         largeTableWarning:SetPoint("RIGHT", -5, 0)
         largeTableWarning:SetAutoHeight(true)
-        largeTableWarning:SetText("*" .. L["Due to this table's large size, reviewing may cause performance issues and possibly Lua errors. It is recommended that you reduce the table size using the cleanup feature. Optionally, you may export the data before purging."])
+        largetTableWarning:SetText("*" .. L["Due to the large quantity of results in this query, performance issues may occur. You can reduce the size of your resluts by limiting the query through filters or reducing the size of the master table using the cleanup feature (optionally, you may first export the table for use in Excel)."])
         largeTableWarning:SetTextColor(1, 0, 0, 1)
         largeTableWarning:Justify("LEFT")
 
@@ -1191,7 +1185,7 @@ LoadTable = function()
                 provider:Insert(elementData)
 
                 if validEntries >= ReviewTab.maxEntries then
-                    addon:Printf(L["The results of this query exceed the maximum allowed entries (%s); loading has stopped and review data is incomplete. To prevent this error, please limit the query through filters or reduce the size of the table using the cleanup feature (optionally, you may first export the table for use in Excel)."], addon:iformat(ReviewTab.maxEntries, 1))
+                    addon:Printf(L["The results of this query exceed the maximum allowed entries (%s); loading has stopped and review data is incomplete. To prevent this error, please limit the query through filters or reduce the size of the master table using the cleanup feature (optionally, you may first export the table for use in Excel)."], addon:iformat(ReviewTab.maxEntries, 1))
                     break
                 end
             end

@@ -130,11 +130,8 @@ function private:InitializeDatabase()
 
     -- Version < 7
     if private.db.global.version < 7 then
-        C_Timer.After(5, function()
-            private:ConvertDatabaseV7()
-        end)
+        private:ConvertDatabaseV7()
     end
 
-    private.db.global.version = 6 -- Remove when ready to update
-    -- private.db.global.version = 7
+    private.db.global.version = 7
 end

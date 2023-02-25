@@ -31,14 +31,18 @@ function private:GetGuildDisplayName(guildID)
     return guildFormat
 end
 
+function private:GetItemRank(itemLink)
+    assert(type(itemLink) == "string", "GetItemRank: itemLink must be a string")
+    return tonumber(itemLink:match("|A.-Tier(%d).-|a")) or 0
+end
+
 function private:GetItemString(itemLink)
     assert(type(itemLink) == "string", "GetItemString: itemLink must be a string")
     return select(3, strfind(itemLink, "|H(.+)|h"))
 end
 
 function private:GetItemName(itemLink)
-    assert(type(itemLink) == "string", "GetItemName: itemLink must be a string")
-    return select(3, strfind(private:GetItemString(itemLink) or "", "%[(.+)%]"))
+    return select(3, strfind(private:GetItemString(itemLink) or "", "%[(.+)%]")) or UNKNOWN
 end
 
 function private:GetTabName(guildID, tabID)
