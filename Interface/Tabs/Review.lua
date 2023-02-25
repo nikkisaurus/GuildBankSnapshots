@@ -6,7 +6,7 @@ local dividerString, divider = "................................................
 
 --*----------[[ Initialize tab ]]----------*--
 local ReviewTab
-local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideBar, LoadSidebarFilters, LoadSidebarSorters, LoadSidebarTools, LoadTable
+local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideBar, LoadSidebarFilters, LoadSidebarInfo, LoadSidebarSorters, LoadSidebarTools, LoadTable
 
 function private:InitializeReviewTab()
     ReviewTab = {
@@ -14,6 +14,7 @@ function private:InitializeReviewTab()
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
         guilds = {},
         entriesPerFrame = 50,
+        warningMax = 10000,
         maxEntries = 25000,
     }
 end
@@ -39,6 +40,13 @@ local sidebarSections = {
         collapsed = true,
         onLoad = function(...)
             return LoadSidebarTools(...)
+        end,
+    },
+    {
+        header = L["Info"],
+        collapsed = false,
+        onLoad = function(...)
+            return LoadSidebarInfo(...)
         end,
     },
 }
@@ -198,7 +206,11 @@ GetFilters = function()
         duplicates = {
             value = true,
             func = function(self, elementData)
-                -- TODO filter duplicates
+                if not self.value then
+                    return
+                end
+
+                return elementData.isDupe
             end,
         },
 
@@ -492,13 +504,13 @@ LoadSidebarFilters = function(content, height)
     duplicates:SetText(L["Remove duplicates"] .. "*")
     duplicates:SetCallback("OnClick", function(self)
         ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value = self:GetChecked()
+        LoadTable()
     end)
     duplicates:SetTooltipInitializer(function()
         GameTooltip:AddLine(L["Experimental"])
     end)
 
-    duplicates:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value)
-    duplicates:SetDisabled(true)
+    duplicates:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value, true)
 
     height = height + duplicates:GetHeight()
 
@@ -541,7 +553,7 @@ LoadSidebarFilters = function(content, height)
                     ReviewTab.guilds[ReviewTab.guildID].filters = addon:CloneTable(loadout)
                     ReviewTab.guilds[ReviewTab.guildID].filterLoadout = loadoutID
                     LoadTable()
-                    LoadSidebar()
+                    -- LoadSidebar()
                 end,
             })
         end
@@ -595,7 +607,7 @@ LoadSidebarFilters = function(content, height)
         ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
         ReviewTab.guilds[ReviewTab.guildID].filterLoadout = nil
         LoadTable()
-        LoadSidebar()
+        -- LoadSidebar()
     end)
 
     height = height + clearFilters:GetHeight() + 5
@@ -1058,6 +1070,43 @@ LoadSidebarFilters = function(content, height)
     return height
 end
 
+LoadSidebarInfo = function(content, height)
+    local tblSize = #private.db.global.guilds[ReviewTab.guildID].masterScan
+
+    local numTransactions = content:Acquire("GuildBankSnapshotsFontFrame")
+    numTransactions:SetPoint("TOPLEFT", 5, -height)
+    numTransactions:SetPoint("RIGHT", -5, 0)
+    numTransactions:SetAutoHeight(true)
+    numTransactions:SetText(format("%s: %s", L["Number of transactions"], addon:iformat(tblSize, 1)))
+    numTransactions:Justify("LEFT")
+
+    height = height + numTransactions:GetHeight()
+
+    local numEntries = content:Acquire("GuildBankSnapshotsFontFrame")
+    numEntries:SetPoint("TOPLEFT", 5, -height)
+    numEntries:SetPoint("RIGHT", -5, 0)
+    numEntries:SetAutoHeight(true)
+    numEntries:SetText(format("%s: %s", L["Number of entries"], addon:iformat(ReviewTab.tableContainer.scrollBox:GetDataProvider():GetSize() or 0, 1)))
+    numEntries:Justify("LEFT")
+    ReviewTab.numEntries = ReviewTab.numEntries
+
+    height = height + numEntries:GetHeight()
+
+    if tblSize > ReviewTab.warningMax then
+        local largeTableWarning = content:Acquire("GuildBankSnapshotsFontFrame")
+        largeTableWarning:SetPoint("TOPLEFT", 5, -height)
+        largeTableWarning:SetPoint("RIGHT", -5, 0)
+        largeTableWarning:SetAutoHeight(true)
+        largeTableWarning:SetText("*" .. L["Due to this table's large size, reviewing may cause performance issues and possibly Lua errors. It is recommended that you reduce the table size using the cleanup feature. Optionally, you may export the data before purging."])
+        largeTableWarning:SetTextColor(1, 0, 0, 1)
+        largeTableWarning:Justify("LEFT")
+
+        height = height + largeTableWarning:GetHeight()
+    end
+
+    return height
+end
+
 LoadSidebarSorters = function(content, height)
     local enableMultiSort = content:Acquire("GuildBankSnapshotsCheckButton")
     enableMultiSort:SetPoint("TOPLEFT", 5, -height)
@@ -1095,29 +1144,6 @@ LoadSidebarSorters = function(content, height)
 end
 
 LoadSidebarTools = function(content, height)
-    local tblSize = #private.db.global.guilds[ReviewTab.guildID].masterScan
-
-    local numEntries = content:Acquire("GuildBankSnapshotsFontFrame")
-    numEntries:SetPoint("TOPLEFT", 5, -height)
-    numEntries:SetPoint("RIGHT", -5, 0)
-    numEntries:SetAutoHeight(true)
-    numEntries:SetText(format("%s: %s", L["Number of entries"], addon:iformat(tblSize, 1)))
-    numEntries:Justify("LEFT")
-
-    height = height + numEntries:GetHeight()
-
-    if tblSize > 5000 then
-        local largeTableWarning = content:Acquire("GuildBankSnapshotsFontFrame")
-        largeTableWarning:SetPoint("TOPLEFT", 5, -height)
-        largeTableWarning:SetPoint("RIGHT", -5, 0)
-        largeTableWarning:SetAutoHeight(true)
-        largeTableWarning:SetText("*" .. L["Due to this table's large size, reviewing may cause performance issues and possibly Lua errors. It is recommended that you reduce the table size using the cleanup feature. Optionally, you may export the data before purging."])
-        largeTableWarning:SetTextColor(1, 0, 0, 1)
-        largeTableWarning:Justify("LEFT")
-
-        height = height + largeTableWarning:GetHeight()
-    end
-
     return height
 end
 
@@ -1133,11 +1159,8 @@ LoadTable = function()
         local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
         local validEntries = 0
 
-        for transactionID, transaction in ipairs(masterScan) do
-            local elementData = transaction.info
-            elementData.transactionDate = private:GetTransactionDate(elementData.scanID, elementData.year, elementData.month, elementData.day, elementData.hour)
-            elementData.transactionID = transaction.transactionID
-            elementData.scanID = transaction.scanID
+        for transactionID, elementData in ipairs(masterScan) do
+            -- elementData.isDupe = true
 
             -- Filter defaults
             ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.list[elementData.scanID] = true
@@ -1208,6 +1231,8 @@ LoadTable = function()
         end)
     end)
 
+    LoadSidebar()
+
     return provider:GetSize()
 end
 
@@ -1239,7 +1264,7 @@ function private:LoadReviewTab(content)
                     ReviewTab.guilds[guildID] = ReviewTab.guilds[guildID] or {
                         searchQuery = false,
                         filters = GetFilters(),
-                        multiSort = #private.db.global.guilds[guildID].masterScan < 5000,
+                        multiSort = #private.db.global.guilds[guildID].masterScan < ReviewTab.warningMax,
                     }
                     LoadTable()
                     LoadSidebar()

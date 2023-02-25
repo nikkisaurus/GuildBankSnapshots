@@ -17,6 +17,7 @@ L["Filter loadout '%s' already exists for %s. Please supply a unique loadout nam
 L["Filter Loadouts"] = true
 L["Filters"] = true
 L["Help"] = true
+L["Info"] = true
 L["Item"] = true
 L["Item Level"] = true
 L["Item Rank"] = true
@@ -34,6 +35,7 @@ L["Move Origin ID"] = true
 L["Name"] = true
 L["Not recommended for large tables as it may cause the game to freeze for extended periods of time"] = true
 L["Number of entries"] = true
+L["Number of transactions"] = true
 L["Page"] = true
 L["Please supply a valid loadout name."] = true
 L["Quantity"] = true
