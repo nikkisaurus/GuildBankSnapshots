@@ -22,6 +22,13 @@ end
 --*----------[[ Data ]]----------*--
 local sidebarSections = {
     {
+        header = L["Info"],
+        collapsed = false,
+        onLoad = function(...)
+            return LoadSidebarInfo(...)
+        end,
+    },
+    {
         header = L["Sorting"],
         collapsed = true,
         onLoad = function(...)
@@ -40,13 +47,6 @@ local sidebarSections = {
         collapsed = true,
         onLoad = function(...)
             return LoadSidebarTools(...)
-        end,
-    },
-    {
-        header = L["Info"],
-        collapsed = false,
-        onLoad = function(...)
-            return LoadSidebarInfo(...)
         end,
     },
 }

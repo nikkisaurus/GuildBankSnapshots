@@ -94,7 +94,9 @@ function private:InitializeFrame()
                 -- Ensure active tab stays selected when frame size changes, since the tabs are being released and redrawn
                 tab:SetSelected(true)
             end
-            tab:SetCallback("OnClick", function(_, guildKey)
+            tab:SetCallback("OnClick", function(...)
+                local guildKey = select(#{ ... }, ...)
+                guildKey = private.db.global.guilds[guildKey] and guildKey
                 self:SelectTab(tabID, guildKey)
             end)
 
