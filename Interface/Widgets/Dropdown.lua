@@ -191,9 +191,6 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
             self.label:Justify("LEFT", "MIDDLE")
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
             self:SetLabel("")
-
-            -- self:SetEditboxFont(GameFontHighlightSmall)
-            -- self:SetText("")
         end,
 
         OnSizeChanged = function(self, width, height)
@@ -319,6 +316,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
 
         if style.hasCheckBox then
             local size = min(self.container:GetHeight(), 12)
+            size = size == 0 and 12 or size
             self.checkBoxBorder:SetSize(size, size)
             self.checkBoxBorder:SetPoint("TOP", self.container, "TOP")
             self.checkBoxBorder:SetPoint(style.checkAlignment, self.container, style.checkAlignment)
