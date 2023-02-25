@@ -29,7 +29,7 @@ local sidebarSections = {
     },
     {
         header = L["Filters"],
-        collapsed = false,
+        collapsed = true,
         onLoad = function(...)
             return LoadSidebarFilters(...)
         end,
@@ -356,6 +356,11 @@ end
 
 IsFiltered = function(elementData)
     for filterID, filter in pairs(ReviewTab.guilds[ReviewTab.guildID].filters) do
+        if not filter.func then
+            local defaultFilter = GetFilters()
+            filter.func = defaultFilter[filterID].func
+        end
+
         if filter.func(filter, elementData) then
             return true
         end
@@ -524,7 +529,7 @@ LoadSidebarFilters = function(content, height)
     filterLoadouts:SetPoint("RIGHT", -5, 0)
     filterLoadouts:Justify("LEFT")
 
-    filterLoadouts:SetStyle({ hasSearch = true, hasClear = true })
+    filterLoadouts:SetStyle({ hasSearch = true })
     filterLoadouts:SetInfo(function()
         local info = {}
 
@@ -542,13 +547,6 @@ LoadSidebarFilters = function(content, height)
         end
 
         return info
-    end)
-
-    filterLoadouts:SetCallback("OnClear", function()
-        ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
-        ReviewTab.guilds[ReviewTab.guildID].filterLoadout = nil
-        LoadTable()
-        LoadSidebar()
     end)
 
     filterLoadouts:SetCallback("OnShow", function(self)
@@ -587,6 +585,20 @@ LoadSidebarFilters = function(content, height)
     end)
 
     height = height + saveFilterLoadout:GetHeight() + 5
+
+    local clearFilters = content:Acquire("GuildBankSnapshotsButton")
+    clearFilters:SetPoint("TOPLEFT", 5, -height)
+    clearFilters:SetPoint("RIGHT", -5, 0)
+    clearFilters:SetText(L["Clear Filters"])
+
+    clearFilters:SetCallback("OnClick", function()
+        ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
+        ReviewTab.guilds[ReviewTab.guildID].filterLoadout = nil
+        LoadTable()
+        LoadSidebar()
+    end)
+
+    height = height + clearFilters:GetHeight() + 5
 
     -----------------------
 

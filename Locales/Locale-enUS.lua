@@ -7,6 +7,7 @@ L.addonName = "Guild Bank Snapshots"
 L["Amount"] = true
 L["Analyze"] = true
 L["Clear"] = true
+L["Clear Filters"] = true
 L["Date"] = true
 L["Due to this table's large size, reviewing may cause performance issues and possibly Lua errors. It is recommended that you reduce the table size using the cleanup feature. Optionally, you may export the data before purging."] = true
 L["Enable multi-sorting"] = true
