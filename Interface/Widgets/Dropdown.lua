@@ -182,6 +182,67 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 end
 
+function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
+    frame = private:MixinContainer(frame)
+    frame:InitScripts({
+        OnAcquire = function(self)
+            self:SetSize(150, 40)
+
+            self.label:Justify("LEFT", "MIDDLE")
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+            self:SetLabel("")
+
+            -- self:SetEditboxFont(GameFontHighlightSmall)
+            -- self:SetText("")
+        end,
+
+        OnSizeChanged = function(self, width, height)
+            self.label:SetSize(width, 20)
+            self.dropdown:SetSize(width, height - 20)
+        end,
+    })
+
+    frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.label:SetPoint("TOPLEFT")
+
+    frame.dropdown = frame:Acquire("GuildBankSnapshotsDropdownButton")
+    frame.dropdown:SetPoint("BOTTOMLEFT")
+
+    -- Methods
+    function frame:ForwardCallback(...)
+        self.dropdown:SetCallback(...)
+    end
+
+    function frame:GetInfo()
+        return self.dropdown:GetInfo()
+    end
+
+    function frame:Justify(...)
+        self.dropdown:Justify(...)
+    end
+
+    function frame:SetDisabled(...)
+        self.dropdown:SetDisabled(...)
+    end
+
+    function frame:SetInfo(...)
+        self.dropdown:SetInfo(...)
+    end
+
+    function frame:SetLabel(text)
+        self.label:SetText(text)
+    end
+
+    function frame:SetLabelFont(fontObject, color)
+        self.label:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
+    function frame:SetStyle(...)
+        self.dropdown:SetStyle(...)
+    end
+end
+
 local buttons = {}
 function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     button = private:MixinText(button)

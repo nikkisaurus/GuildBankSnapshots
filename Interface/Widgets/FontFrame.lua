@@ -12,7 +12,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
         OnAcquire = function(self)
             self:SetSize(150, 20)
             self:SetAutoHeight(false)
-            self:SetFontObject("GameFontHighlightSmall")
+            self:SetFont(GameFontHighlightSmall, private.interface.colors.white)
             self:Justify("CENTER", "MIDDLE")
             self:SetText("")
             self:SetPadding(0, 0)
@@ -39,5 +39,10 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
     -- Methods
     function frame:DisableTooltip(isDisabled)
         self.disableTooltip = isDisabled
+    end
+
+    function frame:SetFont(fontObject, color)
+        self.text:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.text:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
     end
 end

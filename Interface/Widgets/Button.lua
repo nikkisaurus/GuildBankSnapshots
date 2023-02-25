@@ -8,7 +8,7 @@ function GuildBankSnapshotsButton_OnLoad(button)
     button:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 20)
-            self:SetNormalFontObject("GameFontHighlightSmall")
+            self:SetFont(GameFontHighlightSmall, private.interface.colors.white)
             self:SetBackdropColor(private.interface.colors.normal, private.interface.colors.light)
         end,
     })
@@ -20,4 +20,10 @@ function GuildBankSnapshotsButton_OnLoad(button)
     -- Text
     button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     button.text:SetAllPoints(button)
+
+    -- Methods
+    function button:SetFont(fontObject, color)
+        self.text:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.text:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
 end

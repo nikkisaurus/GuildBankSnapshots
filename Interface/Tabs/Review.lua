@@ -499,17 +499,17 @@ LoadSidebarFilters = function(content, height)
     local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
     duplicates:SetPoint("TOPLEFT", 5, -height)
     duplicates:SetPoint("RIGHT", -5, 0)
-
     duplicates:SetText(L["Remove duplicates"] .. "*")
+    duplicates:SetTooltipInitializer(function()
+        GameTooltip:AddLine(L["Experimental"])
+    end)
     duplicates:SetCallback("OnClick", function(self)
         ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value = self:GetChecked()
         LoadTable()
     end)
-    duplicates:SetTooltipInitializer(function()
-        GameTooltip:AddLine(L["Experimental"])
-    end)
-
-    duplicates:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value, true)
+    duplicates:SetCallback("OnShow", function(self)
+        self:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value, true)
+    end, true)
 
     height = height + duplicates:GetHeight()
 
@@ -527,19 +527,12 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local filterLoadoutsLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    filterLoadoutsLabel:SetPoint("TOPLEFT", 5, -height)
-    filterLoadoutsLabel:SetPoint("RIGHT", -5, 0)
-    filterLoadoutsLabel:SetText(L["Filter Loadouts"])
-    filterLoadoutsLabel:Justify("LEFT")
-
-    height = height + filterLoadoutsLabel:GetHeight()
-
-    local filterLoadouts = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local filterLoadouts = content:Acquire("GuildBankSnapshotsDropdownFrame")
     filterLoadouts:SetPoint("TOPLEFT", 5, -height)
     filterLoadouts:SetPoint("RIGHT", -5, 0)
+    filterLoadouts:SetLabel(L["Filter Loadouts"])
+    filterLoadouts:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     filterLoadouts:Justify("LEFT")
-
     filterLoadouts:SetStyle({ hasSearch = true })
     filterLoadouts:SetInfo(function()
         local info = {}
@@ -557,34 +550,31 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    filterLoadouts:SetCallback("OnShow", function(self)
+    filterLoadouts:ForwardCallback("OnShow", function(self)
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0 or #self:GetInfo() == 0)
     end, true)
 
     height = height + filterLoadouts:GetHeight() + 5
 
     local saveFilterLoadout = content:Acquire("GuildBankSnapshotsEditBoxFrame")
-    saveFilterLoadout:SetLabel(L["Save Filter Loadout"])
-    saveFilterLoadout:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
-    -- saveFilterLoadout:SetHighlightColor(CreateColor(0, 1, 0, 1))
     saveFilterLoadout:SetPoint("TOPLEFT", 5, -height)
     saveFilterLoadout:SetPoint("RIGHT", -5, 0)
+    saveFilterLoadout:SetLabel(L["Save Filter Loadout"])
+    saveFilterLoadout:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+    saveFilterLoadout:ForwardCallback("OnEnterPressed", function(self)
+        local loadoutID = self:GetText()
 
-    -- saveFilterLoadout:SetCallback("OnEnterPressed", function(self)
-    --     local loadoutID = self:GetText()
+        if private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] then
+            addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildID))
+            return
+        elseif not self:IsValidText() then
+            addon:Print(L["Please supply a valid loadout name."])
+            return
+        end
 
-    --     if private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] then
-    --         addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildID))
-    --         return
-    --     elseif not self:IsValidText() then
-    --         addon:Print(L["Please supply a valid loadout name."])
-    --         return
-    --     end
-
-    --     private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
-    --     LoadSidebar()
-    -- end)
+        private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
+        LoadSidebar()
+    end)
 
     height = height + saveFilterLoadout:GetHeight() + 5
 
@@ -592,7 +582,7 @@ LoadSidebarFilters = function(content, height)
     clearFilters:SetPoint("TOPLEFT", 5, -height)
     clearFilters:SetPoint("RIGHT", -5, 0)
     clearFilters:SetText(L["Clear Filters"])
-
+    clearFilters:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     clearFilters:SetCallback("OnClick", function()
         ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
         LoadTable()
@@ -614,19 +604,12 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local scanDateLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    scanDateLabel:SetPoint("TOPLEFT", 5, -height)
-    scanDateLabel:SetPoint("RIGHT", -5, 0)
-    scanDateLabel:SetText(L["Scan Date"])
-    scanDateLabel:Justify("LEFT")
-
-    height = height + scanDateLabel:GetHeight()
-
-    local scanDate = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local scanDate = content:Acquire("GuildBankSnapshotsDropdownFrame")
     scanDate:SetPoint("TOPLEFT", 5, -height)
     scanDate:SetPoint("RIGHT", -5, 0)
+    scanDate:SetLabel(L["Scan Date"])
+    scanDate:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     scanDate:Justify("LEFT")
-
     scanDate:SetStyle({ multiSelect = true, hasClear = true })
     scanDate:SetInfo(function()
         local info = {}
@@ -648,13 +631,11 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    scanDate:SetCallback("OnClear", function()
+    scanDate:ForwardCallback("OnClear", function()
         wipe(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values)
         LoadTable()
     end)
-
-    scanDate:SetCallback("OnShow", function(self)
+    scanDate:ForwardCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values) do
             self:SelectByID(value, true)
         end
@@ -664,19 +645,12 @@ LoadSidebarFilters = function(content, height)
 
     height = height + scanDate:GetHeight() + 5
 
-    local transactionDateLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    transactionDateLabel:SetPoint("TOPLEFT", 5, -height)
-    transactionDateLabel:SetPoint("RIGHT", -5, 0)
-    transactionDateLabel:SetText(L["Transaction Date"])
-    transactionDateLabel:Justify("LEFT")
-
-    height = height + transactionDateLabel:GetHeight()
-
-    local transactionDate = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local transactionDate = content:Acquire("GuildBankSnapshotsDropdownFrame")
     transactionDate:SetPoint("TOPLEFT", 5, -height)
     transactionDate:SetPoint("RIGHT", -5, 0)
+    transactionDate:SetLabel(L["Transaction Date"])
+    transactionDate:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     transactionDate:Justify("LEFT")
-
     transactionDate:SetStyle({ multiSelect = true, hasClear = true })
     transactionDate:SetInfo(function()
         local info = {}
@@ -698,13 +672,11 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    transactionDate:SetCallback("OnClear", function()
+    transactionDate:ForwardCallback("OnClear", function()
         wipe(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values)
         LoadTable()
     end)
-
-    transactionDate:SetCallback("OnShow", function(self)
+    transactionDate:ForwardCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values) do
             self:SelectByID(value, true)
         end
@@ -728,19 +700,12 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local tabNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    tabNameLabel:SetPoint("TOPLEFT", 5, -height)
-    tabNameLabel:SetPoint("RIGHT", -5, 0)
-    tabNameLabel:SetText(L["Tab"])
-    tabNameLabel:Justify("LEFT")
-
-    height = height + tabNameLabel:GetHeight()
-
-    local tabName = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local tabName = content:Acquire("GuildBankSnapshotsDropdownFrame")
     tabName:SetPoint("TOPLEFT", 5, -height)
     tabName:SetPoint("RIGHT", -5, 0)
+    tabName:SetLabel(L["Tab"])
+    tabName:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     tabName:Justify("LEFT")
-
     tabName:SetStyle({ multiSelect = true, hasClear = true })
     tabName:SetInfo(function()
         local info = {}
@@ -758,13 +723,11 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    tabName:SetCallback("OnClear", function()
+    tabName:ForwardCallback("OnClear", function()
         wipe(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values)
         LoadTable()
     end)
-
-    tabName:SetCallback("OnShow", function(self)
+    tabName:ForwardCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values) do
             self:SelectByID(value, true)
         end
@@ -788,19 +751,12 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local transactionTypeLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    transactionTypeLabel:SetPoint("TOPLEFT", 5, -height)
-    transactionTypeLabel:SetPoint("RIGHT", -5, 0)
-    transactionTypeLabel:SetText(L["Type"])
-    transactionTypeLabel:Justify("LEFT")
-
-    height = height + transactionTypeLabel:GetHeight()
-
-    local transactionType = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local transactionType = content:Acquire("GuildBankSnapshotsDropdownFrame")
     transactionType:SetPoint("TOPLEFT", 5, -height)
     transactionType:SetPoint("RIGHT", -5, 0)
+    transactionType:SetLabel(L["Type"])
+    transactionType:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     transactionType:Justify("LEFT")
-
     transactionType:SetStyle({ multiSelect = true, hasClear = true })
     transactionType:SetInfo(function()
         local info = {}
@@ -818,13 +774,11 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    transactionType:SetCallback("OnClear", function()
+    transactionType:ForwardCallback("OnClear", function()
         wipe(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values)
         LoadTable()
     end)
-
-    transactionType:SetCallback("OnShow", function(self)
+    transactionType:ForwardCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
             self:SelectByID(value, true)
         end
@@ -848,19 +802,12 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local nameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    nameLabel:SetPoint("TOPLEFT", 5, -height)
-    nameLabel:SetPoint("RIGHT", -5, 0)
-    nameLabel:SetText(L["Name"])
-    nameLabel:Justify("LEFT")
-
-    height = height + nameLabel:GetHeight()
-
-    local name = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local name = content:Acquire("GuildBankSnapshotsDropdownFrame")
     name:SetPoint("TOPLEFT", 5, -height)
     name:SetPoint("RIGHT", -5, 0)
+    name:SetLabel(L["Name"])
+    name:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     name:Justify("LEFT")
-
     name:SetStyle({ multiSelect = true, hasSearch = true, hasClear = true })
     name:SetInfo(function()
         local info = {}
@@ -878,13 +825,11 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    name:SetCallback("OnClear", function()
+    name:ForwardCallback("OnClear", function()
         wipe(ReviewTab.guilds[ReviewTab.guildID].filters.names.values)
         LoadTable()
     end)
-
-    name:SetCallback("OnShow", function(self)
+    name:ForwardCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
             self:SelectByID(value, true)
         end
@@ -908,19 +853,12 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local itemNameLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    itemNameLabel:SetPoint("TOPLEFT", 5, -height)
-    itemNameLabel:SetPoint("RIGHT", -5, 0)
-    itemNameLabel:SetText(L["Item"])
-    itemNameLabel:Justify("LEFT")
-
-    height = height + itemNameLabel:GetHeight()
-
-    local itemName = content:Acquire("GuildBankSnapshotsDropdownButton")
+    local itemName = content:Acquire("GuildBankSnapshotsDropdownFrame")
     itemName:SetPoint("TOPLEFT", 5, -height)
     itemName:SetPoint("RIGHT", -5, 0)
+    itemName:SetLabel(L["Item"])
+    itemName:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     itemName:Justify("LEFT")
-
     itemName:SetStyle({ height = "auto", multiSelect = true, hasSearch = true, hasClear = true })
     itemName:SetInfo(function()
         local info = {}
@@ -938,13 +876,11 @@ LoadSidebarFilters = function(content, height)
 
         return info
     end)
-
-    itemName:SetCallback("OnClear", function()
+    itemName:ForwardCallback("OnClear", function()
         wipe(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values)
         LoadTable()
     end)
-
-    itemName:SetCallback("OnShow", function(self)
+    itemName:ForwardCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values) do
             self:SelectByID(value, true)
         end
@@ -960,6 +896,7 @@ LoadSidebarFilters = function(content, height)
     rankLabel:SetPoint("TOPLEFT", 5, -height)
     rankLabel:SetPoint("RIGHT", -5, 0)
     rankLabel:SetText(L["Item Rank"])
+    rankLabel:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     rankLabel:Justify("LEFT")
 
     height = height + rankLabel:GetHeight()
@@ -986,6 +923,7 @@ LoadSidebarFilters = function(content, height)
     itemLevelLabel:SetPoint("TOPLEFT", 5, -height)
     itemLevelLabel:SetPoint("RIGHT", -5, 0)
     itemLevelLabel:SetText(L["Item Level"])
+    itemLevelLabel:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     itemLevelLabel:Justify("LEFT")
 
     height = height + itemLevelLabel:GetHeight()
@@ -1024,6 +962,7 @@ LoadSidebarFilters = function(content, height)
     amountLabel:SetPoint("TOPLEFT", 5, -height)
     amountLabel:SetPoint("RIGHT", -5, 0)
     amountLabel:SetText(L["Amount"])
+    amountLabel:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     amountLabel:Justify("LEFT")
 
     height = height + amountLabel:GetHeight()

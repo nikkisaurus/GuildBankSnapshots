@@ -11,10 +11,12 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         OnAcquire = function(self)
             self:SetSize(150, 20)
             self:ResetButtons()
-            sorter.upper:Hide()
-            sorter.lower:Hide()
+            self.upper:Hide()
+            self.lower:Hide()
             self:Justify("LEFT", "MIDDLE")
             self:SetFontObject(GameFontHighlightSmall)
+            self.upper:SetColorTexture(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"]:GetRGBA())
+            self.lower:SetColorTexture(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"]:GetRGBA())
         end,
 
         OnDragStart = function(self)
@@ -49,15 +51,6 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
                     end
                 end
             end
-
-            -- Show tooltip if text is truncated
-            -- if not self.colID or self.text:GetWidth() > self.text:GetStringWidth() then
-            --     return
-            -- end
-
-            -- private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self, cols)
-            --     GameTooltip:AddLine(cols[self.colID].header, 1, 1, 1)
-            -- end, self, cols)
         end,
 
         OnLeave = function(self)

@@ -136,6 +136,10 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
     frame.editbox:SetPoint("BOTTOMLEFT")
 
     -- Methods
+    function frame:ForwardCallback(...)
+        self.editbox:SetCallback(...)
+    end
+
     function frame:IsValidText()
         return self.editbox:IsValidText()
     end

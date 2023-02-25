@@ -23,6 +23,12 @@
         </Scripts>
     </Button>
 
+    <Frame name="GuildBankSnapshotsDropdownFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsDropdownFrame_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <Button name="GuildBankSnapshotsDropdownListButton" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsDropdownListButton_OnLoad" />
