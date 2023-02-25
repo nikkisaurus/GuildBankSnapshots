@@ -187,8 +187,6 @@ GetFilters = function()
                     return self.minValue > 0
                 end
 
-                -- print(elementData.amount, self.minValue, self.maxValue)
-
                 if elementData.amount >= self.minValue and elementData.amount <= self.maxValue then
                     return
                 end
@@ -281,6 +279,24 @@ GetFilters = function()
             end,
         },
 
+        scanDates = {
+            list = {},
+            values = {},
+            func = function(self, elementData)
+                if addon:tcount(self.values) == 0 then
+                    return
+                end
+
+                for scanDate, _ in pairs(self.values) do
+                    if scanDate == elementData.scanID then
+                        return
+                    end
+                end
+
+                return true
+            end,
+        },
+
         tabs = {
             list = {},
             values = {},
@@ -294,6 +310,24 @@ GetFilters = function()
                         if tabName == private:GetTabName(ReviewTab.guildID, elementData[key]) then
                             return
                         end
+                    end
+                end
+
+                return true
+            end,
+        },
+
+        transactionDates = {
+            list = {},
+            values = {},
+            func = function(self, elementData)
+                if addon:tcount(self.values) == 0 then
+                    return
+                end
+
+                for transactionDate, _ in pairs(self.values) do
+                    if transactionDate == elementData.transactionDate then
+                        return
                     end
                 end
 
@@ -462,6 +496,211 @@ LoadSidebarFilters = function(content, height)
     duplicates:SetDisabled(true)
 
     height = height + duplicates:GetHeight()
+
+    -----------------------
+
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
+    local filterLoadoutsLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    filterLoadoutsLabel:SetPoint("TOPLEFT", 5, -height)
+    filterLoadoutsLabel:SetPoint("RIGHT", -5, 0)
+    filterLoadoutsLabel:SetText(L["Filter Loadouts"])
+    filterLoadoutsLabel:Justify("LEFT")
+
+    height = height + filterLoadoutsLabel:GetHeight()
+
+    local filterLoadouts = content:Acquire("GuildBankSnapshotsDropdownButton")
+    filterLoadouts:SetPoint("TOPLEFT", 5, -height)
+    filterLoadouts:SetPoint("RIGHT", -5, 0)
+    filterLoadouts:Justify("LEFT")
+
+    filterLoadouts:SetStyle({ hasSearch = true, hasClear = true })
+    filterLoadouts:SetInfo(function()
+        local info = {}
+
+        for loadoutID, loadout in addon:pairs(private.db.global.guilds[ReviewTab.guildID].filters) do
+            tinsert(info, {
+                id = loadoutID,
+                text = loadoutID,
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters = addon:CloneTable(loadout)
+                    ReviewTab.guilds[ReviewTab.guildID].filterLoadout = loadoutID
+                    LoadTable()
+                    LoadSidebar()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    filterLoadouts:SetCallback("OnClear", function()
+        ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
+        ReviewTab.guilds[ReviewTab.guildID].filterLoadout = nil
+        LoadTable()
+        LoadSidebar()
+    end)
+
+    filterLoadouts:SetCallback("OnShow", function(self)
+        self:SelectByID(ReviewTab.guilds[ReviewTab.guildID].filterLoadout, true)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0 or #self:GetInfo() == 0)
+    end, true)
+
+    height = height + filterLoadouts:GetHeight() + 5
+
+    local saveFilterLoadoutLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    saveFilterLoadoutLabel:SetPoint("TOPLEFT", 5, -height)
+    saveFilterLoadoutLabel:SetPoint("RIGHT", -5, 0)
+    saveFilterLoadoutLabel:SetText(L["Save Filter Loadout"])
+    saveFilterLoadoutLabel:Justify("LEFT")
+
+    height = height + saveFilterLoadoutLabel:GetHeight()
+
+    local saveFilterLoadout = content:Acquire("GuildBankSnapshotsEditBox")
+    saveFilterLoadout:SetPoint("TOPLEFT", 5, -height)
+    saveFilterLoadout:SetPoint("RIGHT", -5, 0)
+
+    saveFilterLoadout:SetCallback("OnEnterPressed", function(self)
+        local loadoutID = self:GetText()
+
+        if private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] then
+            addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildID))
+            return
+        elseif not self:IsValidText() then
+            addon:Print(L["Please supply a valid loadout name."])
+            return
+        end
+
+        private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
+        ReviewTab.guilds[ReviewTab.guildID].filterLoadout = loadoutID
+        LoadSidebar()
+    end)
+
+    height = height + saveFilterLoadout:GetHeight() + 5
+
+    -----------------------
+
+    divider = content:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetPoint("TOPLEFT", 5, -height)
+    divider:SetPoint("RIGHT", -5, 0)
+    divider:SetHeight(5)
+    divider:SetText(dividerString)
+    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:DisableTooltip(true)
+
+    height = height + divider:GetHeight() + 5
+
+    -----------------------
+
+    local scanDateLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    scanDateLabel:SetPoint("TOPLEFT", 5, -height)
+    scanDateLabel:SetPoint("RIGHT", -5, 0)
+    scanDateLabel:SetText(L["Scan Date"])
+    scanDateLabel:Justify("LEFT")
+
+    height = height + scanDateLabel:GetHeight()
+
+    local scanDate = content:Acquire("GuildBankSnapshotsDropdownButton")
+    scanDate:SetPoint("TOPLEFT", 5, -height)
+    scanDate:SetPoint("RIGHT", -5, 0)
+    scanDate:Justify("LEFT")
+
+    scanDate:SetStyle({ multiSelect = true, hasClear = true })
+    scanDate:SetInfo(function()
+        local info = {}
+
+        for scanDate, _ in
+            addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.list, function(a, b)
+                return a > b
+            end)
+        do
+            tinsert(info, {
+                id = scanDate,
+                text = date(private.db.global.settings.preferences.dateFormat, scanDate),
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
+                    LoadTable()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    scanDate:SetCallback("OnClear", function()
+        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values)
+        LoadTable()
+    end)
+
+    scanDate:SetCallback("OnShow", function(self)
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values) do
+            self:SelectByID(value, true)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
+
+    height = height + scanDate:GetHeight() + 5
+
+    local transactionDateLabel = content:Acquire("GuildBankSnapshotsFontFrame")
+    transactionDateLabel:SetPoint("TOPLEFT", 5, -height)
+    transactionDateLabel:SetPoint("RIGHT", -5, 0)
+    transactionDateLabel:SetText(L["Transaction Date"])
+    transactionDateLabel:Justify("LEFT")
+
+    height = height + transactionDateLabel:GetHeight()
+
+    local transactionDate = content:Acquire("GuildBankSnapshotsDropdownButton")
+    transactionDate:SetPoint("TOPLEFT", 5, -height)
+    transactionDate:SetPoint("RIGHT", -5, 0)
+    transactionDate:Justify("LEFT")
+
+    transactionDate:SetStyle({ multiSelect = true, hasClear = true })
+    transactionDate:SetInfo(function()
+        local info = {}
+
+        for scanDate, _ in
+            addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.list, function(a, b)
+                return a > b
+            end)
+        do
+            tinsert(info, {
+                id = scanDate,
+                text = date(private.db.global.settings.preferences.dateFormat, scanDate),
+                func = function(dropdown)
+                    ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
+                    LoadTable()
+                end,
+            })
+        end
+
+        return info
+    end)
+
+    transactionDate:SetCallback("OnClear", function()
+        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values)
+        LoadTable()
+    end)
+
+    transactionDate:SetCallback("OnShow", function(self)
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values) do
+            self:SelectByID(value, true)
+        end
+
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+    end, true)
+
+    height = height + transactionDate:GetHeight() + 5
 
     -----------------------
 
@@ -889,7 +1128,8 @@ LoadTable = function()
             elementData.scanID = transaction.scanID
 
             -- Filter defaults
-            -- tinsert(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDate.list, elementData.transactionDate)
+            ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.list[elementData.scanID] = true
+            ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.list[elementData.transactionDate] = true
             ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = true
             ReviewTab.guilds[ReviewTab.guildID].filters.tabs.list[private:GetTabName(ReviewTab.guildID, elementData.tabID)] = true
             if elementData.itemLink then
@@ -964,7 +1204,7 @@ end
 function private:LoadReviewTab(content)
     local guildDropdown = content:Acquire("GuildBankSnapshotsDropdownButton")
     guildDropdown:SetPoint("TOPLEFT", 10, -10)
-    guildDropdown:SetSize(200, 20)
+    guildDropdown:SetSize(250, 20)
     guildDropdown:SetText(L["Select a guild"])
     guildDropdown:SetBackdropColor(private.interface.colors.darker)
     ReviewTab.guildDropdown = guildDropdown

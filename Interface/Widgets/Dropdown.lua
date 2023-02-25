@@ -33,6 +33,9 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end,
 
         OnClick = function(self)
+            if self.disabled then
+                return
+            end
             self:ToggleMenu()
         end,
 
@@ -129,6 +132,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:SetDisabled(isDisabled)
+        self.disabled = isDisabled
         if isDisabled then
             self.arrow:SetTextColor(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"]:GetRGBA())
         else

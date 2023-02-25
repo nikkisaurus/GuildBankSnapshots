@@ -23,6 +23,7 @@ private.defaults = {
         tabs = {},
         masterScan = {},
         scans = {},
+        filters = {},
     },
 }
 
@@ -129,7 +130,7 @@ function private:InitializeDatabase()
 
     -- Version < 7
     if private.db.global.version < 7 then
-        -- private:ConvertDB6_7()
+        private:ConvertDatabaseV7()
     end
 
     private.db.global.version = 6 -- Remove when ready to update
