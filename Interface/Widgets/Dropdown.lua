@@ -101,7 +101,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end
     end
 
-    function dropdown:SelectByID(value)
+    function dropdown:SelectByID(value, skipCallback)
         assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
 
         for _, info in pairs(self:GetInfo()) do
@@ -113,7 +113,9 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
                     self.selected[info.id] = true
                 end
                 self:UpdateText()
-                info.func(self)
+                if not skipCallback then
+                    info.func(self)
+                end
             end
         end
     end

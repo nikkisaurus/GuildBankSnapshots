@@ -12,6 +12,7 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
             self:SetBackdropColor(private.interface.colors.light)
             self:SetAutoFocus(false)
             self:SetTextInsets(5, 5, 2, 2)
+            self:SetSearchTemplate()
         end,
 
         OnEnter = function(self)
@@ -51,7 +52,6 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
     editbox.searchIcon = editbox:CreateTexture(nil, "ARTWORK")
     editbox.searchIcon:SetPoint("LEFT", 5, 0)
     editbox.searchIcon:SetTexture(374210)
-    editbox.searchIcon:Hide()
 
     editbox.clearButton = CreateFrame("Button", nil, editbox)
     editbox.clearButton:SetPoint("RIGHT", -5, 0)

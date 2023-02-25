@@ -515,7 +515,7 @@ LoadSidebarFilters = function(content, height)
 
     tabName:SetCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values) do
-            self:SelectByID(value)
+            self:SelectByID(value, true)
         end
 
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
@@ -575,7 +575,7 @@ LoadSidebarFilters = function(content, height)
 
     transactionType:SetCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
-            self:SelectByID(value)
+            self:SelectByID(value, true)
         end
 
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
@@ -635,7 +635,7 @@ LoadSidebarFilters = function(content, height)
 
     name:SetCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
-            self:SelectByID(value)
+            self:SelectByID(value, true)
         end
 
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
@@ -695,7 +695,7 @@ LoadSidebarFilters = function(content, height)
 
     itemName:SetCallback("OnShow", function(self)
         for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values) do
-            self:SelectByID(value)
+            self:SelectByID(value, true)
         end
 
         self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
@@ -716,6 +716,7 @@ LoadSidebarFilters = function(content, height)
     local rank = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     rank:SetPoint("TOPLEFT", 5, -height)
     rank:SetPoint("RIGHT", -5, 0)
+    rank:HideLabels(true)
     rank:SetMinMaxValues(0, 5, function(self, range, value)
         ReviewTab.guilds[ReviewTab.guildID].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
@@ -741,6 +742,7 @@ LoadSidebarFilters = function(content, height)
     local itemLevel = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     itemLevel:SetPoint("TOPLEFT", 5, -height)
     itemLevel:SetPoint("RIGHT", -5, 0)
+    itemLevel:HideLabels(true)
     itemLevel:SetMinMaxValues(0, 418, function(self, range, value)
         ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
@@ -778,6 +780,7 @@ LoadSidebarFilters = function(content, height)
     local amount = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     amount:SetPoint("TOPLEFT", 5, -height)
     amount:SetPoint("RIGHT", -5, 0)
+    amount:HideLabels(true)
     amount:SetMinMaxValues(0, 10000000000, function(self, range, value)
         ReviewTab.guilds[ReviewTab.guildID].filters.amounts[range == "lower" and "minValue" or range == "upper" and "maxValue"] = self[range].value
 
@@ -818,7 +821,7 @@ LoadSidebarSorters = function(content, height)
         GameTooltip:AddLine(L["Not recommended for large tables as it may cause the game to freeze for extended periods of time"])
     end)
 
-    enableMultiSort:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].multiSort)
+    enableMultiSort:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].multiSort, true)
 
     height = height + enableMultiSort:GetHeight()
 

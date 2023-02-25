@@ -6,17 +6,19 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     frame = private:MixinContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
-            frame:SetSize(100, 40)
-            frame.lowerText:Justify("LEFT", "MIDDLE")
-            frame.upperText:Justify("LEFT", "MIDDLE")
+            self:SetSize(100, 40)
+            self.lowerText:Justify("LEFT", "MIDDLE")
+            self.upperText:Justify("LEFT", "MIDDLE")
+            self:SetLabels()
+            self:HideLabels()
         end,
 
         OnSizeChanged = function(self, width, height)
             width = width - 5
-            frame.lowerText:SetSize(width / 2, height - 20)
-            frame.lower:SetSize(width / 2, height - 20)
-            frame.upperText:SetSize(width / 2, height - 20)
-            frame.upper:SetSize(width / 2, height - 20)
+            self.lowerText:SetSize(width / 2, height - 20)
+            self.lower:SetSize(width / 2, height - (self.hideLabels and 0 or 20))
+            self.upperText:SetSize(width / 2, height - 20)
+            self.upper:SetSize(width / 2, height - (self.hideLabels and 0 or 20))
         end,
 
         OnRelease = function(self)
@@ -32,9 +34,77 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
 
     frame.lowerText = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.lowerText:SetPoint("TOPLEFT")
-    frame.lowerText:SetText("Min")
+    frame.lowerText:SetText(L["Min"])
+
     frame.lower = frame:Acquire("GuildBankSnapshotsEditBox")
     frame.lower:SetPoint("BOTTOMLEFT")
+
+    frame.upperText = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.upperText:SetPoint("TOPRIGHT")
+    frame.upperText:SetText(L["Max"])
+
+    frame.upper = frame:Acquire("GuildBankSnapshotsEditBox")
+    frame.upper:SetPoint("BOTTOMRIGHT")
+
+    -- Methods
+    function frame:HideLabels(isHidden)
+        self.hideLabels = isHidden
+
+        if isHidden then
+            self.lowerText:Hide()
+            self.upperText:Hide()
+            self:SetHeight(self:GetHeight() - 20)
+        else
+            self.lowerText:Show()
+            self.upperText:Show()
+        end
+    end
+
+    function frame:SetDisabled(isDisabled)
+        self.lower:SetDisabled(isDisabled)
+        self.upper:SetDisabled(isDisabled)
+    end
+
+    function frame:SetMaxValue(maxValue)
+        self.upper.value = tonumber(maxValue)
+        self.upper:SetText(self.formatter and self.formatter(maxValue) or maxValue)
+    end
+
+    function frame:SetMinMaxValues(minValue, maxValue, callback, formatter, reverseFormatter)
+        self.minValue = minValue
+        self.maxValue = maxValue
+        self.callback = callback
+        self.formatter = formatter
+        self.reverseFormatter = reverseFormatter
+    end
+
+    function frame:SetMinValue(minValue)
+        self.lower.value = tonumber(minValue)
+        self.lower:SetText(self.formatter and self.formatter(minValue) or minValue)
+    end
+
+    function frame:SetLabels(lower, upper)
+        self.lowerText:SetText(lower or L["Min"])
+        self.upperText:SetText(lower or L["Max"])
+    end
+
+    function frame:SetValues(minValue, maxValue)
+        self:SetMinValue(minValue)
+        self:SetMaxValue(maxValue)
+    end
+
+    function frame:ValidateValues(editBox, value, default)
+        value = tonumber(value)
+        if not value then
+            return true
+        elseif value < self.minValue then
+            self:SetMinValue(self.minValue)
+        elseif value > self.maxValue then
+            self:SetMaxValue(self.maxValue)
+        end
+    end
+
+    -- Scripts
     frame.lower:SetScript("OnEnterPressed", function(self)
         self:ClearFocus()
 
@@ -60,11 +130,6 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
         end
     end)
 
-    frame.upperText = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.upperText:SetPoint("TOPRIGHT")
-    frame.upperText:SetText("Max")
-    frame.upper = frame:Acquire("GuildBankSnapshotsEditBox")
-    frame.upper:SetPoint("BOTTOMRIGHT")
     frame.upper:SetScript("OnEnterPressed", function(self)
         self:ClearFocus()
 
@@ -89,44 +154,4 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
             frame.callback(frame, "upper", self:GetText())
         end
     end)
-
-    -- Methods
-    function frame:SetDisabled(isDisabled)
-        frame.lower:SetDisabled(isDisabled)
-        frame.upper:SetDisabled(isDisabled)
-    end
-
-    function frame:SetMaxValue(maxValue)
-        frame.upper.value = tonumber(maxValue)
-        frame.upper:SetText(self.formatter and self.formatter(maxValue) or maxValue)
-    end
-
-    function frame:SetMinMaxValues(minValue, maxValue, callback, formatter, reverseFormatter)
-        self.minValue = minValue
-        self.maxValue = maxValue
-        self.callback = callback
-        self.formatter = formatter
-        self.reverseFormatter = reverseFormatter
-    end
-
-    function frame:SetMinValue(minValue)
-        frame.lower.value = tonumber(minValue)
-        frame.lower:SetText(self.formatter and self.formatter(minValue) or minValue)
-    end
-
-    function frame:SetValues(minValue, maxValue)
-        frame:SetMinValue(minValue)
-        frame:SetMaxValue(maxValue)
-    end
-
-    function frame:ValidateValues(editBox, value, default)
-        value = tonumber(value)
-        if not value then
-            return true
-        elseif value < frame.minValue then
-            frame:SetMinValue(frame.minValue)
-        elseif value > frame.maxValue then
-            frame:SetMaxValue(frame.maxValue)
-        end
-    end
 end

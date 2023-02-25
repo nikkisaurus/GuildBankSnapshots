@@ -71,10 +71,12 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         end
     end
 
-    function button:SetCheckedState(isChecked)
+    function button:SetCheckedState(isChecked, skipCallback)
         self.isChecked = isChecked
         self:SetChecked(isChecked)
-        self.handlers.OnClick(self)
+        if not skipCallback then
+            self.handlers.OnClick(self)
+        end
     end
 
     function button:SetDisabled(isDisabled)
