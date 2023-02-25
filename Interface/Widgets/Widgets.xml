@@ -1,4 +1,10 @@
 <Ui>
+    <Button name="GuildBankSnapshotsButton" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsButton_OnLoad" />
+        </Scripts>
+    </Button>
+
     <CheckButton name="GuildBankSnapshotsCheckButton" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsCheckButton_OnLoad" />
@@ -10,54 +16,6 @@
             <OnLoad function="GuildBankSnapshotsContainer_OnLoad" />
         </Scripts>
     </Frame>
-
-    <Frame name="GuildBankSnapshotsGroup" inherits="ResizeLayoutFrame" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsGroup_OnLoad" />
-        </Scripts>
-    </Frame>
-
-    <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsFontFrame_OnLoad" />
-        </Scripts>
-    </Frame>
-
-    <Frame name="GuildBankSnapshotsScrollFrame" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsScrollFrame_OnLoad" />
-        </Scripts>
-    </Frame>
-
-    <Frame name="GuildBankSnapshotsListScrollFrame" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsListScrollFrame_OnLoad" />
-        </Scripts>
-    </Frame>
-
-    <EditBox name="GuildBankSnapshotsEditBox" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsEditBox_OnLoad" />
-        </Scripts>
-    </EditBox>
-
-    <Button name="GuildBankSnapshotsButton" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsButton_OnLoad" />
-        </Scripts>
-    </Button>
-
-    <Button name="GuildBankSnapshotsTableSorter" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsTableSorter_OnLoad" />
-        </Scripts>
-    </Button>
-
-    <Button name="GuildBankSnapshotsTabButton" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsTabButton_OnLoad" />
-        </Scripts>
-    </Button>
 
     <Button name="GuildBankSnapshotsDropdownButton" virtual="true">
         <Scripts>
@@ -77,15 +35,63 @@
         </Scripts>
     </Button>
 
-    <Button name="GuildBankSnapshotsTableCell" virtual="true">
+    <EditBox name="GuildBankSnapshotsEditBox" virtual="true">
         <Scripts>
-            <OnLoad function="GuildBankSnapshotsTableCell_OnLoad" />
+            <OnLoad function="GuildBankSnapshotsEditBox_OnLoad" />
         </Scripts>
-    </Button>
+    </EditBox>
+
+    <Frame name="GuildBankSnapshotsEditBoxFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsEditBoxFrame_OnLoad" />
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsFontFrame_OnLoad" />
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsGroup" inherits="ResizeLayoutFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsGroup_OnLoad" />
+        </Scripts>
+    </Frame>
+
+    <Frame name="GuildBankSnapshotsListScrollFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsListScrollFrame_OnLoad" />
+        </Scripts>
+    </Frame>
 
     <Frame name="GuildBankSnapshotsMinMaxFrame" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsMinMaxFrame_OnLoad" />
         </Scripts>
     </Frame>
+
+    <Frame name="GuildBankSnapshotsScrollFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsScrollFrame_OnLoad" />
+        </Scripts>
+    </Frame>
+
+    <Button name="GuildBankSnapshotsTabButton" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsTabButton_OnLoad" />
+        </Scripts>
+    </Button>
+
+    <Button name="GuildBankSnapshotsTableCell" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsTableCell_OnLoad" />
+        </Scripts>
+    </Button>
+
+    <Button name="GuildBankSnapshotsTableSorter" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsTableSorter_OnLoad" />
+        </Scripts>
+    </Button>
 </Ui>

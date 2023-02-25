@@ -37,7 +37,7 @@ local sidebarSections = {
     },
     {
         header = L["Filters"],
-        collapsed = true,
+        collapsed = false,
         onLoad = function(...)
             return LoadSidebarFilters(...)
         end,
@@ -440,7 +440,6 @@ LoadSidebar = function()
 
     local searchBox = content:Acquire("GuildBankSnapshotsEditBox")
     searchBox:SetSearchTemplate(true)
-    searchBox:SetHeight(20)
     searchBox:SetPoint("TOPLEFT", 5, -height)
     searchBox:SetPoint("TOPRIGHT", -5, -height)
 
@@ -565,32 +564,27 @@ LoadSidebarFilters = function(content, height)
 
     height = height + filterLoadouts:GetHeight() + 5
 
-    local saveFilterLoadoutLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    saveFilterLoadoutLabel:SetPoint("TOPLEFT", 5, -height)
-    saveFilterLoadoutLabel:SetPoint("RIGHT", -5, 0)
-    saveFilterLoadoutLabel:SetText(L["Save Filter Loadout"])
-    saveFilterLoadoutLabel:Justify("LEFT")
-
-    height = height + saveFilterLoadoutLabel:GetHeight()
-
-    local saveFilterLoadout = content:Acquire("GuildBankSnapshotsEditBox")
+    local saveFilterLoadout = content:Acquire("GuildBankSnapshotsEditBoxFrame")
+    saveFilterLoadout:SetLabel(L["Save Filter Loadout"])
+    saveFilterLoadout:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+    -- saveFilterLoadout:SetHighlightColor(CreateColor(0, 1, 0, 1))
     saveFilterLoadout:SetPoint("TOPLEFT", 5, -height)
     saveFilterLoadout:SetPoint("RIGHT", -5, 0)
 
-    saveFilterLoadout:SetCallback("OnEnterPressed", function(self)
-        local loadoutID = self:GetText()
+    -- saveFilterLoadout:SetCallback("OnEnterPressed", function(self)
+    --     local loadoutID = self:GetText()
 
-        if private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] then
-            addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildID))
-            return
-        elseif not self:IsValidText() then
-            addon:Print(L["Please supply a valid loadout name."])
-            return
-        end
+    --     if private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] then
+    --         addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildID))
+    --         return
+    --     elseif not self:IsValidText() then
+    --         addon:Print(L["Please supply a valid loadout name."])
+    --         return
+    --     end
 
-        private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
-        LoadSidebar()
-    end)
+    --     private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
+    --     LoadSidebar()
+    -- end)
 
     height = height + saveFilterLoadout:GetHeight() + 5
 

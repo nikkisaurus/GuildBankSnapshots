@@ -105,7 +105,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     end
 
     -- Scripts
-    frame.lower:SetScript("OnEnterPressed", function(self)
+    frame.lower:SetCallback("OnEnterPressed", function(self)
         self:ClearFocus()
 
         local text = self:GetText()
@@ -130,7 +130,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
         end
     end)
 
-    frame.upper:SetScript("OnEnterPressed", function(self)
+    frame.upper:SetCallback("OnEnterPressed", function(self)
         self:ClearFocus()
 
         local text = self:GetText()

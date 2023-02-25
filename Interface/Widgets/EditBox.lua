@@ -7,17 +7,22 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
     editbox:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 20)
+
+            self:SetBackdropColor(private.interface.colors.light)
+            self:SetHighlightColor(private.interface.colors.lightWhite)
+
             self:SetFontObject(GameFontHighlightSmall)
             self:SetText("")
-            self:SetBackdropColor(private.interface.colors.light)
+
             self:SetAutoFocus(false)
             self:SetTextInsets(5, 5, 2, 2)
             self:SetSearchTemplate()
+            self:SetDisabled()
         end,
 
         OnEnter = function(self)
             if self:IsEnabled() then
-                self.border:SetColorTexture(1, 1, 1, 0.75)
+                self.border:SetColorTexture(self.highlight:GetRGBA())
             end
         end,
 
@@ -82,8 +87,8 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
         end
     end
 
-    function editbox:SetLabel(text)
-        --
+    function editbox:SetHighlightColor(color)
+        self.highlight = color
     end
 
     function editbox:SetSearchTemplate(isSearchBox)
@@ -101,5 +106,66 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
             editbox.searchIcon:Hide()
             editbox.clearButton:Hide()
         end
+    end
+end
+
+function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
+    frame = private:MixinContainer(frame)
+    frame:InitScripts({
+        OnAcquire = function(self)
+            self:SetSize(150, 40)
+
+            self.label:Justify("LEFT", "MIDDLE")
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+            self:SetLabel("")
+
+            self:SetEditboxFont(GameFontHighlightSmall)
+            self:SetText("")
+        end,
+
+        OnSizeChanged = function(self, width, height)
+            self.label:SetSize(width, 20)
+            self.editbox:SetSize(width, height - 20)
+        end,
+    })
+
+    frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.label:SetPoint("TOPLEFT")
+
+    frame.editbox = frame:Acquire("GuildBankSnapshotsEditBox")
+    frame.editbox:SetPoint("BOTTOMLEFT")
+
+    -- Methods
+    function frame:IsValidText()
+        return self.editbox:IsValidText()
+    end
+
+    function frame:SetDisabled(...)
+        self.editbox:SetDisabled(...)
+    end
+
+    function frame:SetEditboxFont(fontObject)
+        self.editbox:SetFontObject(fontObject or GameFontHighlightSmall)
+    end
+
+    function frame:SetHighlightColor(...)
+        self.editbox:SetHighlightColor(...)
+    end
+
+    function frame:SetLabel(text)
+        self.label:SetText(text)
+    end
+
+    function frame:SetLabelFont(fontObject, color)
+        self.label:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
+    function frame:SetSearchTemplate(...)
+        self.editbox:SetSearchTemplate(...)
+    end
+
+    function frame:SetText(text)
+        self.editbox:SetText(text)
     end
 end

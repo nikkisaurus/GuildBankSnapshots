@@ -87,7 +87,7 @@ function private:InitializeDatabase()
                     reviewPath = "review", -- "review", "analyze", "export"
                 },
                 preferences = {
-                    useClassColor = true,
+                    useClassColor = false,
                     -- confirmDeletions = true,
                     dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
                     -- dateType = "default", -- "default", "approx"

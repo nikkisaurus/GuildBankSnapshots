@@ -98,6 +98,7 @@ function private:InitializeInterface()
             black = CreateColor(0, 0, 0, 1),
 
             dimmedWhite = CreateColor(1, 1, 1, 0.25),
+            lightWhite = CreateColor(1, 1, 1, 0.5),
             white = CreateColor(1, 1, 1, 1),
 
             dimmedClass = CreateColor(r, g, b, 0.25),
