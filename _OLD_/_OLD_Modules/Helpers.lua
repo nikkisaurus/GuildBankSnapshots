@@ -25,7 +25,7 @@ function private:GetFilterNames(guildKey, scanID, none)
         names[info.name] = info.name
     end
 
-    for name, _ in addon.pairs(names) do
+    for name, _ in addon:pairs(names) do
         tinsert(sorting, name)
     end
 
@@ -55,7 +55,7 @@ function private:GetFilterItems(guildKey, scanID, none)
     end
 
     for itemLink, _ in
-        addon.pairs(items, function(a, b)
+        addon:pairs(items, function(a, b)
             local _, _, itemA = strfind(select(3, strfind(a, "|H(.+)|h")) or format("[%s]", UNKNOWN), "%[(.+)%]")
             local _, _, itemB = strfind(select(3, strfind(b, "|H(.+)|h")) or format("[%s]", UNKNOWN), "%[(.+)%]")
 
@@ -84,16 +84,16 @@ function private:GetFilterTypes(guildKey, scanID)
     for _, tabInfo in pairs(scan.tabs) do
         for _, transaction in pairs(tabInfo.transactions) do
             local info = private:GetTransactionInfo(transaction)
-            types[info.transactionType] = addon.StringToTitle(info.transactionType)
+            types[info.transactionType] = addon:StringToTitle(info.transactionType)
         end
     end
 
     for _, transaction in pairs(scan.moneyTransactions) do
         local info = private:GetMoneyTransactionInfo(transaction)
-        types[info.transactionType] = addon.StringToTitle(info.transactionType)
+        types[info.transactionType] = addon:StringToTitle(info.transactionType)
     end
 
-    for transactionType, _ in addon.pairs(types) do
+    for transactionType, _ in addon:pairs(types) do
         tinsert(sorting, transactionType)
     end
 

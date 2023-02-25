@@ -61,7 +61,7 @@ local function GetTab(reviewTabGroup, _, tab)
     local transactions = tab < moneyTab and (scan.tabs[private.selectedBankTab] and scan.tabs[private.selectedBankTab].transactions or {}) or scan.moneyTransactions
     local text = ""
     for _, transaction in
-        addon.pairs(transactions, function(a, b)
+        addon:pairs(transactions, function(a, b)
             if private.db.global.settings.preferences.sorting == "des" then
                 return a > b
             else

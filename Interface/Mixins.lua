@@ -57,6 +57,10 @@ local function TextMixin_Validate(self)
     return assert(self.text, "TextMixin: text has not been initialized")
 end
 
+function TextMixin:GetText()
+    return self.text:GetText()
+end
+
 function TextMixin:Justify(justifyH, justifyV)
     TextMixin_Validate(self)
     self.text:SetJustifyH(justifyH or "CENTER")

@@ -311,13 +311,13 @@ function private:GetSettingsOptionsTable()
                         desc = L.DefaultGuildDescription,
                         width = "double",
                         disabled = function()
-                            return addon.tcount(private.db.global.guilds) == 0
+                            return addon:tcount(private.db.global.guilds) == 0
                         end,
                         values = function()
                             local guilds = {}
 
                             for guildID, guildInfo in
-                                addon.pairs(private.db.global.guilds, function(a, b)
+                                addon:pairs(private.db.global.guilds, function(a, b)
                                     return tostring(a) < tostring(b)
                                 end)
                             do
@@ -332,7 +332,7 @@ function private:GetSettingsOptionsTable()
                             local sorting = {}
 
                             for guildID, guildInfo in
-                                addon.pairs(private.db.global.guilds, function(a, b)
+                                addon:pairs(private.db.global.guilds, function(a, b)
                                     return tostring(a) < tostring(b)
                                 end)
                             do

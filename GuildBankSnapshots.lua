@@ -15,9 +15,9 @@ end
 function addon:OnDisable() end
 
 function addon:OnEnable()
-    C_Timer.After(1, function()
-        private:LoadFrame()
-    end)
+    -- C_Timer.After(1, function()
+    --     private:LoadFrame()
+    -- end)
 end
 
 function addon:OnInitialize()
@@ -25,6 +25,7 @@ function addon:OnInitialize()
     InitializeSlashCommands()
     private:InitializeInterface()
     private:InitializeFrame()
+    private:InitializeScanner()
 end
 
 function addon:SlashCommandFunc(input)

@@ -12,17 +12,17 @@ local function moneyTabGroupList(moneyInfo)
         {
             value = "deposit",
             text = L["Deposits"],
-            disabled = addon.tcount(moneyInfo.deposit) == 0,
+            disabled = addon:tcount(moneyInfo.deposit) == 0,
         },
         {
             value = "withdraw",
             text = L["Withdrawals"],
-            disabled = addon.tcount(moneyInfo.withdraw) == 0,
+            disabled = addon:tcount(moneyInfo.withdraw) == 0,
         },
         {
             value = "repair",
             text = L["Repairs"],
-            disabled = addon.tcount(moneyInfo.repair) == 0,
+            disabled = addon:tcount(moneyInfo.repair) == 0,
         },
     }
 end
@@ -32,12 +32,12 @@ local function itemTabGroupList(itemInfo)
         {
             value = "deposit",
             text = L["Deposits"],
-            disabled = addon.tcount(itemInfo.deposit) == 0,
+            disabled = addon:tcount(itemInfo.deposit) == 0,
         },
         {
             value = "withdraw",
             text = L["Withdrawals"],
-            disabled = addon.tcount(itemInfo.withdraw) == 0,
+            disabled = addon:tcount(itemInfo.withdraw) == 0,
         },
     }
 end
@@ -51,12 +51,12 @@ local function charTabGroupList(charInfo)
         {
             value = "deposit",
             text = L["Deposits"],
-            disabled = addon.tcount(charInfo.deposit) == 0,
+            disabled = addon:tcount(charInfo.deposit) == 0,
         },
         {
             value = "withdraw",
             text = L["Withdrawals"],
-            disabled = addon.tcount(charInfo.withdraw) == 0,
+            disabled = addon:tcount(charInfo.withdraw) == 0,
         },
     }
 end
@@ -135,21 +135,21 @@ local function SelectMoneyGroupTab(moneyTabGroup, tab, moneyInfo)
         netMoney:SetText(format("%s: %s%s|r", L["Net"], netCount < 0 and red or white, GetCoinTextureString(math.abs(netCount))))
         money:AddChild(netMoney)
     elseif tab == "deposit" then
-        for character, count in addon.pairs(moneyInfo.deposit) do
+        for character, count in addon:pairs(moneyInfo.deposit) do
             local line = AceGUI:Create("GuildBankSnapshotsTransaction")
             line:SetFullWidth(true)
             line:SetText(format("%s: %s", character, GetCoinTextureString(count)))
             scrollFrame:AddChild(line)
         end
     elseif tab == "withdraw" then
-        for character, count in addon.pairs(moneyInfo.withdraw) do
+        for character, count in addon:pairs(moneyInfo.withdraw) do
             local line = AceGUI:Create("GuildBankSnapshotsTransaction")
             line:SetFullWidth(true)
             line:SetText(format("%s: %s", character, GetCoinTextureString(count)))
             scrollFrame:AddChild(line)
         end
     elseif tab == "repair" then
-        for character, count in addon.pairs(moneyInfo.repair) do
+        for character, count in addon:pairs(moneyInfo.repair) do
             local line = AceGUI:Create("GuildBankSnapshotsTransaction")
             line:SetFullWidth(true)
             line:SetText(format("%s: %s", character, GetCoinTextureString(count)))
@@ -198,14 +198,14 @@ local function SelectItemGroupTab(itemTabGroup, tab, itemInfo)
     itemTabGroup:AddChild(scrollFrame)
 
     if tab == "deposit" then
-        for character, count in addon.pairs(itemInfo.deposit) do
+        for character, count in addon:pairs(itemInfo.deposit) do
             local line = AceGUI:Create("GuildBankSnapshotsTransaction")
             line:SetFullWidth(true)
             line:SetText(format("%s x%d", character, count))
             scrollFrame:AddChild(line)
         end
     elseif tab == "withdraw" then
-        for character, count in addon.pairs(itemInfo.withdraw) do
+        for character, count in addon:pairs(itemInfo.withdraw) do
             local line = AceGUI:Create("GuildBankSnapshotsTransaction")
             line:SetFullWidth(true)
             line:SetText(format("%s x%d", character, count))
@@ -288,7 +288,7 @@ local function SelectCharacterGroupTab(charTabGroup, tab, charInfo)
 
         local deposits = AceGUI:Create("Label")
         deposits:SetFullWidth(true)
-        deposits:SetText(format("%s: %d (%d)", L["Deposits"], addon.tcount(charInfo.deposit), total))
+        deposits:SetText(format("%s: %d (%d)", L["Deposits"], addon:tcount(charInfo.deposit), total))
         items:AddChild(deposits)
 
         -- Get withdrawals total
@@ -299,7 +299,7 @@ local function SelectCharacterGroupTab(charTabGroup, tab, charInfo)
 
         local withdrawals = AceGUI:Create("Label")
         withdrawals:SetFullWidth(true)
-        withdrawals:SetText(format("%s: %d (%d)", L["Withdrawals"], addon.tcount(charInfo.withdraw), total))
+        withdrawals:SetText(format("%s: %d (%d)", L["Withdrawals"], addon:tcount(charInfo.withdraw), total))
         items:AddChild(withdrawals)
 
         -- Money
@@ -334,7 +334,7 @@ local function SelectCharacterGroupTab(charTabGroup, tab, charInfo)
         money:AddChild(netMoney)
     elseif tab == "deposit" then
         for itemLink, count in
-            addon.pairs(charInfo.deposit, function(a, b)
+            addon:pairs(charInfo.deposit, function(a, b)
                 local _, _, itemA = strfind(select(3, strfind(a, "|H(.+)|h")), "%[(.+)%]")
                 local _, _, itemB = strfind(select(3, strfind(b, "|H(.+)|h")), "%[(.+)%]")
 
@@ -348,7 +348,7 @@ local function SelectCharacterGroupTab(charTabGroup, tab, charInfo)
         end
     elseif tab == "withdraw" then
         for itemLink, count in
-            addon.pairs(charInfo.withdraw, function(a, b)
+            addon:pairs(charInfo.withdraw, function(a, b)
                 local _, _, itemA = strfind(select(3, strfind(a, "|H(.+)|h")), "%[(.+)%]")
                 local _, _, itemB = strfind(select(3, strfind(b, "|H(.+)|h")), "%[(.+)%]")
 

@@ -3,7 +3,7 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 local function BackupDatabase()
-    local backup = addon.CloneTable(GuildBankSnapshotsDB)
+    local backup = addon:CloneTable(GuildBankSnapshotsDB)
     wipe(GuildBankSnapshotsDB)
     return backup
 end

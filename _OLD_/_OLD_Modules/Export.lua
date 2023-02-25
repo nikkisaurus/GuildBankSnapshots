@@ -9,8 +9,8 @@ local function CancelExport(copyBox, start, cancel, selectAll, deselectAll, scro
     private.pendingExport = nil
 
     local guild = private.db.global.guilds[private.selectedExportGuild]
-    local numScans = addon.tcount(guild.scans)
-    local numSelected = addon.tcount(private.selectedScans)
+    local numScans = addon:tcount(guild.scans)
+    local numSelected = addon:tcount(private.selectedScans)
 
     copyBox:SetDisabled(true)
     copyBox:SetLabel("")
@@ -37,7 +37,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
 
     local i = 1
     local msg = ""
-    addon.tpairs(
+    addon:tpairs(
         private.selectedScans,
         function(scans, scanID)
             if not private.pendingExport then
@@ -45,7 +45,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
             end
 
             -- Update labels
-            copyBox:SetLabel(format("%s (%d%%)", L["Processing"], (i / addon.tcount(scans)) * 100))
+            copyBox:SetLabel(format("%s (%d%%)", L["Processing"], (i / addon:tcount(scans)) * 100))
             if i == 1 then
                 copyBox.parent:DoLayout()
             end
@@ -113,7 +113,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
                 end
             end
 
-            if i == addon.tcount(private.selectedScans) then
+            if i == addon:tcount(private.selectedScans) then
                 CancelExport(copyBox, start, cancel, selectAll, deselectAll, scrollFrame)
                 copyBox:SetDisabled()
 
@@ -155,8 +155,8 @@ local function SelectGuild(guildGroup, _, guildKey)
     if not guild then
         return
     end
-    local numScans = addon.tcount(guild.scans)
-    local numSelected = addon.tcount(private.selectedScans)
+    local numScans = addon:tcount(guild.scans)
+    local numSelected = addon:tcount(private.selectedScans)
 
     local copyBox = AceGUI:Create("EditBox")
     copyBox:SetLabel("")
@@ -214,7 +214,7 @@ local function SelectGuild(guildGroup, _, guildKey)
     scansGroup:AddChild(scrollFrame)
 
     for scanID, scan in
-        addon.pairs(guild.scans, function(a, b)
+        addon:pairs(guild.scans, function(a, b)
             return a > b
         end)
     do
@@ -227,8 +227,8 @@ local function SelectGuild(guildGroup, _, guildKey)
 
             private.selectedScans[scanID] = value and true or nil
 
-            local numScans = addon.tcount(guild.scans)
-            local numSelected = addon.tcount(private.selectedScans)
+            local numScans = addon:tcount(guild.scans)
+            local numSelected = addon:tcount(private.selectedScans)
             selectAll:SetDisabled(numScans == 0 or numScans == numSelected)
             deselectAll:SetDisabled(numScans == 0 or numSelected == 0)
             start:SetDisabled(numSelected == 0)

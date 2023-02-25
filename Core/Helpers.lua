@@ -1,17 +1,21 @@
 local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local AceSerializer = LibStub("AceSerializer-3.0")
+
+private.sortDesc = function(a, b)
+    return a > b
+end
 
 private.timeInSeconds = {
-    second = 1,
-    minute = 60,
-    hour = 3600,
-    day = 86400,
-    week = 604800,
-    month = 2628000,
-    year = 31540000,
+    seconds = 1,
+    minutes = 60,
+    hours = 3600,
+    days = 86400,
+    weeks = 604800,
+    months = 2628000,
+    years = 31540000,
 }
-
 function private:GetClassColor()
     return GetClassColor(select(2, UnitClass("player")))
 end
@@ -31,6 +35,15 @@ function private:GetGuildDisplayName(guildID)
     return guildFormat
 end
 
+function private:GetGuildID()
+    local guildName = GetGuildInfo("player")
+    local faction = UnitFactionGroup("player")
+    local realm = GetRealmName()
+    local guildID = format("%s - %s (%s)", guildName, realm, faction)
+
+    return guildID, guildName, faction, realm
+end
+
 function private:GetItemRank(itemLink)
     assert(type(itemLink) == "string", "GetItemRank: itemLink must be a string")
     return tonumber(itemLink:match("|A.-Tier(%d).-|a")) or 0
@@ -43,6 +56,26 @@ end
 
 function private:GetItemName(itemLink)
     return select(3, strfind(private:GetItemString(itemLink) or "", "%[(.+)%]")) or UNKNOWN
+end
+
+function private:GetMoneyTransactionInfo(transaction)
+    if not transaction then
+        return
+    end
+
+    local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+
+    local info = {
+        transactionType = transactionType,
+        name = name or UNKNOWN,
+        amount = amount,
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+    }
+
+    return info
 end
 
 function private:GetTabName(guildID, tabID)
@@ -61,8 +94,31 @@ function private:GetTabName(guildID, tabID)
 end
 
 function private:GetTransactionDate(scanTime, year, month, day, hour)
-    local sec = (hour * private.timeInSeconds.hour) + (day * private.timeInSeconds.day) + (month * private.timeInSeconds.month) + (year * private.timeInSeconds.year)
+    local sec = (hour * private.timeInSeconds.hours) + (day * private.timeInSeconds.days) + (month * private.timeInSeconds.months) + (year * private.timeInSeconds.years)
     return scanTime - sec
+end
+
+function private:GetTransactionInfo(transaction)
+    if not transaction then
+        return
+    end
+
+    local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+
+    local info = {
+        transactionType = transactionType,
+        name = name or UNKNOWN,
+        itemLink = (itemLink and itemLink ~= "" and itemLink) or UNKNOWN,
+        count = count,
+        moveOrigin = moveOrigin,
+        moveDestination = moveDestination,
+        year = year,
+        month = month,
+        day = day,
+        hour = hour,
+    }
+
+    return info
 end
 
 function private:dprint(...)

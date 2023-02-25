@@ -1232,7 +1232,7 @@ end
 
 ------------------------
 
-function private:LoadReviewTab(content)
+function private:LoadReviewTab(content, guildKey)
     local guildDropdown = content:Acquire("GuildBankSnapshotsDropdownButton")
     guildDropdown:SetPoint("TOPLEFT", 10, -10)
     guildDropdown:SetSize(250, 20)
@@ -1298,7 +1298,9 @@ function private:LoadReviewTab(content)
 
     -- It's now safe to initialize the dropdown
     guildDropdown:SetCallback("OnShow", function()
-        if ReviewTab.guildID then
+        if guildKey then
+            guildDropdown:SelectByID(guildKey)
+        elseif ReviewTab.guildID then
             guildDropdown:SelectByID(ReviewTab.guildID)
         end
     end, true)

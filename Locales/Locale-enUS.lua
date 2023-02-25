@@ -37,12 +37,17 @@ L["Not recommended for large tables as it may cause the game to freeze for exten
 L["Number of entries"] = true
 L["Number of transactions"] = true
 L["Page"] = true
+L["Please open your guild bank frame and try again."] = true
 L["Please supply a valid loadout name."] = true
 L["Quantity"] = true
 L["Remove duplicates"] = true
 L["Review"] = true
 L["Save Filter Loadout"] = true
+L["Scan corrupt. Please try again."] = true
 L["Scan Date"] = true
+L["Scan failed."] = true
+L["Scan finished."] = true
+L["Scanning"] = true
 L["Select a guild"] = true
 L["Settings"] = true
 L["Sorting"] = true

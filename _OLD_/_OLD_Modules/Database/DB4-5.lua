@@ -12,7 +12,7 @@ function private:ConvertDB4_5(backup)
             realm = gsub(realm, "|s", " ")
 
             local guildID = format("%s - %s (%s)", guildName, realm, faction)
-            private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.interface.guild)
+            private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon:CloneTable(private.interface.guild)
             local db = private.db.global.guilds[guildID]
 
             db.guildName = guildName
@@ -20,11 +20,11 @@ function private:ConvertDB4_5(backup)
             db.realm = realm
 
             for scanID, scan in
-                addon.pairs(scans, function(a, b)
+                addon:pairs(scans, function(a, b)
                     return a > b
                 end)
             do
-                db.numTabs = db.numTabs == 0 and (addon.tcount(scan) - 1) or db.numTabs
+                db.numTabs = db.numTabs == 0 and (addon:tcount(scan) - 1) or db.numTabs
                 db.scans[scanID] = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
 
                 for tab, transactions in pairs(scan) do

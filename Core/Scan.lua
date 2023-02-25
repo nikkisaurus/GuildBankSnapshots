@@ -6,14 +6,15 @@ local AceSerializer = LibStub("AceSerializer-3.0")
 
 local function ValidateScan(db, override)
     if not private.bankIsOpen then
-        addon:Print(L.BankClosedError)
+        addon:Print(L["Please open your guild bank frame and try again."])
         return
     end
     if not private.isScanning then
         return
     end
 
-    local scans = private.db.global.guilds[private:GetGuildID()].scans
+    local guildKey = private:GetGuildID()
+    local scans = private.db.global.guilds[guildKey].scans
 
     local isValid = override
     for scanTime, scan in
@@ -56,17 +57,15 @@ local function ValidateScan(db, override)
         local scanSettings = private.db.global.settings.scans
 
         -- Save db
-        private.db.global.guilds[private:GetGuildID()].scans[scanTime] = db
+        private.db.global.guilds[guildKey].scans[scanTime] = db
 
         if private:DeleteCorruptedScans(scanTime) then
-            addon:Print(L.CorruptScan)
+            addon:Print(L["Scan corrupt. Please try again."])
         else
+            private:AddScanToMaster(guildKey, scanTime)
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetGuildID(), scanTime)
-                if scanSettings.reviewPath == "analyze" then
-                    private.frame:GetUserData("reviewTabGroup"):SelectTab("Analyze")
-                end
+                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetGuildID())
             end
         end
     end
@@ -85,14 +84,10 @@ local function ValidateScanFrequency(autoScanSettings)
     end
 
     -- Convert frequency to seconds
-    local frequency = autoScanSettings.frequency.measure * private.unitsToSeconds[autoScanSettings.frequency.unit]
+    local frequency = autoScanSettings.frequency.measure * private.timeInSeconds[autoScanSettings.frequency.unit]
 
     -- Get the last scan date and compare
-    for scanID, _ in
-        addon:pairs(private.db.global.guilds[private:GetGuildID()].scans, function(a, b)
-            return b < a
-        end)
-    do
+    for scanID, _ in addon:pairs(private.db.global.guilds[private:GetGuildID()].scans, private.sortDesc) do
         return (time() > (scanID + frequency))
     end
 
@@ -133,7 +128,7 @@ end
 function addon:ScanGuildBank(isAutoScan, override)
     -- Alert user of progress
     if not private.bankIsOpen then
-        addon:Print(L.BankClosedError)
+        addon:Print(L["Please open your guild bank frame and try again."])
         return
     elseif not isAutoScan or private.db.global.settings.scans.autoScan.alert then
         addon:Print(L["Scanning"] .. "...")
@@ -194,4 +189,100 @@ function addon:ScanGuildBank(isAutoScan, override)
         -- Validation
         ValidateScan(db, override)
     end)
+end
+
+function private:InitializeScanner()
+    EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
+        addon:HookScript(_G["GuildBankFrame"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+        addon:HookScript(_G["GuildBankFrame"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+
+        if IsAddOnLoaded("ArkInventory") and _G["ARKINV_Frame4"] then
+            addon:HookScript(_G["ARKINV_Frame4"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+            addon:HookScript(_G["ARKINV_Frame4"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+        elseif IsAddOnLoaded("Bagnon") and _G["BagnonBankFrame1"] then
+            addon:HookScript(_G["BagnonBankFrame1"], "OnShow", addon.GUILDBANKFRAME_OPENED)
+            addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+        end
+
+        C_Timer.After(5, function()
+            -- Added delay because it seems some addons may be loading the guild bank UI before I have the data I need
+            private:UpdateGuildDatabase()
+        end)
+    end)
+end
+
+local entries = {}
+function private:AddScanToMaster(guildKey, scanID)
+    local scan = private.db.global.guilds[guildKey].scans[scanID]
+
+    if not scan then
+        return
+    end
+
+    for tabID, tab in addon:pairs(scan.tabs) do
+        for _, transaction in addon:pairs(tab.transactions) do
+            local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+
+            local approxDate = private:GetTransactionDate(scanID, year, month, day, hour)
+            local mins = tonumber(date("%M", approxDate))
+            local transactionDate = approxDate - (mins * private.timeInSeconds.minutes)
+
+            local elementData = {
+                transactionID = #private.db.global.guilds[guildKey].masterScan + 1,
+                scanID = scanID,
+                tabID = tabID,
+                transactionDate = transactionDate,
+
+                transactionType = transactionType,
+                name = name or UNKNOWN,
+                itemLink = (itemLink and itemLink ~= "" and itemLink) or UNKNOWN,
+                count = count,
+                moveOrigin = moveOrigin,
+                moveDestination = moveDestination,
+                year = year,
+                month = month,
+                day = day,
+                hour = hour,
+            }
+
+            local key = (transactionType .. name .. (private:GetItemName(itemLink) or UNKNOWN) .. (private:GetItemRank(itemLink) or 0) .. count .. moveOrigin .. moveDestination)
+            if entries[key] then
+                elementData.isDupe = abs(transactionDate - entries[key]) <= (private.timeInSeconds.hours + private.timeInSeconds.minutes)
+            end
+            entries[key] = transactionDate
+
+            tinsert(private.db.global.guilds[guildKey].masterScan, elementData)
+        end
+    end
+
+    for _, transaction in addon:pairs(scan.moneyTransactions) do
+        local transactionType, name, amount, year, month, day, hour = select(2, AceSerializer:Deserialize(transaction))
+
+        local approxDate = private:GetTransactionDate(scanID, year, month, day, hour)
+        local mins = tonumber(date("%M", approxDate))
+        local transactionDate = approxDate - (mins * private.timeInSeconds.minutes)
+
+        local elementData = {
+            transactionID = #private.db.global.guilds[guildKey].masterScan + 1,
+            scanID = scanID,
+            tabID = MAX_GUILDBANK_TABS + 1,
+            transactionDate = transactionDate,
+
+            transactionType = transactionType,
+            name = name or UNKNOWN,
+            amount = amount,
+            year = year,
+            month = month,
+            day = day,
+            hour = hour,
+        }
+
+        local key = (transactionType .. name .. amount)
+        if entries[key] then
+            elementData.isDupe = abs(transactionDate - entries[key]) <= (private.timeInSeconds.hours + private.timeInSeconds.minutes)
+        end
+        entries[key] = transactionDate
+
+        tinsert(private.db.global.guilds[guildKey].masterScan, elementData)
+    end
 end

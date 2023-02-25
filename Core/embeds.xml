@@ -1,3 +1,4 @@
 <Ui>
     <Include file="Helpers.lua" />
+    <Include file="Scan.lua" />
 </Ui>

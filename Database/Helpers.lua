@@ -7,7 +7,7 @@ function private:CleanupDatabase()
 
     -- Delete scans by age
     for guildID, guildInfo in pairs(private.db.global.guilds) do
-        for scanID, _ in addon.pairs(guildInfo.scans) do
+        for scanID, _ in addon:pairs(guildInfo.scans) do
             local autoCleanupSettings = private.db.global.settings.scans.autoCleanup
             if autoCleanupSettings.age.enabled then
                 -- Convert age to seconds
@@ -38,7 +38,7 @@ function private:DeleteCorruptedScans(lastScan)
 
     local lastScanCorrupted
     for guildID, guildInfo in pairs(private.db.global.guilds) do
-        for scanID, scan in addon.pairs(guildInfo.scans) do
+        for scanID, scan in addon:pairs(guildInfo.scans) do
             local empty = 0
             local corruptItems
 
@@ -46,7 +46,7 @@ function private:DeleteCorruptedScans(lastScan)
             for i = 1, guildInfo.numTabs or MAX_GUILDBANK_TABS do
                 local tabInfo = scan.tabs[i]
                 -- Can't guarantee all corrupt logs will be cleaned up because we can't know that if either items or transactions are empty that it's corrupt rather than a new bank
-                if not tabInfo or (addon.tcount(tabInfo.items) == 0 and addon.tcount(tabInfo.transactions) == 0) then
+                if not tabInfo or (addon:tcount(tabInfo.items) == 0 and addon:tcount(tabInfo.transactions) == 0) then
                     empty = empty + 1
                 else
                     for _, transaction in pairs(tabInfo.transactions) do
@@ -65,7 +65,7 @@ function private:DeleteCorruptedScans(lastScan)
             end
 
             -- Count empty money transactions
-            if addon.tcount(scan.moneyTransactions) == 0 then
+            if addon:tcount(scan.moneyTransactions) == 0 then
                 empty = empty + 1
             else
                 for _, transaction in pairs(scan.moneyTransactions) do
@@ -77,7 +77,7 @@ function private:DeleteCorruptedScans(lastScan)
             end
 
             -- Delete corrupt scan
-            if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon.tcount(scan.tabs) == 0 and addon.tcount(scan.moneyTransactions) == 0) or addon.tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
+            if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon:tcount(scan.tabs) == 0 and addon:tcount(scan.moneyTransactions) == 0) or addon:tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
                 lastScanCorrupted = scanID == lastScan
                 private.db.global.guilds[guildID].scans[scanID] = nil
             end
@@ -89,7 +89,7 @@ end
 
 function private:UpdateGuildDatabase()
     local guildID, guildName, faction, realm = private:GetGuildID()
-    private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon.CloneTable(private.interface.guild)
+    private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon:CloneTable(private.interface.guild)
     local db = private.db.global.guilds[guildID]
 
     db.guildName = guildName

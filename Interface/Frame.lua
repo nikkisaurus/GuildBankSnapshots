@@ -6,18 +6,18 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local tabs = {
     {
         header = L["Review"],
-        onClick = function(content)
-            private:LoadReviewTab(content)
+        onClick = function(content, guildKey)
+            private:LoadReviewTab(content, guildKey)
         end,
     },
     {
         header = L["Analyze"],
-        onClick = function(content) end,
+        onClick = function(content, guildKey) end,
     },
     {
         header = L["Settings"],
-        onClick = function(content)
-            private:LoadSettingsTab(content)
+        onClick = function(content, guildKey)
+            private:LoadSettingsTab(content, guildKey)
         end,
     },
     {
@@ -74,10 +74,10 @@ function private:InitializeFrame()
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
     frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "dark" })
 
-    function frame:SelectTab(tabID)
+    function frame:SelectTab(tabID, guildKey)
         self.selectedTab = tabID
         self.content:ReleaseAll()
-        tabs[tabID].onClick(self.content)
+        tabs[tabID].onClick(self.content, guildKey)
     end
 
     -- [[ Scripts ]]
@@ -94,8 +94,8 @@ function private:InitializeFrame()
                 -- Ensure active tab stays selected when frame size changes, since the tabs are being released and redrawn
                 tab:SetSelected(true)
             end
-            tab:SetCallback("OnClick", function()
-                self:SelectTab(tabID)
+            tab:SetCallback("OnClick", function(_, guildKey)
+                self:SelectTab(tabID, guildKey)
             end)
 
             local tabWidth = tab:GetWidth()
@@ -117,9 +117,16 @@ function private:InitializeFrame()
 end
 
 local loaded
-function private:LoadFrame()
+function private:LoadFrame(reviewPath, guildKey)
     private.frame:Show()
-    if not loaded then
+    if reviewPath then
+        loaded = true
+        for tab, _ in private.frame.tabContainer:EnumerateActive() do
+            if tab:GetText() == reviewPath then
+                tab:Fire("OnClick", guildKey)
+            end
+        end
+    elseif not loaded then
         -- Load default tab
         loaded = true
         for tab, _ in private.frame.tabContainer:EnumerateActive() do

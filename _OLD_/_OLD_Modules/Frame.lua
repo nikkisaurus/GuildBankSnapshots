@@ -79,7 +79,7 @@ function private:GetGuildList()
     local guilds, sorting = {}, {}
 
     for guildID, guildInfo in
-        addon.pairs(private.db.global.guilds, function(a, b)
+        addon:pairs(private.db.global.guilds, function(a, b)
             return tostring(a) < tostring(b)
         end)
     do
@@ -99,7 +99,7 @@ function private:GetScansTree(guildKey)
     end
 
     for scanID, _ in
-        addon.pairs(scans, function(a, b)
+        addon:pairs(scans, function(a, b)
             return a > b
         end)
     do
