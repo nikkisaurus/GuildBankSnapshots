@@ -4,4 +4,9 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsContainer_OnLoad(frame)
     frame = private:MixinContainer(frame)
+    frame:InitScripts({
+        OnRelease = function(self)
+            self:ReleaseAll()
+        end,
+    })
 end

@@ -116,6 +116,7 @@ function private:InitializeFrame()
     end, true)
 
     private:InitializeReviewTab()
+    private:InitializeSettingsTab()
 end
 
 local loaded

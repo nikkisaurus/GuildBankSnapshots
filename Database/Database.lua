@@ -88,9 +88,9 @@ function private:InitializeDatabase()
                 },
                 preferences = {
                     useClassColor = true,
-                    confirmDeletions = true,
+                    -- confirmDeletions = true,
                     dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
-                    dateType = "default", -- "default", "approx"
+                    -- dateType = "default", -- "default", "approx"
                     sortHeaders = { 1, 2, 4, 3, 5, 6, 7, 8, 9 },
                     descendingHeaders = {
                         [1] = true,

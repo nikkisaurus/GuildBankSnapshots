@@ -61,6 +61,10 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         return self.isChecked
     end
 
+    function button:GetMinWidth()
+        return self.checkBoxBorder:GetWidth() + self:GetStringWidth() + 20
+    end
+
     function button:SetChecked(isChecked)
         self.isChecked = isChecked
 

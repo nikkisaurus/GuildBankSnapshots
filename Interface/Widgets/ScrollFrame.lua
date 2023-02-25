@@ -5,6 +5,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 function GuildBankSnapshotsScrollFrame_OnLoad(frame)
     frame = private:MixinWidget(frame)
     frame:InitScripts({
+        OnAcquire = function(self)
+            self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+        end,
+
         OnSizeChanged = function(self)
             self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
         end,

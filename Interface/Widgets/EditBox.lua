@@ -6,7 +6,7 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
     editbox = private:MixinWidget(editbox)
     editbox:InitScripts({
         OnAcquire = function(self)
-            self:SetSize(100, 20)
+            self:SetSize(150, 20)
             self:SetFontObject(GameFontHighlightSmall)
             self:SetText("")
             self:SetBackdropColor(private.interface.colors.light)
@@ -82,6 +82,10 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
         end
     end
 
+    function editbox:SetLabel(text)
+        --
+    end
+
     function editbox:SetSearchTemplate(isSearchBox)
         self.isSearchBox = isSearchBox
         if isSearchBox then
@@ -99,25 +103,3 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
         end
     end
 end
-
--- function GuildBankSnapshotsEditBox_OnLoad(editbox)
---     editbox = private:MixinWidget(editbox)
-
---     editbox:InitScripts({
---         OnAcquire = function(self)
---             self:SetText("")
---         end,
-
---         OnEnterPressed = function(self)
---             self:ClearFocus()
---         end,
---     })
-
---     -- editbox.clearButton:HookScript("OnClick", function()
---     --     if editbox.handlers.OnClear then
---     --         editbox.handlers.OnClear(editbox)
---     --     end
---     -- end)
-
---     -- editbox:SetTextInsets(editbox.searchIcon:GetWidth() + 4, editbox.clearButton:GetWidth() + 4, 2, 2)
--- end

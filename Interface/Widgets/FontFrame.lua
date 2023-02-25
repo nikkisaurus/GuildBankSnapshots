@@ -10,7 +10,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
     frame:InitScripts({
         OnAcquire = function(self)
-            self:SetHeight(20)
+            self:SetSize(150, 20)
             self:SetAutoHeight(false)
             self:SetFontObject("GameFontHighlightSmall")
             self:Justify("CENTER", "MIDDLE")

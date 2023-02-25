@@ -42,6 +42,10 @@ function ContainerMixin:ReleaseAllByTemplate(template)
     self.pool:ReleaseAllByTemplate(template)
 end
 
+function ContainerMixin:SetAutoHeight(autoHeight)
+    self.autoHeight = autoHeight
+end
+
 function private:MixinContainer(tbl)
     tbl = private:MixinWidget(tbl)
     tbl = private:MixinCollection(tbl)
@@ -55,6 +59,10 @@ local TextMixin = {}
 
 local function TextMixin_Validate(self)
     return assert(self.text, "TextMixin: text has not been initialized")
+end
+
+function TextMixin:GetStringWidth()
+    return self.text:GetStringWidth()
 end
 
 function TextMixin:GetText()
@@ -206,25 +214,6 @@ function WidgetMixin:UnregisterCallback(script)
 
     local existingScript = self.scripts[script]
     self:SetScript(script, existingScript)
-    -- local success, err = pcall(self.GetScript, self, script)
-    -- assert(success or validScripts[script], "WidgetMixin: invalid script")
-    -- assert(type(callback) == "function", callback and "WidgetMixin: callback must be a function" or "WidgetMixin: attempting to create empty callback")
-
-    -- self.handlers[script] = callback
-    -- local existingScript = self.scripts[script]
-    -- if success then
-    --     self:SetScript(script, function(...)
-    --         if existingScript then
-    --             existingScript(...)
-    --         end
-
-    --         callback(...)
-    --     end)
-    -- end
-
-    -- if init then
-    --     callback(self)
-    -- end
 end
 
 function private:MixinWidget(tbl)
@@ -252,6 +241,7 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownListButton", Resetter)
     tbl.pool:CreatePool("EditBox", parent or tbl, "GuildBankSnapshotsEditBox", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsFontFrame", Resetter)
+    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsGroup", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsListScrollFrame", Resetter)
     tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsMinMaxFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollFrame", Resetter)

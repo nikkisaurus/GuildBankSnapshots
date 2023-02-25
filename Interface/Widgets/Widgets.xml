@@ -11,6 +11,12 @@
         </Scripts>
     </Frame>
 
+    <Frame name="GuildBankSnapshotsGroup" inherits="ResizeLayoutFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsGroup_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <Frame name="GuildBankSnapshotsFontFrame" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsFontFrame_OnLoad" />
