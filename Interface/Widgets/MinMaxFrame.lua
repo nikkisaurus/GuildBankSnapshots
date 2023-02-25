@@ -9,6 +9,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
             self:SetSize(100, 40)
             self.lowerText:Justify("LEFT", "MIDDLE")
             self.upperText:Justify("LEFT", "MIDDLE")
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
             self:SetLabels()
             self:HideLabels()
         end,
@@ -65,6 +66,14 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
         self.upper:SetDisabled(isDisabled)
     end
 
+    function frame:SetLabelFont(fontObject, color)
+        self.lowerText:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.lowerText:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+
+        self.upperText:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.upperText:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
     function frame:SetMaxValue(maxValue)
         self.upper.value = tonumber(maxValue)
         self.upper:SetText(self.formatter and self.formatter(maxValue) or maxValue)
@@ -85,7 +94,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
 
     function frame:SetLabels(lower, upper)
         self.lowerText:SetText(lower or L["Min"])
-        self.upperText:SetText(lower or L["Max"])
+        self.upperText:SetText(upper or L["Max"])
     end
 
     function frame:SetValues(minValue, maxValue)

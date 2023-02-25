@@ -892,19 +892,11 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local rankLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    rankLabel:SetPoint("TOPLEFT", 5, -height)
-    rankLabel:SetPoint("RIGHT", -5, 0)
-    rankLabel:SetText(L["Item Rank"])
-    rankLabel:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
-    rankLabel:Justify("LEFT")
-
-    height = height + rankLabel:GetHeight()
-
     local rank = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     rank:SetPoint("TOPLEFT", 5, -height)
     rank:SetPoint("RIGHT", -5, 0)
-    rank:HideLabels(true)
+    rank:SetLabels(L["Item Rank"], "")
+    rank:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     rank:SetMinMaxValues(0, 5, function(self, range, value)
         ReviewTab.guilds[ReviewTab.guildID].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
@@ -919,19 +911,11 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local itemLevelLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    itemLevelLabel:SetPoint("TOPLEFT", 5, -height)
-    itemLevelLabel:SetPoint("RIGHT", -5, 0)
-    itemLevelLabel:SetText(L["Item Level"])
-    itemLevelLabel:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
-    itemLevelLabel:Justify("LEFT")
-
-    height = height + itemLevelLabel:GetHeight()
-
     local itemLevel = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     itemLevel:SetPoint("TOPLEFT", 5, -height)
     itemLevel:SetPoint("RIGHT", -5, 0)
-    itemLevel:HideLabels(true)
+    itemLevel:SetLabels(L["Item Level"], "")
+    itemLevel:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     itemLevel:SetMinMaxValues(0, 418, function(self, range, value)
         ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
@@ -958,19 +942,11 @@ LoadSidebarFilters = function(content, height)
 
     -----------------------
 
-    local amountLabel = content:Acquire("GuildBankSnapshotsFontFrame")
-    amountLabel:SetPoint("TOPLEFT", 5, -height)
-    amountLabel:SetPoint("RIGHT", -5, 0)
-    amountLabel:SetText(L["Amount"])
-    amountLabel:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
-    amountLabel:Justify("LEFT")
-
-    height = height + amountLabel:GetHeight()
-
     local amount = content:Acquire("GuildBankSnapshotsMinMaxFrame")
     amount:SetPoint("TOPLEFT", 5, -height)
     amount:SetPoint("RIGHT", -5, 0)
-    amount:HideLabels(true)
+    amount:SetLabels(L["Amount"], "")
+    amount:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     amount:SetMinMaxValues(0, 10000000000, function(self, range, value)
         ReviewTab.guilds[ReviewTab.guildID].filters.amounts[range == "lower" and "minValue" or range == "upper" and "maxValue"] = self[range].value
 
