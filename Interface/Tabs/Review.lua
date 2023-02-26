@@ -10,7 +10,7 @@ local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideB
 
 function private:InitializeReviewTab()
     ReviewTab = {
-        guildID = private.db.global.preferences.defaultGuild,
+        guildKey = private.db.global.preferences.defaultGuild,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
         guilds = {},
         entriesPerFrame = 50,
@@ -65,10 +65,10 @@ local tableCols = {
     [2] = {
         header = L["Tab"],
         sortValue = function(data)
-            return private:GetTabName(ReviewTab.guildID, data.tabID)
+            return private:GetTabName(ReviewTab.guildKey, data.tabID)
         end,
         text = function(data)
-            return private:GetTabName(ReviewTab.guildID, data.tabID)
+            return private:GetTabName(ReviewTab.guildKey, data.tabID)
         end,
         width = 1,
     },
@@ -126,7 +126,7 @@ local tableCols = {
             return data.moveOrigin or 0
         end,
         text = function(data)
-            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(ReviewTab.guildID, data.moveOrigin) or ""
+            return data.moveOrigin and data.moveOrigin > 0 and private:GetTabName(ReviewTab.guildKey, data.moveOrigin) or ""
         end,
         width = 1,
     },
@@ -136,7 +136,7 @@ local tableCols = {
             return data.moveDestination or 0
         end,
         text = function(data)
-            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(ReviewTab.guildID, data.moveDestination) or ""
+            return data.moveDestination and data.moveDestination > 0 and private:GetTabName(ReviewTab.guildKey, data.moveDestination) or ""
         end,
         width = 1,
     },
@@ -319,7 +319,7 @@ GetFilters = function()
 
                 for _, key in pairs({ "tabID", "moveOrigin", "moveDestination" }) do
                     for tabName, _ in pairs(self.values) do
-                        if tabName == private:GetTabName(ReviewTab.guildID, elementData[key]) then
+                        if tabName == private:GetTabName(ReviewTab.guildKey, elementData[key]) then
                             return
                         end
                     end
@@ -367,7 +367,7 @@ GetFilters = function()
 end
 
 IsFiltered = function(elementData)
-    for filterID, filter in pairs(ReviewTab.guilds[ReviewTab.guildID].filters) do
+    for filterID, filter in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters) do
         if not filter.func then
             local defaultFilter = GetFilters()
             filter.func = defaultFilter[filterID].func
@@ -382,12 +382,12 @@ IsFiltered = function(elementData)
 end
 
 IsQueryMatch = function(elementData)
-    if not ReviewTab.guilds[ReviewTab.guildID].searchQuery then
+    if not ReviewTab.guilds[ReviewTab.guildKey].searchQuery then
         return true
     end
 
     for _, key in pairs(ReviewTab.searchKeys) do
-        local found = elementData[key] and strfind(strupper(elementData[key]), strupper(ReviewTab.guilds[ReviewTab.guildID].searchQuery))
+        local found = elementData[key] and strfind(strupper(elementData[key]), strupper(ReviewTab.guilds[ReviewTab.guildKey].searchQuery))
         if found then
             return true
         end
@@ -432,7 +432,7 @@ LoadSidebar = function()
     local content = sidebar.content
     content:ReleaseAll()
 
-    if not ReviewTab.guildID then
+    if not ReviewTab.guildKey then
         return
     end
 
@@ -444,21 +444,21 @@ LoadSidebar = function()
     searchBox:SetPoint("TOPRIGHT", -5, -height)
 
     searchBox:SetCallback("OnEnterPressed", function(self)
-        ReviewTab.guilds[ReviewTab.guildID].searchQuery = self:IsValidText() and self:GetText()
+        ReviewTab.guilds[ReviewTab.guildKey].searchQuery = self:IsValidText() and self:GetText()
         LoadTable()
     end)
 
     searchBox:SetCallback("OnClear", function()
-        ReviewTab.guilds[ReviewTab.guildID].searchQuery = nil
+        ReviewTab.guilds[ReviewTab.guildKey].searchQuery = nil
         LoadTable()
     end)
 
     searchBox:SetCallback("OnShow", function(self)
-        if ReviewTab.guilds[ReviewTab.guildID].searchQuery then
-            self:SetText(ReviewTab.guilds[ReviewTab.guildID].searchQuery)
+        if ReviewTab.guilds[ReviewTab.guildKey].searchQuery then
+            self:SetText(ReviewTab.guilds[ReviewTab.guildKey].searchQuery)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + searchBox:GetHeight() + 5
@@ -504,11 +504,11 @@ LoadSidebarFilters = function(content, height)
         GameTooltip:AddLine(L["Experimental"])
     end)
     duplicates:SetCallback("OnClick", function(self)
-        ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value = self:GetChecked()
+        ReviewTab.guilds[ReviewTab.guildKey].filters.duplicates.value = self:GetChecked()
         LoadTable()
     end)
     duplicates:SetCallback("OnShow", function(self)
-        self:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].filters.duplicates.value, true)
+        self:SetCheckedState(ReviewTab.guilds[ReviewTab.guildKey].filters.duplicates.value, true)
     end, true)
 
     height = height + duplicates:GetHeight()
@@ -537,12 +537,12 @@ LoadSidebarFilters = function(content, height)
     filterLoadouts:SetInfo(function()
         local info = {}
 
-        for loadoutID, loadout in addon:pairs(private.db.global.guilds[ReviewTab.guildID].filters) do
+        for loadoutID, loadout in addon:pairs(private.db.global.guilds[ReviewTab.guildKey].filters) do
             tinsert(info, {
                 id = loadoutID,
                 text = loadoutID,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters = addon:CloneTable(loadout)
+                    ReviewTab.guilds[ReviewTab.guildKey].filters = addon:CloneTable(loadout)
                     LoadTable()
                 end,
             })
@@ -551,7 +551,7 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     filterLoadouts:ForwardCallback("OnShow", function(self)
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0 or #self:GetInfo() == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0 or #self:GetInfo() == 0)
     end, true)
 
     height = height + filterLoadouts:GetHeight() + 5
@@ -564,15 +564,15 @@ LoadSidebarFilters = function(content, height)
     saveFilterLoadout:ForwardCallback("OnEnterPressed", function(self)
         local loadoutID = self:GetText()
 
-        if private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] then
-            addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildID))
+        if private.db.global.guilds[ReviewTab.guildKey].filters[loadoutID] then
+            addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name. Note: existing loadouts can be managed from the Settings tab."], loadoutID, private:GetGuildDisplayName(ReviewTab.guildKey))
             return
         elseif not self:IsValidText() then
             addon:Print(L["Please supply a valid loadout name."])
             return
         end
 
-        private.db.global.guilds[ReviewTab.guildID].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildID].filters)
+        private.db.global.guilds[ReviewTab.guildKey].filters[loadoutID] = addon:CloneTable(ReviewTab.guilds[ReviewTab.guildKey].filters)
         LoadSidebar()
     end)
 
@@ -584,7 +584,7 @@ LoadSidebarFilters = function(content, height)
     clearFilters:SetText(L["Clear Filters"])
     clearFilters:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     clearFilters:SetCallback("OnClick", function()
-        ReviewTab.guilds[ReviewTab.guildID].filters = GetFilters()
+        ReviewTab.guilds[ReviewTab.guildKey].filters = GetFilters()
         LoadTable()
     end)
 
@@ -615,7 +615,7 @@ LoadSidebarFilters = function(content, height)
         local info = {}
 
         for scanDate, _ in
-            addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.list, function(a, b)
+            addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.list, function(a, b)
                 return a > b
             end)
         do
@@ -623,7 +623,7 @@ LoadSidebarFilters = function(content, height)
                 id = scanDate,
                 text = date(private.db.global.preferences.dateFormat, scanDate),
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
+                    ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
                     LoadTable()
                 end,
             })
@@ -632,15 +632,15 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     scanDate:ForwardCallback("OnClear", function()
-        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values)
+        wipe(ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.values)
         LoadTable()
     end)
     scanDate:ForwardCallback("OnShow", function(self)
-        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values) do
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.values) do
             self:SelectByID(value, true)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + scanDate:GetHeight() + 5
@@ -656,7 +656,7 @@ LoadSidebarFilters = function(content, height)
         local info = {}
 
         for scanDate, _ in
-            addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.list, function(a, b)
+            addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.list, function(a, b)
                 return a > b
             end)
         do
@@ -664,7 +664,7 @@ LoadSidebarFilters = function(content, height)
                 id = scanDate,
                 text = date(private.db.global.preferences.dateFormat, scanDate),
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
+                    ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
                     LoadTable()
                 end,
             })
@@ -673,15 +673,15 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     transactionDate:ForwardCallback("OnClear", function()
-        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values)
+        wipe(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.values)
         LoadTable()
     end)
     transactionDate:ForwardCallback("OnShow", function(self)
-        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values) do
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.values) do
             self:SelectByID(value, true)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + transactionDate:GetHeight() + 5
@@ -710,12 +710,12 @@ LoadSidebarFilters = function(content, height)
     tabName:SetInfo(function()
         local info = {}
 
-        for tabName, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.list) do
+        for tabName, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.tabs.list) do
             tinsert(info, {
                 id = tabName,
                 text = tabName,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values[tabName] = dropdown:GetSelected(tabName) and true or nil
+                    ReviewTab.guilds[ReviewTab.guildKey].filters.tabs.values[tabName] = dropdown:GetSelected(tabName) and true or nil
                     LoadTable()
                 end,
             })
@@ -724,15 +724,15 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     tabName:ForwardCallback("OnClear", function()
-        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values)
+        wipe(ReviewTab.guilds[ReviewTab.guildKey].filters.tabs.values)
         LoadTable()
     end)
     tabName:ForwardCallback("OnShow", function(self)
-        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.tabs.values) do
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.tabs.values) do
             self:SelectByID(value, true)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + tabName:GetHeight() + 5
@@ -766,7 +766,7 @@ LoadSidebarFilters = function(content, height)
                 id = transactionType,
                 text = transactionType,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values[transactionType] = dropdown:GetSelected(transactionType) and true or nil
+                    ReviewTab.guilds[ReviewTab.guildKey].filters.transactionType.values[transactionType] = dropdown:GetSelected(transactionType) and true or nil
                     LoadTable()
                 end,
             })
@@ -775,15 +775,15 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     transactionType:ForwardCallback("OnClear", function()
-        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values)
+        wipe(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionType.values)
         LoadTable()
     end)
     transactionType:ForwardCallback("OnShow", function(self)
-        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.transactionType.values) do
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionType.values) do
             self:SelectByID(value, true)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + transactionType:GetHeight() + 5
@@ -812,12 +812,12 @@ LoadSidebarFilters = function(content, height)
     name:SetInfo(function()
         local info = {}
 
-        for name, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.list) do
+        for name, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.names.list) do
             tinsert(info, {
                 id = name,
                 text = name,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.names.values[name] = dropdown:GetSelected(name) and true or nil
+                    ReviewTab.guilds[ReviewTab.guildKey].filters.names.values[name] = dropdown:GetSelected(name) and true or nil
                     LoadTable()
                 end,
             })
@@ -826,15 +826,15 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     name:ForwardCallback("OnClear", function()
-        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.names.values)
+        wipe(ReviewTab.guilds[ReviewTab.guildKey].filters.names.values)
         LoadTable()
     end)
     name:ForwardCallback("OnShow", function(self)
-        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.names.values) do
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.names.values) do
             self:SelectByID(value, true)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + name:GetHeight() + 5
@@ -863,12 +863,12 @@ LoadSidebarFilters = function(content, height)
     itemName:SetInfo(function()
         local info = {}
 
-        for itemName, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list) do
+        for itemName, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.itemNames.list) do
             tinsert(info, {
                 id = itemName,
                 text = itemName,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values[itemName] = dropdown:GetSelected(itemName) and true or nil
+                    ReviewTab.guilds[ReviewTab.guildKey].filters.itemNames.values[itemName] = dropdown:GetSelected(itemName) and true or nil
                     LoadTable()
                 end,
             })
@@ -877,15 +877,15 @@ LoadSidebarFilters = function(content, height)
         return info
     end)
     itemName:ForwardCallback("OnClear", function()
-        wipe(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values)
+        wipe(ReviewTab.guilds[ReviewTab.guildKey].filters.itemNames.values)
         LoadTable()
     end)
     itemName:ForwardCallback("OnShow", function(self)
-        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.values) do
+        for value, _ in pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.itemNames.values) do
             self:SelectByID(value, true)
         end
 
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + itemName:GetHeight() + 5
@@ -898,13 +898,13 @@ LoadSidebarFilters = function(content, height)
     rank:SetLabels(L["Item Rank"], "")
     rank:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     rank:SetMinMaxValues(0, 5, function(self, range, value)
-        ReviewTab.guilds[ReviewTab.guildID].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
+        ReviewTab.guilds[ReviewTab.guildKey].filters.rank[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
     end)
 
     rank:SetCallback("OnShow", function(self)
-        self:SetValues(ReviewTab.guilds[ReviewTab.guildID].filters.rank.minValue, ReviewTab.guilds[ReviewTab.guildID].filters.rank.maxValue)
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetValues(ReviewTab.guilds[ReviewTab.guildKey].filters.rank.minValue, ReviewTab.guilds[ReviewTab.guildKey].filters.rank.maxValue)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + rank:GetHeight() + 5
@@ -917,13 +917,13 @@ LoadSidebarFilters = function(content, height)
     itemLevel:SetLabels(L["Item Level"], "")
     itemLevel:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     itemLevel:SetMinMaxValues(0, 418, function(self, range, value)
-        ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
+        ReviewTab.guilds[ReviewTab.guildKey].filters.itemLevels[range == "lower" and "minValue" or range == "upper" and "maxValue"] = tonumber(value)
         LoadTable()
     end)
 
     itemLevel:SetCallback("OnShow", function(self)
-        self:SetValues(ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels.minValue, ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels.maxValue)
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetValues(ReviewTab.guilds[ReviewTab.guildKey].filters.itemLevels.minValue, ReviewTab.guilds[ReviewTab.guildKey].filters.itemLevels.maxValue)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + itemLevel:GetHeight() + 5
@@ -948,7 +948,7 @@ LoadSidebarFilters = function(content, height)
     amount:SetLabels(L["Amount"], "")
     amount:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
     amount:SetMinMaxValues(0, 10000000000, function(self, range, value)
-        ReviewTab.guilds[ReviewTab.guildID].filters.amounts[range == "lower" and "minValue" or range == "upper" and "maxValue"] = self[range].value
+        ReviewTab.guilds[ReviewTab.guildKey].filters.amounts[range == "lower" and "minValue" or range == "upper" and "maxValue"] = self[range].value
 
         LoadTable()
     end, function(value)
@@ -962,8 +962,8 @@ LoadSidebarFilters = function(content, height)
     end)
 
     amount:SetCallback("OnShow", function(self)
-        self:SetValues(ReviewTab.guilds[ReviewTab.guildID].filters.amounts.minValue, ReviewTab.guilds[ReviewTab.guildID].filters.amounts.maxValue)
-        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildID].masterScan == 0)
+        self:SetValues(ReviewTab.guilds[ReviewTab.guildKey].filters.amounts.minValue, ReviewTab.guilds[ReviewTab.guildKey].filters.amounts.maxValue)
+        self:SetDisabled(#private.db.global.guilds[ReviewTab.guildKey].masterScan == 0)
     end, true)
 
     height = height + amount:GetHeight() + 5
@@ -978,7 +978,7 @@ LoadSidebarInfo = function(content, height)
     numTransactions:SetPoint("TOPLEFT", 5, -height)
     numTransactions:SetPoint("RIGHT", -5, 0)
     numTransactions:SetAutoHeight(true)
-    numTransactions:SetText(format("%s: %s", L["Number of transactions"], addon:iformat(#private.db.global.guilds[ReviewTab.guildID].masterScan, 1)))
+    numTransactions:SetText(format("%s: %s", L["Number of transactions"], addon:iformat(#private.db.global.guilds[ReviewTab.guildKey].masterScan, 1)))
     numTransactions:Justify("LEFT")
 
     height = height + numTransactions:GetHeight()
@@ -1017,14 +1017,14 @@ LoadSidebarSorters = function(content, height)
 
     enableMultiSort:SetText(L["Enable multi-sorting"] .. "*")
     enableMultiSort:SetCallback("OnClick", function(self)
-        ReviewTab.guilds[ReviewTab.guildID].multiSort = self:GetChecked()
+        ReviewTab.guilds[ReviewTab.guildKey].multiSort = self:GetChecked()
         LoadTable()
     end)
     enableMultiSort:SetTooltipInitializer(function()
         GameTooltip:AddLine(L["Not recommended for large tables as it may cause the game to freeze for extended periods of time"])
     end)
 
-    enableMultiSort:SetCheckedState(ReviewTab.guilds[ReviewTab.guildID].multiSort, true)
+    enableMultiSort:SetCheckedState(ReviewTab.guilds[ReviewTab.guildKey].multiSort, true)
 
     height = height + enableMultiSort:GetHeight()
 
@@ -1052,24 +1052,24 @@ end
 
 LoadTable = function()
     tableContainer = ReviewTab.tableContainer
-    if not ReviewTab.guildID then
+    if not ReviewTab.guildKey then
         tableContainer.scrollBox:Flush()
         return
     end
 
     tableContainer.scrollView:Initialize(20, LoadRow, "GuildBankSnapshotsContainer")
     local provider = tableContainer:SetDataProvider(function(provider)
-        local masterScan = private.db.global.guilds[ReviewTab.guildID].masterScan
+        local masterScan = private.db.global.guilds[ReviewTab.guildKey].masterScan
         local validEntries = 0
 
         for transactionID, elementData in ipairs(masterScan) do
             -- elementData.isDupe = true
 
             -- Filter defaults
-            ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.list[elementData.scanID] = true
-            ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.list[elementData.transactionDate] = true
-            ReviewTab.guilds[ReviewTab.guildID].filters.names.list[elementData.name] = true
-            ReviewTab.guilds[ReviewTab.guildID].filters.tabs.list[private:GetTabName(ReviewTab.guildID, elementData.tabID)] = true
+            ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.list[elementData.scanID] = true
+            ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.list[elementData.transactionDate] = true
+            ReviewTab.guilds[ReviewTab.guildKey].filters.names.list[elementData.name] = true
+            ReviewTab.guilds[ReviewTab.guildKey].filters.tabs.list[private:GetTabName(ReviewTab.guildKey, elementData.tabID)] = true
             if elementData.itemLink then
                 addon:CacheItem(elementData.itemLink, function(success, itemID, callback)
                     if success then
@@ -1081,10 +1081,10 @@ LoadTable = function()
                     end
                 end, {
                     function(itemLink, itemLevel)
-                        ReviewTab.guilds[ReviewTab.guildID].filters.itemLevels.list[itemLink] = itemLevel
+                        ReviewTab.guilds[ReviewTab.guildKey].filters.itemLevels.list[itemLink] = itemLevel
                     end,
                 })
-                ReviewTab.guilds[ReviewTab.guildID].filters.itemNames.list[private:GetItemName(elementData.itemLink)] = true
+                ReviewTab.guilds[ReviewTab.guildKey].filters.itemNames.list[private:GetItemName(elementData.itemLink)] = true
             end
 
             -- Insert into provider
@@ -1102,7 +1102,7 @@ LoadTable = function()
 
         provider:SetSortComparator(function(a, b)
             for sortID, id in ipairs(private.db.global.preferences.sortHeaders) do
-                if not ReviewTab.guilds[ReviewTab.guildID].multiSort and sortID > 1 then
+                if not ReviewTab.guilds[ReviewTab.guildKey].multiSort and sortID > 1 then
                     break
                 end
 
@@ -1155,17 +1155,17 @@ function private:LoadReviewTab(content, guildKey)
             return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
         end
 
-        for guildID, guild in addon:pairs(private.db.global.guilds, sortKeys) do
-            local text = private:GetGuildDisplayName(guildID)
+        for guildKey, guild in addon:pairs(private.db.global.guilds, sortKeys) do
+            local text = private:GetGuildDisplayName(guildKey)
             tinsert(info, {
-                id = guildID,
+                id = guildKey,
                 text = text,
                 func = function()
-                    ReviewTab.guildID = guildID
-                    ReviewTab.guilds[guildID] = ReviewTab.guilds[guildID] or {
+                    ReviewTab.guildKey = guildKey
+                    ReviewTab.guilds[guildKey] = ReviewTab.guilds[guildKey] or {
                         searchQuery = false,
                         filters = GetFilters(),
-                        multiSort = #private.db.global.guilds[guildID].masterScan < ReviewTab.warningMax,
+                        multiSort = #private.db.global.guilds[guildKey].masterScan < ReviewTab.warningMax,
                     }
                     LoadTable()
                     LoadSidebar()
@@ -1207,8 +1207,8 @@ function private:LoadReviewTab(content, guildKey)
     guildDropdown:SetCallback("OnShow", function()
         if guildKey then
             guildDropdown:SelectByID(guildKey)
-        elseif ReviewTab.guildID then
-            guildDropdown:SelectByID(ReviewTab.guildID)
+        elseif ReviewTab.guildKey then
+            guildDropdown:SelectByID(ReviewTab.guildKey)
         end
     end, true)
 end

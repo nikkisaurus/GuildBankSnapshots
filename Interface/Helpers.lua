@@ -56,6 +56,22 @@ function private:ClearTooltip()
     private:HideTooltip()
 end
 
+function private:GetGuildInfo(func)
+    return function()
+        local info = {}
+
+        private:IterateGuilds(function(guildKey, guildName, guild)
+            tinsert(info, {
+                id = guildKey,
+                text = guildName,
+                func = func,
+            })
+        end)
+
+        return info
+    end
+end
+
 function private:HideTooltip()
     GameTooltip:ClearLines()
     GameTooltip:Hide()

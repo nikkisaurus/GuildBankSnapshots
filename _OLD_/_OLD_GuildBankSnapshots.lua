@@ -72,8 +72,8 @@ function addon:SlashCommandFunc(input)
     end
 end
 
-function private:GetGuildDisplayName(guildID)
-    local guild, realm, faction = string.match(guildID, "(.+)%s%-%s(.*)%s%((.+)%)")
+function private:GetGuildDisplayName(guildKey)
+    local guild, realm, faction = string.match(guildKey, "(.+)%s%-%s(.*)%s%((.+)%)")
     local guildFormat = private.db.global.preferences.guildFormat
     guildFormat = string.gsub(guildFormat, "%%g", guild)
     guildFormat = string.gsub(guildFormat, "%%r", realm)
@@ -83,13 +83,13 @@ function private:GetGuildDisplayName(guildID)
     return guildFormat
 end
 
-function private:GetGuildID()
+function private:GetguildKey()
     local guildName = GetGuildInfo("player")
     local faction = UnitFactionGroup("player")
     local realm = GetRealmName()
-    local guildID = format("%s - %s (%s)", guildName, realm, faction)
+    local guildKey = format("%s - %s (%s)", guildName, realm, faction)
 
-    return guildID, guildName, faction, realm
+    return guildKey, guildName, faction, realm
 end
 
 function private:InitializeSlashCommands()

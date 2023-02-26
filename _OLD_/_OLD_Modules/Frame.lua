@@ -78,13 +78,13 @@ function private:GetGuildList()
 
     local guilds, sorting = {}, {}
 
-    for guildID, guildInfo in
+    for guildKey, guildInfo in
         addon:pairs(private.db.global.guilds, function(a, b)
             return tostring(a) < tostring(b)
         end)
     do
-        guilds[guildID] = private:GetGuildDisplayName(guildID)
-        tinsert(sorting, guildID)
+        guilds[guildKey] = private:GetGuildDisplayName(guildKey)
+        tinsert(sorting, guildKey)
     end
 
     return guilds, sorting

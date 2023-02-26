@@ -11,12 +11,6 @@
         </Scripts>
     </CheckButton>
 
-    <Frame name="GuildBankSnapshotsCheckButtonFrame" virtual="true">
-        <Scripts>
-            <OnLoad function="GuildBankSnapshotsCheckButtonFrame_OnLoad" />
-        </Scripts>
-    </Frame>
-
     <Frame name="GuildBankSnapshotsContainer" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsContainer_OnLoad" />

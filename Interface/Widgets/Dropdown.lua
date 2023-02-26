@@ -117,7 +117,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
                 end
                 self:UpdateText()
                 if not skipCallback then
-                    info.func(self)
+                    info.func(self, info)
                 end
             end
         end

@@ -19,7 +19,7 @@ function private:CleanupDatabase()
     private:DeleteCorruptedScans()
 
     -- Delete scans by age
-    for guildID, guildInfo in pairs(private.db.global.guilds) do
+    for guildKey, guildInfo in pairs(private.db.global.guilds) do
         for scanID, _ in addon:pairs(guildInfo.scans) do
             local autoCleanupSettings = private.db.global.settings.scans.autoCleanup
             if autoCleanupSettings.age.enabled then
@@ -28,7 +28,7 @@ function private:CleanupDatabase()
 
                 -- Delete scans
                 if scanID < time() - age then
-                    private.db.global.guilds[guildID].scans[scanID] = nil
+                    private.db.global.guilds[guildKey].scans[scanID] = nil
                 end
             end
         end
@@ -36,10 +36,10 @@ function private:CleanupDatabase()
 
     -- TODO
     -- -- Clear selected scans that have been deleted
-    -- if private.analyze.scan and not private.db.global.guilds[private.analyze.guildID].scans[private.analyze.scan[1]] then
+    -- if private.analyze.scan and not private.db.global.guilds[private.analyze.guildKey].scans[private.analyze.scan[1]] then
     --     private:SelectAnalyzeScan()
     -- end
-    -- if private.review.scan and not private.db.global.guilds[private.review.guildID].scans[private.review.scan] then
+    -- if private.review.scan and not private.db.global.guilds[private.review.guildKey].scans[private.review.scan] then
     --     private:SelectReviewScan()
     -- end
 end
@@ -50,7 +50,7 @@ function private:DeleteCorruptedScans(lastScan)
     end
 
     local lastScanCorrupted
-    for guildID, guildInfo in pairs(private.db.global.guilds) do
+    for guildKey, guildInfo in pairs(private.db.global.guilds) do
         for scanID, scan in addon:pairs(guildInfo.scans) do
             local empty = 0
             local corruptItems
@@ -92,7 +92,7 @@ function private:DeleteCorruptedScans(lastScan)
             -- Delete corrupt scan
             if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon:tcount(scan.tabs) == 0 and addon:tcount(scan.moneyTransactions) == 0) or addon:tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
                 lastScanCorrupted = scanID == lastScan
-                private.db.global.guilds[guildID].scans[scanID] = nil
+                private.db.global.guilds[guildKey].scans[scanID] = nil
             end
         end
     end
@@ -175,7 +175,7 @@ function private:InitializeDatabase()
                     confirmDeletions = true,
                     dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
                     dateType = "default", -- "default", "approx"
-                    defaultGuild = false, -- guildID
+                    defaultGuild = false, -- guildKey
                     guildFormat = "%g - %r (%F)",
                     exportDelimiter = ",",
                     sorting = "des",
@@ -202,9 +202,9 @@ function private:InitializeDatabase()
 end
 
 function private:UpdateGuildDatabase()
-    local guildID, guildName, faction, realm = private:GetGuildID()
-    private.db.global.guilds[guildID] = private.db.global.guilds[guildID] or addon:CloneTable(private.defaults.guild)
-    local db = private.db.global.guilds[guildID]
+    local guildKey, guildName, faction, realm = private:GetguildKey()
+    private.db.global.guilds[guildKey] = private.db.global.guilds[guildKey] or addon:CloneTable(private.defaults.guild)
+    local db = private.db.global.guilds[guildKey]
 
     db.guildName = guildName
     db.faction = faction

@@ -2,30 +2,28 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local relPoint = {
-    LEFT = { "RIGHT", "RIGHT", 1, -1 },
-    TOPLEFT = { "TOPRIGHT", "RIGHT", 1, -1 },
-    BOTTOMLEFT = { "BOTTOMRIGHT", "RIGHT", 1, -1 },
-    RIGHT = { "LEFT", "LEFT", -1, 1 },
-    TOPRIGHT = { "TOPLEFT", "LEFT", -1, 1 },
-    BOTTOMRIGHT = { "BOTTOMLEFT", "LEFT", -1, 1 },
+local alignment = {
+    LEFT = { "RIGHT", 1, "RIGHT", -1 },
+    TOPLEFT = { "TOPRIGHT", 1, "RIGHT", -1 },
+    BOTTOMLEFT = { "BOTTOMRIGHT", 1, "RIGHT", -1 },
+    RIGHT = { "LEFT", -1, "LEFT", 1 },
+    TOPRIGHT = { "TOPLEFT", -1, "LEFT", 1 },
+    BOTTOMRIGHT = { "BOTTOMLEFT", -1, "LEFT", 1 },
 }
 
 function GuildBankSnapshotsCheckButton_OnLoad(button)
-    button:EnableMouse(true)
     button = private:MixinText(button)
-
     button:InitScripts({
         OnAcquire = function(self)
+            self:SetDisabled()
             self:SetSize(150, 20)
+            self:SetPadding(5)
+            self:SetCheckAlignment("LEFT")
             self:Justify("LEFT", "TOP")
             self:SetAutoHeight(true)
-            self:SetDisabled()
-            self:SetCheckAlignment("TOPLEFT")
         end,
 
         OnClick = function(self, ...)
-            print("CLICK")
             self:SetChecked(not self:GetChecked())
         end,
 
@@ -45,6 +43,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
 
         OnRelease = function(self)
             self.alignment = nil
+            self.padding = nil
             self.width = nil
         end,
     })
@@ -71,31 +70,17 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     function button:SetAnchors()
         local size = min(self:GetHeight(), 12)
         size = size == 0 and 12 or size
-        local alignment = relPoint[self.alignment]
+        local alignment = alignment[self.alignment]
         self.checkBoxBorder:ClearAllPoints()
         self.checkBoxBorder:SetSize(size, size)
         self.checkBoxBorder:SetPoint(self.alignment, self, self.alignment)
         self.text:ClearAllPoints()
-        self.text:SetPoint(self.alignment, self.checkBox, alignment[1], alignment[3] * 5, 0)
-        self.text:SetPoint(alignment[2], alignment[4] * 5, 0)
+        self.text:SetPoint(self.alignment, self.checkBox, alignment[1], alignment[2] * self.padding, 0)
+        self.text:SetPoint(alignment[3], alignment[4] * self.padding, 0)
     end
 
     function button:GetChecked()
         return self.isChecked
-    end
-
-    function button:GetMinWidth()
-        return self.checkBoxBorder:GetWidth() + self:GetStringWidth() + 20
-    end
-
-    function button:SetChecked(isChecked)
-        self.isChecked = isChecked
-
-        if isChecked then
-            self.checked:Show()
-        else
-            self.checked:Hide()
-        end
     end
 
     function button:SetCheckAlignment(alignment)
@@ -111,72 +96,37 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         end
     end
 
+    function button:SetChecked(isChecked)
+        self.isChecked = isChecked
+
+        if isChecked then
+            self.checked:Show()
+        else
+            self.checked:Hide()
+        end
+    end
+
     function button:SetDisabled(isDisabled)
         self:SetTextColor(private.interface.colors[isDisabled and "dimmedWhite" or "white"]:GetRGBA())
         self:SetEnabled(not isDisabled)
     end
 
+    function button:SetMinWidth()
+        self:SetWidth(self.checkBoxBorder:GetWidth() + self:GetStringWidth() + 20)
+    end
+
+    function button:SetPadding(padding)
+        self.padding = padding or 0
+    end
+
+    function button:SetText(text, autoWidth)
+        self.text:SetText(text)
+        if autoWidth then
+            self:SetMinWidth()
+        end
+    end
+
     function button:SetTooltipInitializer(tooltip)
         self.tooltip = tooltip
-    end
-end
-
-function GuildBankSnapshotsCheckButtonFrame_OnLoad(frame)
-    frame = private:MixinContainer(frame)
-    frame:InitScripts({
-        OnAcquire = function(self)
-            self:SetSize(150, 40)
-
-            self.label:Justify("LEFT", "MIDDLE")
-            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
-            self:SetLabel("")
-        end,
-
-        -- OnSizeChanged = function(self, width, height)
-        --     self.label:SetSize(width, 20)
-        --     self.checkButton:SetHeight(height - 20)
-        -- end,
-
-        OnRelease = function(self)
-            self.width = nil
-            self.autoWidth = nil
-        end,
-    })
-
-    frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.label:SetPoint("TOPLEFT")
-    frame.label:SetPoint("TOPRIGHT")
-
-    frame.checkButton = frame:Acquire("GuildBankSnapshotsCheckButton")
-    frame.checkButton:SetPoint("BOTTOMLEFT")
-    frame.checkButton:SetPoint("BOTTOMRIGHT")
-
-    -- Methods
-    function frame:ForwardCallback(...)
-        self.checkButton:SetCallback(...)
-    end
-
-    function frame:GetMinWidth()
-        return self.checkButton:GetMinWidth()
-    end
-
-    function frame:SetAutoWidth(autoWidth)
-        self.autoWidth = autoWidth
-    end
-
-    function frame:SetLabel(text)
-        self.label:SetText(text)
-    end
-
-    function frame:SetLabelFont(fontObject, color)
-        self.label:SetFontObject(fontObject or GameFontHighlightSmall)
-        self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
-    end
-
-    function frame:SetText(...)
-        self.checkButton:SetText(...)
-        if self.autoWidth then
-            self.checkButton:SetWidth(self:GetMinWidth())
-        end
     end
 end

@@ -100,7 +100,7 @@ function private:InitializeDatabase()
                     [8] = false,
                     [9] = false,
                 },
-                defaultGuild = false, -- guildID
+                defaultGuild = false, -- guildKey
                 guildFormat = "%g - %r (%F)",
                 exportDelimiter = ",",
             },

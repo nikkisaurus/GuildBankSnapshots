@@ -316,12 +316,12 @@ function private:GetSettingsOptionsTable()
                         values = function()
                             local guilds = {}
 
-                            for guildID, guildInfo in
+                            for guildKey, guildInfo in
                                 addon:pairs(private.db.global.guilds, function(a, b)
                                     return tostring(a) < tostring(b)
                                 end)
                             do
-                                guilds[guildID] = private:GetGuildDisplayName(guildID)
+                                guilds[guildKey] = private:GetGuildDisplayName(guildKey)
                             end
 
                             guilds.GBS_NONE = L["None"]
@@ -331,13 +331,13 @@ function private:GetSettingsOptionsTable()
                         sorting = function()
                             local sorting = {}
 
-                            for guildID, guildInfo in
+                            for guildKey, guildInfo in
                                 addon:pairs(private.db.global.guilds, function(a, b)
                                     return tostring(a) < tostring(b)
                                 end)
                             do
-                                if type(guildID) == "string" then
-                                    tinsert(sorting, guildID)
+                                if type(guildKey) == "string" then
+                                    tinsert(sorting, guildKey)
                                 end
                             end
 

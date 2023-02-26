@@ -214,6 +214,12 @@ function WidgetMixin:SetCallback(script, callback, init)
     end
 end
 
+function WidgetMixin:SetCallbacks(callbacks)
+    for script, args in pairs(callbacks) do
+        self:SetCallback(script, unpack(args))
+    end
+end
+
 function WidgetMixin:ShowTooltip(anchor, callback)
     assert(type(callback) == "function", "WidgetMixin: ShowTooltip callback must be a function")
     private:InitializeTooltip(self, anchor or "ANCHOR_RIGHT", callback)
@@ -246,7 +252,6 @@ function private:MixinCollection(tbl, parent)
     tbl.pool = CreateFramePoolCollection()
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsButton", Resetter)
     tbl.pool:CreatePool("CheckButton", parent or tbl, "GuildBankSnapshotsCheckButton", Resetter)
-    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsCheckButtonFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsContainer", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownButton", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsDropdownFrame", Resetter)

@@ -16,16 +16,23 @@ private.timeInSeconds = {
     months = 2628000,
     years = 31540000,
 }
+
+function private:dprint(...)
+    if private.db.global.debug then
+        print(...)
+    end
+end
+
 function private:GetClassColor()
     return GetClassColor(select(2, UnitClass("player")))
 end
 
-function private:GetGuildDisplayName(guildID)
-    if not guildID then
+function private:GetGuildDisplayName(guildKey)
+    if not guildKey then
         return ""
     end
 
-    local guild, realm, faction = string.match(guildID, "(.+)%s%-%s(.*)%s%((.+)%)")
+    local guild, realm, faction = string.match(guildKey, "(.+)%s%-%s(.*)%s%((.+)%)")
     local guildFormat = private.db.global.preferences.guildFormat
     guildFormat = string.gsub(guildFormat, "%%g", guild)
     guildFormat = string.gsub(guildFormat, "%%r", realm)
@@ -35,13 +42,13 @@ function private:GetGuildDisplayName(guildID)
     return guildFormat
 end
 
-function private:GetGuildID()
+function private:GetguildKey()
     local guildName = GetGuildInfo("player")
     local faction = UnitFactionGroup("player")
     local realm = GetRealmName()
-    local guildID = format("%s - %s (%s)", guildName, realm, faction)
+    local guildKey = format("%s - %s (%s)", guildName, realm, faction)
 
-    return guildID, guildName, faction, realm
+    return guildKey, guildName, faction, realm
 end
 
 function private:GetItemRank(itemLink)
@@ -78,9 +85,9 @@ function private:GetMoneyTransactionInfo(transaction)
     return info
 end
 
-function private:GetTabName(guildID, tabID)
-    if not guildID then
-        private:dprint("Invalid guildID:", guildID)
+function private:GetTabName(guildKey, tabID)
+    if not guildKey then
+        private:dprint("Invalid guildKey:", guildKey)
         return
     elseif not tabID then
         private:dprint("Invalid tabID:", tabID)
@@ -90,7 +97,7 @@ function private:GetTabName(guildID, tabID)
     if tabID == MAX_GUILDBANK_TABS + 1 then
         return L["Money Tab"]
     end
-    return private.db.global.guilds[guildID].tabs[tabID] and private.db.global.guilds[guildID].tabs[tabID].name or L["Tab"] .. " " .. tabID
+    return private.db.global.guilds[guildKey].tabs[tabID] and private.db.global.guilds[guildKey].tabs[tabID].name or L["Tab"] .. " " .. tabID
 end
 
 function private:GetTransactionDate(scanTime, year, month, day, hour)
@@ -121,8 +128,15 @@ function private:GetTransactionInfo(transaction)
     return info
 end
 
-function private:dprint(...)
-    if private.db.global.debug then
-        print(...)
+function private:IterateGuilds(callback)
+    assert(type(callback) == "function", "IterateGuilds: callback must be a function")
+
+    local sortKeys = function(a, b)
+        return private:GetGuildDisplayName(a) < private:GetGuildDisplayName(b)
+    end
+
+    for guildKey, guild in addon:pairs(private.db.global.guilds, sortKeys) do
+        local guildName = private:GetGuildDisplayName(guildKey)
+        callback(guildKey, guildName, guild)
     end
 end
