@@ -204,22 +204,17 @@ DrawGroup = function(groupType, group)
         delay:SetSize(150, 50)
         delay:SetLabel(L["Scan Delay"])
         delay:SetLabelFont(nil, private:GetInterfaceFlairColor())
-        delay:SetValueStep(0.1)
-        delay:SetMinMaxValues(0, 5)
+        delay:SetMinMaxValues(0, 5, 0.1, 1)
         delay:ForwardCallbacks({
             OnValueChanged = {
                 function(self, ...)
-                    print(self:GetObeyStepOnDrag(), ...)
                     private.db.global.preferences.delay = self:GetValue()
                 end,
             },
-            OnShow = {
-                function(self)
-                    self:SetValue(private.db.global.preferences.delay)
-                end,
-                true,
-            },
         })
+        delay:SetCallback("OnShow", function(self)
+            self:SetValue(private.db.global.preferences.delay)
+        end, true)
 
         group:AddChild(delay)
     elseif groupType == "commands" then
@@ -274,7 +269,7 @@ function private:LoadSettingsTab(content, guildKey)
 
     local guildGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     guildGroup:SetPoint("TOPLEFT", selectGuild, "BOTTOMLEFT", 0, 0)
-    guildGroup:SetPoint("RIGHT", -10, 0)
+    guildGroup:SetPoint("TOPRIGHT", -10, 0)
     guildGroup:SetHeight(100)
     guildGroup:SetPadding(10, 10)
     guildGroup:SetSpacing(5)
@@ -282,7 +277,7 @@ function private:LoadSettingsTab(content, guildKey)
 
     local preferencesHeader = container.content:Acquire("GuildBankSnapshotsFontFrame")
     preferencesHeader:SetPoint("TOPLEFT", guildGroup, "BOTTOMLEFT", 0, -10)
-    preferencesHeader:SetPoint("RIGHT", -10, 0)
+    preferencesHeader:SetPoint("TOPRIGHT", -10, 0)
     preferencesHeader:SetHeight(20)
     preferencesHeader:SetText(L["Preferences"])
     preferencesHeader:Justify("LEFT")
@@ -290,7 +285,7 @@ function private:LoadSettingsTab(content, guildKey)
 
     local preferencesGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     preferencesGroup:SetPoint("TOPLEFT", preferencesHeader, "BOTTOMLEFT", 0, 0)
-    preferencesGroup:SetPoint("RIGHT", -10, 0)
+    preferencesGroup:SetPoint("TOPRIGHT", -10, 0)
     preferencesGroup:SetHeight(100)
     preferencesGroup:SetPadding(10, 10)
     preferencesGroup:SetSpacing(5)
@@ -298,7 +293,7 @@ function private:LoadSettingsTab(content, guildKey)
 
     local commandsHeader = container.content:Acquire("GuildBankSnapshotsFontFrame")
     commandsHeader:SetPoint("TOPLEFT", preferencesGroup, "BOTTOMLEFT", 0, -10)
-    commandsHeader:SetPoint("RIGHT", -10, 0)
+    commandsHeader:SetPoint("TOPRIGHT", -10, 0)
     commandsHeader:SetHeight(20)
     commandsHeader:SetText(L["Commands"])
     commandsHeader:Justify("LEFT")
@@ -306,7 +301,7 @@ function private:LoadSettingsTab(content, guildKey)
 
     local commandsGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     commandsGroup:SetPoint("TOPLEFT", commandsHeader, "BOTTOMLEFT", 0, 0)
-    commandsGroup:SetPoint("RIGHT", -10, 0)
+    commandsGroup:SetPoint("TOPRIGHT", -10, 0)
     commandsGroup:SetHeight(100)
     commandsGroup:SetPadding(10, 10)
     commandsGroup:SetSpacing(5)

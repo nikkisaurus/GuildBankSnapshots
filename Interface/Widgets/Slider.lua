@@ -166,6 +166,7 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
         end,
 
         OnRelease = function(self)
+            self.numDecimals = nil
             self.width = nil
         end,
     })
@@ -195,11 +196,11 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
         local func
         if script == "OnValueChanged" then
             func = function(slider, value, userInput)
-                -- Hack to fix values not obeying step... need to find a real solution because this is assuming it's to one decimal
-                -- value = addon:round(value, 1)
-                -- if userInput then
-                --     slider:SetValue(value)
-                -- end
+                -- Hack to fix float values not obeying step
+                value = addon:round(value, self.numDecimals)
+                if userInput then
+                    slider:SetValue(value)
+                end
                 frame.editbox:SetText(value)
                 callback(slider, value, userInput)
             end
@@ -228,14 +229,22 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
         self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
     end
 
-    function frame:SetMinMaxValues(...)
-        self.slider:SetMinMaxValues(...)
-        self:SetMinMaxLabels(...)
+    function frame:SetMinMaxValues(minValue, maxValue, stepValue, numDecimals)
+        self.slider:SetMinMaxValues(minValue, maxValue)
+        self.slider:SetObeyStepOnDrag(false)
+        self.slider:SetValueStep(stepValue)
+        self.numDecimals = numDecimals or 0
+        self:SetMinMaxLabels(minValue, maxValue)
     end
 
     function frame:SetMinMaxLabels(lowerText, upperText)
         frame.lowerText:SetText(lowerText)
         frame.upperText:SetText(upperText)
+    end
+
+    function frame:SetValue(value)
+        self.slider:SetValue(value)
+        self.editbox:SetText(value)
     end
 
     function frame:SetValueStep(...)
