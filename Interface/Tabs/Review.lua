@@ -10,7 +10,7 @@ local GetFilters, DrawTableHeaders, IsFiltered, IsQueryMatch, LoadRow, LoadSideB
 
 function private:InitializeReviewTab()
     ReviewTab = {
-        guildID = private.db.global.settings.preferences.defaultGuild,
+        guildID = private.db.global.preferences.defaultGuild,
         searchKeys = { "itemLink", "name", "moveDestinationName", "moveOriginName", "tabName", "transactionType" },
         guilds = {},
         entriesPerFrame = 50,
@@ -58,7 +58,7 @@ local tableCols = {
             return data.transactionDate
         end,
         text = function(data)
-            return date(private.db.global.settings.preferences.dateFormat, data.transactionDate)
+            return date(private.db.global.preferences.dateFormat, data.transactionDate)
         end,
         width = 1,
     },
@@ -154,7 +154,7 @@ local tableCols = {
             GameTooltip:AddDoubleLine(L["Entry"], data.entryID, nil, nil, nil, 1, 1, 1)
             GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
             GameTooltip:AddDoubleLine(L["Transaction ID"], data.transactionID, nil, nil, nil, 1, 1, 1)
-            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.settings.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Scan Date"], date(private.db.global.preferences.dateFormat, data.scanID), nil, nil, nil, 1, 1, 1)
             GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
             GameTooltip:AddDoubleLine(L["Tab ID"], data.tabID, nil, nil, nil, 1, 1, 1)
             if data.moveOrigin and data.moveOrigin > 0 then
@@ -621,7 +621,7 @@ LoadSidebarFilters = function(content, height)
         do
             tinsert(info, {
                 id = scanDate,
-                text = date(private.db.global.settings.preferences.dateFormat, scanDate),
+                text = date(private.db.global.preferences.dateFormat, scanDate),
                 func = function(dropdown)
                     ReviewTab.guilds[ReviewTab.guildID].filters.scanDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
                     LoadTable()
@@ -662,7 +662,7 @@ LoadSidebarFilters = function(content, height)
         do
             tinsert(info, {
                 id = scanDate,
-                text = date(private.db.global.settings.preferences.dateFormat, scanDate),
+                text = date(private.db.global.preferences.dateFormat, scanDate),
                 func = function(dropdown)
                     ReviewTab.guilds[ReviewTab.guildID].filters.transactionDates.values[scanDate] = dropdown:GetSelected(scanDate) and true or nil
                     LoadTable()
@@ -1028,7 +1028,7 @@ LoadSidebarSorters = function(content, height)
 
     height = height + enableMultiSort:GetHeight()
 
-    for sortID, colID in addon:pairs(private.db.global.settings.preferences.sortHeaders) do
+    for sortID, colID in addon:pairs(private.db.global.preferences.sortHeaders) do
         local sorter = content:Acquire("GuildBankSnapshotsTableSorter")
         sorter:SetPoint("TOPLEFT", 5, -height)
         sorter:SetPoint("RIGHT", -5, 0)
@@ -1101,13 +1101,13 @@ LoadTable = function()
         end
 
         provider:SetSortComparator(function(a, b)
-            for sortID, id in ipairs(private.db.global.settings.preferences.sortHeaders) do
+            for sortID, id in ipairs(private.db.global.preferences.sortHeaders) do
                 if not ReviewTab.guilds[ReviewTab.guildID].multiSort and sortID > 1 then
                     break
                 end
 
                 local sortValue = tableCols[id].sortValue
-                local des = private.db.global.settings.preferences.descendingHeaders[id]
+                local des = private.db.global.preferences.descendingHeaders[id]
 
                 local sortA = sortValue(a)
                 local sortB = sortValue(b)
@@ -1148,7 +1148,6 @@ function private:LoadReviewTab(content, guildKey)
     guildDropdown:SetText(L["Select a guild"])
     guildDropdown:SetBackdropColor(private.interface.colors.darker)
     ReviewTab.guildDropdown = guildDropdown
-
     guildDropdown:SetInfo(function()
         local info = {}
 
@@ -1161,7 +1160,6 @@ function private:LoadReviewTab(content, guildKey)
             tinsert(info, {
                 id = guildID,
                 text = text,
-                isRadio = true,
                 func = function()
                     ReviewTab.guildID = guildID
                     ReviewTab.guilds[guildID] = ReviewTab.guilds[guildID] or {

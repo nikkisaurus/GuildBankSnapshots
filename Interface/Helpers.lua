@@ -162,5 +162,5 @@ function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
 end
 
 function private:UseClassColor()
-    return private.db.global.settings.preferences.useClassColor
+    return private.db.global.preferences.useClassColor
 end

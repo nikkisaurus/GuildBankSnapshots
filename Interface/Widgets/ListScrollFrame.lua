@@ -7,6 +7,7 @@ function GuildBankSnapshotsListScrollFrame_OnLoad(frame)
     frame:InitScripts({
         OnAcquire = function(self)
             self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+            self:ClearBackdrop()
         end,
 
         OnSizeChanged = function(self)

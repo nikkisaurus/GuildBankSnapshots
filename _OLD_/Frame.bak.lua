@@ -29,7 +29,7 @@ local function CreateSorter()
             return
         end
 
-        return private.db.global.settings.preferences.descendingHeaders[self.colID]
+        return private.db.global.preferences.descendingHeaders[self.colID]
     end
 
     function sorter:SetColID(sorterID, colID)
@@ -43,7 +43,7 @@ local function CreateSorter()
             return
         end
 
-        private.db.global.settings.preferences.descendingHeaders[self.colID] = bool
+        private.db.global.preferences.descendingHeaders[self.colID] = bool
     end
 
     function sorter:UpdateText(insertSorter)
@@ -128,7 +128,7 @@ local function CreateSorter()
 
     sorter:SetScript("OnMouseUp", function(self)
         -- Changes sorting order
-        self:SetDescending(not private.db.global.settings.preferences.descendingHeaders[sorter.colID])
+        self:SetDescending(not private.db.global.preferences.descendingHeaders[sorter.colID])
         self:UpdateText()
         private.frame.scrollBox.Sort()
     end)
@@ -146,8 +146,8 @@ local function CreateSorter()
         -- Get the colID to be inserted and remove the col from the sorting table
         -- The insert will go before/after by default because of the removed entry
         local colID = private.frame.sorters.children[draggingID].colID
-        tremove(private.db.global.settings.preferences.sortHeaders, draggingID)
-        tinsert(private.db.global.settings.preferences.sortHeaders, sorterID, colID)
+        tremove(private.db.global.preferences.sortHeaders, draggingID)
+        tinsert(private.db.global.preferences.sortHeaders, sorterID, colID)
 
         -- Reset sorters based on new order
         self:GetParent():AcquireSorters()
@@ -451,7 +451,7 @@ local function CreateScrollView(frame, data) end
 
 --     for sorterID = 1, addon:tcount(cols) do
 --         local sorter = Sorter:Acquire()
---         sorter:SetColID(sorterID, private.db.global.settings.preferences.sortHeaders[sorterID])
+--         sorter:SetColID(sorterID, private.db.global.preferences.sortHeaders[sorterID])
 --         sorter:Show()
 
 --         frame.sorters.children[sorterID] = sorter
@@ -494,4 +494,4 @@ local function CreateScrollView(frame, data) end
 -- -- [[ Post layout ]]
 -- frame.sorters:AcquireSorters()
 -- frame:UpdateHeaders()
--- frame.guildDD:SetValue(frame.guildDD, private.db.global.settings.preferences.defaultGuild)
+-- frame.guildDD:SetValue(frame.guildDD, private.db.global.preferences.defaultGuild)

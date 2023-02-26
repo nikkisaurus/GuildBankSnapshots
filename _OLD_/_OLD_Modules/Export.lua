@@ -53,7 +53,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
             if private.db.global.guilds[private.selectedExportGuild] and private.db.global.guilds[private.selectedExportGuild].scans[scanID] then
                 local guild = private.db.global.guilds[private.selectedExportGuild]
                 local guildName = private:GetGuildDisplayName(private.selectedExportGuild)
-                local scanDate = date(private.db.global.settings.preferences.dateFormat, scanID)
+                local scanDate = date(private.db.global.preferences.dateFormat, scanID)
 
                 -- Scan item transactions
                 for tab, tabInfo in pairs(private.db.global.guilds[private.selectedExportGuild].scans[scanID].tabs) do
@@ -78,9 +78,9 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
                         tinsert(line, transactionInfo.count)
                         tinsert(line, guild.tabs[transactionInfo.moveOrigin] and guild.tabs[transactionInfo.moveOrigin].name or "")
                         tinsert(line, guild.tabs[transactionInfo.moveDestination] and guild.tabs[transactionInfo.moveDestination].name or "")
-                        tinsert(line, date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(scanID, transactionInfo.year, transactionInfo.month, transactionInfo.day, transactionInfo.hour)))
+                        tinsert(line, date(private.db.global.preferences.dateFormat, private:GetTransactionDate(scanID, transactionInfo.year, transactionInfo.month, transactionInfo.day, transactionInfo.hour)))
                         tinsert(line, private:GetTransactionLabel(scanID, transaction))
-                        line = table.concat(line, private.db.global.settings.preferences.exportDelimiter)
+                        line = table.concat(line, private.db.global.preferences.exportDelimiter)
 
                         msg = format("%s%s\n", msg, line)
                     end
@@ -105,9 +105,9 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
                     tinsert(line, GetCoinText(transactionInfo.amount, " "))
                     tinsert(line, "")
                     tinsert(line, "")
-                    tinsert(line, date(private.db.global.settings.preferences.dateFormat, private:GetTransactionDate(scanID, transactionInfo.year, transactionInfo.month, transactionInfo.day, transactionInfo.hour)))
+                    tinsert(line, date(private.db.global.preferences.dateFormat, private:GetTransactionDate(scanID, transactionInfo.year, transactionInfo.month, transactionInfo.day, transactionInfo.hour)))
                     tinsert(line, private:GetMoneyTransactionLabel(scanID, transaction))
-                    line = table.concat(line, private.db.global.settings.preferences.exportDelimiter)
+                    line = table.concat(line, private.db.global.preferences.exportDelimiter)
 
                     msg = format("%s%s\n", msg, line)
                 end
@@ -129,7 +129,7 @@ local function StartExport(copyBox, start, cancel, selectAll, deselectAll, scrol
                     "moveTabName2",
                     "transactionDate",
                     "transactionLine",
-                }, private.db.global.settings.preferences.exportDelimiter)
+                }, private.db.global.preferences.exportDelimiter)
                 copyBox:SetText(format("%s\n%s", header, msg))
             else
                 i = i + 1
@@ -219,7 +219,7 @@ local function SelectGuild(guildGroup, _, guildKey)
         end)
     do
         local check = AceGUI:Create("CheckBox")
-        check:SetLabel(date(private.db.global.settings.preferences.dateFormat, scanID))
+        check:SetLabel(date(private.db.global.preferences.dateFormat, scanID))
         check:SetCallback("OnValueChanged", function(_, _, value)
             if private.pendingExport then
                 return
@@ -248,6 +248,6 @@ function private:GetExportOptions(content)
     guildGroup:SetGroupList(private:GetGuildList())
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
-    guildGroup:SetGroup(private.selectedExportGuild or private.db.global.settings.preferences.defaultGuild)
+    guildGroup:SetGroup(private.selectedExportGuild or private.db.global.preferences.defaultGuild)
     private.frame:SetUserData("guildGroup", guildGroup)
 end

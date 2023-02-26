@@ -30,6 +30,7 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
             self.reverseFormatter = nil
             self.lower.value = nil
             self.upper.value = nil
+            self.width = nil
         end,
     })
 

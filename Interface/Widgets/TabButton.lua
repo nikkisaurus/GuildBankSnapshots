@@ -37,6 +37,7 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
         OnRelease = function(self)
             self.tabID = nil
             self.info = nil
+            self.width = nil
         end,
     })
 

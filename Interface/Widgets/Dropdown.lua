@@ -186,16 +186,19 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
     frame = private:MixinContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
-            self:SetSize(150, 40)
-
             self.label:Justify("LEFT", "MIDDLE")
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
             self:SetLabel("")
+            self:SetSize(150, 40)
         end,
 
         OnSizeChanged = function(self, width, height)
             self.label:SetSize(width, 20)
             self.dropdown:SetSize(width, height - 20)
+        end,
+
+        OnRelease = function(self)
+            self.width = nil
         end,
     })
 
@@ -216,6 +219,10 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
 
     function frame:Justify(...)
         self.dropdown:Justify(...)
+    end
+
+    function frame:SelectByID(...)
+        self.dropdown:SelectByID(...)
     end
 
     function frame:SetDisabled(...)

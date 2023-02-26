@@ -2,6 +2,15 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local relPoint = {
+    LEFT = { "RIGHT", "RIGHT", 1, -1 },
+    TOPLEFT = { "TOPRIGHT", "RIGHT", 1, -1 },
+    BOTTOMLEFT = { "BOTTOMRIGHT", "RIGHT", 1, -1 },
+    RIGHT = { "LEFT", "LEFT", -1, 1 },
+    TOPRIGHT = { "TOPLEFT", "LEFT", -1, 1 },
+    BOTTOMRIGHT = { "BOTTOMLEFT", "LEFT", -1, 1 },
+}
+
 function GuildBankSnapshotsCheckButton_OnLoad(button)
     button:EnableMouse(true)
     button = private:MixinText(button)
@@ -12,7 +21,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
             self:Justify("LEFT", "TOP")
             self:SetAutoHeight(true)
             self:SetDisabled()
-            self:SetAnchors()
+            self:SetCheckAlignment("TOPLEFT")
         end,
 
         OnClick = function(self, ...)
@@ -27,6 +36,15 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
 
         OnLeave = function(self)
             private:HideTooltip()
+        end,
+
+        OnSizeChanged = function(self)
+            self:SetAnchors()
+        end,
+
+        OnRelease = function(self)
+            self.alignment = nil
+            self.width = nil
         end,
     })
 
@@ -51,10 +69,13 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     -- Methods
     function button:SetAnchors()
         local size = min(self:GetHeight(), 12)
+        local alignment = relPoint[self.alignment]
+        self.checkBoxBorder:ClearAllPoints()
         self.checkBoxBorder:SetSize(size, size)
-        self.checkBoxBorder:SetPoint("TOPLEFT", self, "TOPLEFT")
-        self.text:SetPoint("TOPLEFT", self.checkBox, "TOPRIGHT", 5, 0)
-        self.text:SetPoint("RIGHT", -5, 0)
+        self.checkBoxBorder:SetPoint(self.alignment, self, self.alignment)
+        self.text:ClearAllPoints()
+        self.text:SetPoint(self.alignment, self.checkBox, alignment[1], alignment[3] * 5, 0)
+        self.text:SetPoint(alignment[2], alignment[4] * 5, 0)
     end
 
     function button:GetChecked()
@@ -73,6 +94,11 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         else
             self.checked:Hide()
         end
+    end
+
+    function button:SetCheckAlignment(alignment)
+        self.alignment = alignment
+        self:SetAnchors()
     end
 
     function button:SetCheckedState(isChecked, skipCallback)

@@ -124,6 +124,16 @@ local validScripts = {
     OnRelease = true,
 }
 
+function WidgetMixin:ClearBackdrop()
+    if self.bg then
+        self.bg:SetTexture()
+    end
+
+    if self.border then
+        self.border:SetTexture()
+    end
+end
+
 function WidgetMixin:Fire(script, ...)
     if script == "OnAcquire" and self.scripts.OnAcquire then
         self.scripts.OnAcquire(self)
@@ -240,13 +250,15 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownButton", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsDropdownFrame", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownListButton", Resetter)
+    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsDualSlider", Resetter)
     tbl.pool:CreatePool("EditBox", parent or tbl, "GuildBankSnapshotsEditBox", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsEditBoxFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsFontFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsGroup", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsListScrollFrame", Resetter)
-    tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsMinMaxFrame", Resetter)
+    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsMinMaxFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollFrame", Resetter)
+    tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsSlider", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTabButton", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableCell", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTableSorter", Resetter)

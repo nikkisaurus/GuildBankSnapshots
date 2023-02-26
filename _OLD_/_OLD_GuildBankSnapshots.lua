@@ -74,7 +74,7 @@ end
 
 function private:GetGuildDisplayName(guildID)
     local guild, realm, faction = string.match(guildID, "(.+)%s%-%s(.*)%s%((.+)%)")
-    local guildFormat = private.db.global.settings.preferences.guildFormat
+    local guildFormat = private.db.global.preferences.guildFormat
     guildFormat = string.gsub(guildFormat, "%%g", guild)
     guildFormat = string.gsub(guildFormat, "%%r", realm)
     guildFormat = string.gsub(guildFormat, "%%f", faction)

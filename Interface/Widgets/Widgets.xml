@@ -41,6 +41,12 @@
         </Scripts>
     </Button>
 
+    <Frame name="GuildBankSnapshotsDualSlider" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsDualSlider_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <EditBox name="GuildBankSnapshotsEditBox" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsEditBox_OnLoad" />
@@ -82,6 +88,12 @@
             <OnLoad function="GuildBankSnapshotsScrollFrame_OnLoad" />
         </Scripts>
     </Frame>
+
+    <Slider name="GuildBankSnapshotsSlider" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsSlider_OnLoad" />
+        </Scripts>
+    </Slider>
 
     <Button name="GuildBankSnapshotsTabButton" virtual="true">
         <Scripts>

@@ -8,7 +8,7 @@ function private:CleanupDatabase()
     -- Delete scans by age
     for guildID, guildInfo in pairs(private.db.global.guilds) do
         for scanID, _ in addon:pairs(guildInfo.scans) do
-            local autoCleanupSettings = private.db.global.settings.scans.autoCleanup
+            local autoCleanupSettings = guildInfo.settings.autoCleanup
             if autoCleanupSettings.age.enabled then
                 -- Convert age to seconds
                 local age = autoCleanupSettings.age.measure * private.unitsToSeconds[autoCleanupSettings.age.unit]
@@ -32,54 +32,52 @@ function private:CleanupDatabase()
 end
 
 function private:DeleteCorruptedScans(lastScan)
-    if not private.db.global.settings.scans.autoCleanup.corrupted then
-        return
-    end
-
     local lastScanCorrupted
     for guildID, guildInfo in pairs(private.db.global.guilds) do
-        for scanID, scan in addon:pairs(guildInfo.scans) do
-            local empty = 0
-            local corruptItems
+        if guildInfo.settings.autoCleanup.corrupted then
+            for scanID, scan in addon:pairs(guildInfo.scans) do
+                local empty = 0
+                local corruptItems
 
-            -- Count empty transactions
-            for i = 1, guildInfo.numTabs or MAX_GUILDBANK_TABS do
-                local tabInfo = scan.tabs[i]
-                -- Can't guarantee all corrupt logs will be cleaned up because we can't know that if either items or transactions are empty that it's corrupt rather than a new bank
-                if not tabInfo or (addon:tcount(tabInfo.items) == 0 and addon:tcount(tabInfo.transactions) == 0) then
+                -- Count empty transactions
+                for i = 1, guildInfo.numTabs or MAX_GUILDBANK_TABS do
+                    local tabInfo = scan.tabs[i]
+                    -- Can't guarantee all corrupt logs will be cleaned up because we can't know that if either items or transactions are empty that it's corrupt rather than a new bank
+                    if not tabInfo or (addon:tcount(tabInfo.items) == 0 and addon:tcount(tabInfo.transactions) == 0) then
+                        empty = empty + 1
+                    else
+                        for _, transaction in pairs(tabInfo.transactions) do
+                            local info = private:GetTransactionInfo(transaction)
+                            if not info.name then
+                                info.name = UNKNOWN
+                            end
+
+                            -- Delete corrupted scans with missing itemLink info
+                            if not info.itemLink or info.itemLink == "" or info.itemLink == UNKNOWN then
+                                corruptItems = true
+                                break
+                            end
+                        end
+                    end
+                end
+
+                -- Count empty money transactions
+                if addon:tcount(scan.moneyTransactions) == 0 then
                     empty = empty + 1
                 else
-                    for _, transaction in pairs(tabInfo.transactions) do
-                        local info = private:GetTransactionInfo(transaction)
+                    for _, transaction in pairs(scan.moneyTransactions) do
+                        local info = private:GetMoneyTransactionInfo(transaction)
                         if not info.name then
                             info.name = UNKNOWN
                         end
-
-                        -- Delete corrupted scans with missing itemLink info
-                        if not info.itemLink or info.itemLink == "" or info.itemLink == UNKNOWN then
-                            corruptItems = true
-                            break
-                        end
                     end
                 end
-            end
 
-            -- Count empty money transactions
-            if addon:tcount(scan.moneyTransactions) == 0 then
-                empty = empty + 1
-            else
-                for _, transaction in pairs(scan.moneyTransactions) do
-                    local info = private:GetMoneyTransactionInfo(transaction)
-                    if not info.name then
-                        info.name = UNKNOWN
-                    end
+                -- Delete corrupt scan
+                if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon:tcount(scan.tabs) == 0 and addon:tcount(scan.moneyTransactions) == 0) or addon:tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
+                    lastScanCorrupted = scanID == lastScan
+                    private.db.global.guilds[guildID].scans[scanID] = nil
                 end
-            end
-
-            -- Delete corrupt scan
-            if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon:tcount(scan.tabs) == 0 and addon:tcount(scan.moneyTransactions) == 0) or addon:tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
-                lastScanCorrupted = scanID == lastScan
-                private.db.global.guilds[guildID].scans[scanID] = nil
             end
         end
     end

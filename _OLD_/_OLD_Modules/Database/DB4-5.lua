@@ -71,11 +71,11 @@ function private:ConvertDB4_5(backup)
         private.db.global.settings.scans.review = backup.settings.showFrameAfterScan
         private.db.global.settings.scans.autoScan.enabled = backup.settings.autoScan
         private.db.global.settings.scans.autoScan.review = backup.settings.showFrameAfterAutoScan
-        private.db.global.settings.preferences.dateFormat = backup.settings.dateFormat
-        private.db.global.settings.preferences.defaultGuild = backup.settings.defaultGuild
-        private.db.global.settings.preferences.confirmDeletions = backup.settings.confirmDeletion
-        private.db.global.settings.preferences.dateType = backup.settings.approxDates and "approx" or "default"
-        private.db.global.settings.preferences.exportDelimiter = backup.settings.exportDelimiter
+        private.db.global.preferences.dateFormat = backup.settings.dateFormat
+        private.db.global.preferences.defaultGuild = backup.settings.defaultGuild
+        private.db.global.preferences.confirmDeletions = backup.settings.confirmDeletion
+        private.db.global.preferences.dateType = backup.settings.approxDates and "approx" or "default"
+        private.db.global.preferences.exportDelimiter = backup.settings.exportDelimiter
     end
 
     private.db.global.backup = nil

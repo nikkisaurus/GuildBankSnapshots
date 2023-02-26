@@ -9,6 +9,7 @@
     <Include file="ListScrollFrame.lua" />
     <Include file="MinMaxFrame.lua" />
     <Include file="ScrollFrame.lua" />
+    <Include file="Slider.lua" />
     <Include file="TabButton.lua" />
     <Include file="TableCell.lua" />
     <Include file="TableSorter.lua" />

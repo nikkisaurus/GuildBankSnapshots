@@ -127,6 +127,10 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
             self.label:SetSize(width, 20)
             self.editbox:SetSize(width, height - 20)
         end,
+
+        OnRelease = function(self)
+            self.width = nil
+        end,
     })
 
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")

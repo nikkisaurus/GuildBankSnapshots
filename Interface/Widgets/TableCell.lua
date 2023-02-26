@@ -60,6 +60,7 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
             self.data = nil
             self.elementData = nil
             self.entryID = nil
+            self.width = nil
         end,
     })
 

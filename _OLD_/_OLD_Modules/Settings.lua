@@ -252,10 +252,10 @@ function private:GetSettingsOptionsTable()
                 type = "group",
                 name = L["Preferences"],
                 get = function(info)
-                    return private.db.global.settings.preferences[info[#info]]
+                    return private.db.global.preferences[info[#info]]
                 end,
                 set = function(info, value)
-                    private.db.global.settings.preferences[info[#info]] = value
+                    private.db.global.preferences[info[#info]] = value
                 end,
                 args = {
                     dateFormat = {
@@ -346,7 +346,7 @@ function private:GetSettingsOptionsTable()
                             return sorting
                         end,
                         set = function(info, value)
-                            private.db.global.settings.preferences[info[#info]] = value ~= "GBS_NONE" and value or false
+                            private.db.global.preferences[info[#info]] = value ~= "GBS_NONE" and value or false
                         end,
                     },
                     guildFormat = {

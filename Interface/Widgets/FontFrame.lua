@@ -33,6 +33,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
         OnRelease = function(self)
             self.disableTooltip = nil
+            self.width = nil
         end,
     })
 

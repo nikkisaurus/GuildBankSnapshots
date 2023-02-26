@@ -62,7 +62,7 @@ local function GetTab(reviewTabGroup, _, tab)
     local text = ""
     for _, transaction in
         addon:pairs(transactions, function(a, b)
-            if private.db.global.settings.preferences.sorting == "des" then
+            if private.db.global.preferences.sorting == "des" then
                 return a > b
             else
                 return a < b
@@ -132,7 +132,7 @@ local function SelectReviewTab(tabGroup)
         des = L["Descending"],
     })
     tabGroup:AddChild(sortLines)
-    sortLines:SetValue(private.db.global.settings.preferences.sorting)
+    sortLines:SetValue(private.db.global.preferences.sorting)
 
     local copyText = AceGUI:Create("CheckBox")
     copyText:SetLabel(L["Copy Text"])
@@ -191,7 +191,7 @@ local function SelectReviewTab(tabGroup)
     end)
 
     sortLines:SetCallback("OnValueChanged", function(_, _, sorting)
-        private.db.global.settings.preferences.sorting = sorting
+        private.db.global.preferences.sorting = sorting
 
         GetTab(reviewTabGroup, _, private.selectedBankTab)
     end)
@@ -260,6 +260,6 @@ function private:GetReviewOptions(content)
     guildGroup:SetGroupList(private:GetGuildList())
     guildGroup:SetCallback("OnGroupSelected", SelectGuild)
     content:AddChild(guildGroup)
-    guildGroup:SetGroup(private.selectedGuild or private.db.global.settings.preferences.defaultGuild)
+    guildGroup:SetGroup(private.selectedGuild or private.db.global.preferences.defaultGuild)
     private.frame:SetUserData("guildGroup", guildGroup)
 end

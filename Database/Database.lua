@@ -24,6 +24,28 @@ private.defaults = {
         masterScan = {},
         scans = {},
         filters = {},
+        settings = {
+            autoCleanup = {
+                corrupted = true,
+                age = {
+                    enabled = false,
+                    measure = 2,
+                    unit = "months", -- minutes, hours, days, weeks, months
+                },
+            },
+            autoScan = {
+                enabled = true,
+                alert = true,
+                frequency = {
+                    enabled = true,
+                    measure = 1,
+                    unit = "days", -- minutes, hours, days, weeks, months
+                },
+                review = false,
+            },
+            review = true,
+            reviewPath = "review", -- "review", "analyze", "export"
+        },
     },
 }
 
@@ -62,51 +84,25 @@ function private:InitializeDatabase()
                     func = "ScanGuildBank",
                 },
             },
-            settings = {
-                scans = {
-                    autoCleanup = {
-                        corrupted = true,
-                        age = {
-                            enabled = false,
-                            measure = 2,
-                            unit = "months", -- minutes, hours, days, weeks, months
-                        },
-                    },
-                    autoScan = {
-                        enabled = true,
-                        alert = true,
-                        frequency = {
-                            enabled = true,
-                            measure = 1,
-                            unit = "days", -- minutes, hours, days, weeks, months
-                        },
-                        review = false,
-                    },
-                    delay = 0.5,
-                    review = true,
-                    reviewPath = "review", -- "review", "analyze", "export"
+            preferences = {
+                delay = 0.5,
+                useClassColor = false,
+                dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
+                sortHeaders = { 1, 2, 4, 3, 5, 6, 7, 8, 9 },
+                descendingHeaders = {
+                    [1] = true,
+                    [2] = false,
+                    [3] = false,
+                    [4] = false,
+                    [5] = false,
+                    [6] = false,
+                    [7] = false,
+                    [8] = false,
+                    [9] = false,
                 },
-                preferences = {
-                    useClassColor = false,
-                    -- confirmDeletions = true,
-                    dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
-                    -- dateType = "default", -- "default", "approx"
-                    sortHeaders = { 1, 2, 4, 3, 5, 6, 7, 8, 9 },
-                    descendingHeaders = {
-                        [1] = true,
-                        [2] = false,
-                        [3] = false,
-                        [4] = false,
-                        [5] = false,
-                        [6] = false,
-                        [7] = false,
-                        [8] = false,
-                        [9] = false,
-                    },
-                    defaultGuild = false, -- guildID
-                    guildFormat = "%g - %r (%F)",
-                    exportDelimiter = ",",
-                },
+                defaultGuild = false, -- guildID
+                guildFormat = "%g - %r (%F)",
+                exportDelimiter = ",",
             },
         },
     }
