@@ -36,8 +36,8 @@ function private:GetGuildDisplayName(guildKey)
     local guildFormat = private.db.global.preferences.guildFormat
     guildFormat = string.gsub(guildFormat, "%%g", guild)
     guildFormat = string.gsub(guildFormat, "%%r", realm)
-    guildFormat = string.gsub(guildFormat, "%%f", faction)
-    guildFormat = string.gsub(guildFormat, "%%F", strsub(faction, 1, 1)) -- shortened faction
+    guildFormat = string.gsub(guildFormat, "%%f", strsub(faction, 1, 1)) -- shortened faction
+    guildFormat = string.gsub(guildFormat, "%%F", faction)
 
     return guildFormat
 end

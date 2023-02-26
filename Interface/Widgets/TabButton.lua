@@ -46,7 +46,6 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     tab:SetNormalTexture(tab.bg)
 
     tab.selected = tab:CreateTexture(nil, "BACKGROUND")
-    tab.selected:SetColorTexture(private.interface.colors[private:UseClassColor() and "lightClass" or "lightFlair"]:GetRGBA())
     tab.selected:SetAllPoints(tab.bg)
 
     -- Text
@@ -69,6 +68,7 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
         end
 
         self:SetNormalTexture(isSelected and self.selected or self.bg)
+        self.selected:SetColorTexture(private.interface.colors[private:UseClassColor() and "lightClass" or "lightFlair"]:GetRGBA())
     end
 
     function tab:SetTab(tabID, info)

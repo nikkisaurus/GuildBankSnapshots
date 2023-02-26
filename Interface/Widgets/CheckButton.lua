@@ -29,7 +29,11 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
 
         OnEnter = function(self)
             if self.tooltip then
-                self:ShowTooltip(nil, self.tooltip)
+                local tooltip = self.tooltip
+                if type(tooltip) ~= "function" then
+                    tooltip = GenerateClosure(GameTooltip.AddLine, GameTooltip, tooltip)
+                end
+                self:ShowTooltip(self.anchor, tooltip)
             end
         end,
 
@@ -43,7 +47,9 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
 
         OnRelease = function(self)
             self.alignment = nil
+            self.anchor = nil
             self.padding = nil
+            self.tooltip = nil
             self.width = nil
         end,
     })
@@ -126,7 +132,8 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         end
     end
 
-    function button:SetTooltipInitializer(tooltip)
+    function button:SetTooltipInitializer(tooltip, anchor)
         self.tooltip = tooltip
+        self.anchor = anchor
     end
 end

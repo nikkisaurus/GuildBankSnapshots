@@ -3,6 +3,8 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
+local spacer
+
 --*----------[[ Initialize tab ]]----------*--
 local SettingsTab
 local DoLayout, DrawGroup, SelectGuild
@@ -21,26 +23,227 @@ DrawGroup = function(groupType, group)
 
     if groupType == "guild" then
     elseif groupType == "preferences" then
+        local useClassColor = group:Acquire("GuildBankSnapshotsCheckButton")
+        useClassColor:SetText(L["Use class color"])
+        useClassColor:SetTooltipInitializer(L["Applies your class color to emphasized elements of this frame"])
+        useClassColor:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.preferences.useClassColor = self:GetChecked()
+                    private:LoadFrame("Settings")
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.preferences.useClassColor, true)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(useClassColor)
+
+        spacer = group:Acquire("GuildBankSnapshotsFontFrame")
+        spacer.width = "full"
+        spacer:SetHeight(1)
+
+        group:AddChild(spacer)
+
+        local dateFormat = group:Acquire("GuildBankSnapshotsEditBoxFrame")
+        dateFormat:SetWidth(150)
+        dateFormat:SetLabel(L["Date Format"])
+        dateFormat:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        dateFormat:ForwardCallbacks({
+            OnEnter = {
+                function(self)
+                    self:ShowTooltip(nil, function()
+                        -- http://www.lua.org/pil/22.1.html
+                        GameTooltip:AddDoubleLine("abbreviated weekday name (e.g., Wed)", "%a", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("full weekday name (e.g., Wednesday)", "%A", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("abbreviated month name (e.g., Sep)", "%b", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("full month name (e.g., September)", "%B", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("date and time (e.g., 09/16/98 23:48:10)", "%c", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("day of the month (16) [01-31]", "%d", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("hour, using a 24-hour clock (23) [00-23]", "%H", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("hour, using a 12-hour clock (11) [01-12]", "%I", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("minute (48) [00-59]", "%M", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("month (09) [01-12]", "%m", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("either 'am' or 'pm' (pm)", "%p", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("second (10) [00-61]", "%S", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("weekday (3) [0-6 = Sunday-Saturday]", "%w", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("date (e.g., 09/16/98)", "%x", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("time (e.g., 23:48:10)", "%X", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("full year (1998)", "%Y", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("two-digit year (98) [00-99]", "%y", 1, 1, 1)
+                        GameTooltip:AddDoubleLine("the character `%´", "%%", 1, 1, 1)
+                        GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
+                        GameTooltip:AddLine(format(L["See '%s' for more information"], "http://www.lua.org/pil/22.1.html"), 1, 1, 1)
+                    end)
+                end,
+            },
+            OnEnterPressed = {
+                function(self)
+                    private.db.global.preferences.dateFormat = self:GetText()
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+            OnShow = {
+                function(self)
+                    self:SetText(private.db.global.preferences.dateFormat)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(dateFormat)
+
+        local guildFormat = group:Acquire("GuildBankSnapshotsEditBoxFrame")
+        guildFormat:SetWidth(150)
+        guildFormat:SetLabel(L["Guild Format"])
+        guildFormat:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        guildFormat:ForwardCallbacks({
+            OnEnter = {
+                function(self)
+                    self:ShowTooltip(nil, function()
+                        GameTooltip:AddDoubleLine(L["abbreviated faction"], "%f", 1, 1, 1)
+                        GameTooltip:AddDoubleLine(L["faction"], "%F", 1, 1, 1)
+                        GameTooltip:AddDoubleLine(L["guild name"], "%g", 1, 1, 1)
+                        GameTooltip:AddDoubleLine(L["realm name"], "%r", 1, 1, 1)
+                    end)
+                end,
+            },
+            OnEnterPressed = {
+                function(self)
+                    private.db.global.preferences.guildFormat = self:GetText()
+                    private:LoadFrame("Settings")
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+            OnShow = {
+                function(self)
+                    self:SetText(private.db.global.preferences.guildFormat)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(guildFormat)
+
+        local defaultGuild = group:Acquire("GuildBankSnapshotsDropdownFrame")
+        defaultGuild:SetWidth(200)
+        defaultGuild:SetLabel(L["Default Guild"] .. "*")
+        defaultGuild:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        defaultGuild:SetText(L["Select a guild"])
+        defaultGuild:SetInfo(private:GetGuildInfo(function(dropdown, info)
+            private.db.global.preferences.defaultGuild = info.id
+        end))
+        defaultGuild:ForwardCallbacks({
+            OnEnter = {
+                function(self)
+                    self:ShowTooltip(nil, function()
+                        GameTooltip:AddLine(L["Will not take effect until after a reload"])
+                    end)
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+            OnShow = {
+                function(self)
+                    self:SelectByID(private.db.global.preferences.defaultGuild)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(defaultGuild)
+
+        local exportDelimiter = group:Acquire("GuildBankSnapshotsDropdownFrame")
+        exportDelimiter:SetWidth(150)
+        exportDelimiter:SetLabel(L["Export Delimiter"])
+        exportDelimiter:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        exportDelimiter:SetInfo(function()
+            local info = {}
+
+            local delimiters = {
+                [","] = format("%s (%s)", L["Comma"], ","),
+                [";"] = format("%s (%s)", L["Semicolon"], ";"),
+                ["|"] = format("%s (%s)", L["Pipe"], "|"),
+            }
+
+            for id, text in pairs(delimiters) do
+                tinsert(info, {
+                    id = id,
+                    text = text,
+                    func = function(self)
+                        private.db.global.preferences.exportDelimiter = id
+                    end,
+                })
+            end
+
+            return info
+        end)
+        exportDelimiter:ForwardCallbacks({
+            OnEnter = {
+                function(self)
+                    self:ShowTooltip(nil, function()
+                        GameTooltip:AddLine(L["Sets the CSV delimiter used when exporting data"])
+                    end)
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+            OnShow = {
+                function(self)
+                    self:SelectByID(private.db.global.preferences.exportDelimiter)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(exportDelimiter)
+
+        local delay = group:Acquire("GuildBankSnapshotsSliderFrame")
+        delay:SetSize(150, 50)
+        delay:SetLabel(L["Scan Delay"])
+        delay:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        delay:SetValueStep(0.1)
+        delay:SetMinMaxValues(0, 5)
+        delay:ForwardCallbacks({
+            OnValueChanged = {
+                function(self, ...)
+                    print(self:GetObeyStepOnDrag(), ...)
+                    private.db.global.preferences.delay = self:GetValue()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetValue(private.db.global.preferences.delay)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(delay)
     elseif groupType == "commands" then
         for cmd, info in pairs(private.db.global.commands) do
-            local toggle = group:Acquire("GuildBankSnapshotsCheckButton")
-            toggle:SetText("/" .. cmd, true)
-            toggle:SetCallbacks({
-                OnClick = {
-                    function(self)
-                        private.db.global.commands[cmd].enabled = self:GetChecked()
-                        private:InitializeSlashCommands()
-                    end,
-                },
-                OnShow = {
-                    function(self)
-                        self:SetCheckedState(info.enabled, true)
-                    end,
-                    true,
-                },
-            })
+            if cmd ~= "gbs" then
+                local toggle = group:Acquire("GuildBankSnapshotsCheckButton")
+                toggle:SetText("/" .. cmd, true)
+                toggle:SetCallbacks({
+                    OnClick = {
+                        function(self)
+                            private.db.global.commands[cmd].enabled = self:GetChecked()
+                            private:InitializeSlashCommands()
+                        end,
+                    },
+                    OnShow = {
+                        function(self)
+                            self:SetCheckedState(info.enabled, true)
+                        end,
+                        true,
+                    },
+                })
 
-            tinsert(group.children, toggle)
+                group:AddChild(toggle)
+            end
         end
     end
 
@@ -83,7 +286,7 @@ function private:LoadSettingsTab(content, guildKey)
     preferencesHeader:SetHeight(20)
     preferencesHeader:SetText(L["Preferences"])
     preferencesHeader:Justify("LEFT")
-    preferencesHeader:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+    preferencesHeader:SetFont(nil, private:GetInterfaceFlairColor())
 
     local preferencesGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     preferencesGroup:SetPoint("TOPLEFT", preferencesHeader, "BOTTOMLEFT", 0, 0)
@@ -99,7 +302,7 @@ function private:LoadSettingsTab(content, guildKey)
     commandsHeader:SetHeight(20)
     commandsHeader:SetText(L["Commands"])
     commandsHeader:Justify("LEFT")
-    commandsHeader:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+    commandsHeader:SetFont(nil, private:GetInterfaceFlairColor())
 
     local commandsGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     commandsGroup:SetPoint("TOPLEFT", commandsHeader, "BOTTOMLEFT", 0, 0)
@@ -145,7 +348,7 @@ end
 --             template = "GuildBankSnapshotsDropdownFrame",
 --             onLoad = function(self)
 --                 self:SetLabel(L["Review Path"])
---                 self:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+--                 self:SetLabelFont(nil, private:GetInterfaceFlairColor())
 --                 self:SetInfo(function()
 --                     local info = {}
 
@@ -191,7 +394,7 @@ end
 --         --         self.width = "full"
 --         --         self:SetText(L["Auto Scan"])
 --         --         self:Justify("LEFT")
---         --         self:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+--         --         self:SetFont(nil, private:GetInterfaceFlairColor())
 --         --         return nil, 20
 --         --     end,
 --         -- },
@@ -209,7 +412,7 @@ end
 --                 header:SetHeight(20)
 --                 header:SetText(L["Auto Scan"])
 --                 header:Justify("LEFT")
---                 header:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+--                 header:SetFont(nil, private:GetInterfaceFlairColor())
 --                 tinsert(self.children, header)
 
 --                 local enable = self:Acquire("GuildBankSnapshotsCheckButton")
@@ -355,7 +558,7 @@ end
 --         --     template = "GuildBankSnapshotsDropdownFrame",
 --         --     onLoad = function(self)
 --         --         self:SetLabel(L["Frequency Unit"])
---         --         self:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+--         --         self:SetLabelFont(nil, private:GetInterfaceFlairColor())
 --         --         self:SetInfo(function()
 --         --             local info = {}
 
@@ -498,7 +701,7 @@ end
 --     -- -- container.bg, container.border = private:AddBackdrop(container, { bgColor = "darker" })
 
 --     -- -- local commandsLabel = container.content:Acquire("GuildBankSnapshotsFontFrame")
---     -- -- commandsLabel:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
+--     -- -- commandsLabel:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
 --     -- -- commandsLabel:SetHeight(20)
 --     -- -- commandsLabel:SetPoint("TOPLEFT", 5, 0)
 --     -- -- commandsLabel:SetPoint("TOPRIGHT", -5, 0)
@@ -524,7 +727,7 @@ end
 --     -- -- end)
 
 --     -- -- local preferencesLabel = container.content:Acquire("GuildBankSnapshotsFontFrame")
---     -- -- preferencesLabel:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
+--     -- -- preferencesLabel:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
 --     -- -- preferencesLabel:SetHeight(20)
 --     -- -- preferencesLabel:SetPoint("TOPLEFT", commandsGroup, "BOTTOMLEFT")
 --     -- -- preferencesLabel:SetPoint("TOPRIGHT", commandsGroup, "BOTTOMRIGHT")
@@ -550,7 +753,7 @@ end
 --     -- -- end)
 
 --     -- -- local guildLabel = container.content:Acquire("GuildBankSnapshotsFontFrame")
---     -- -- guildLabel:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
+--     -- -- guildLabel:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
 --     -- -- guildLabel:SetHeight(20)
 --     -- -- guildLabel:SetPoint("TOPLEFT", preferencesGroup, "BOTTOMLEFT")
 --     -- -- guildLabel:SetPoint("TOPRIGHT", preferencesGroup, "BOTTOMRIGHT")

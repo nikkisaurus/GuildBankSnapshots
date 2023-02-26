@@ -129,6 +129,8 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
         end,
 
         OnRelease = function(self)
+            self.anchor = nil
+            self.tooltip = nil
             self.width = nil
         end,
     })
@@ -136,12 +138,22 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.label:SetPoint("TOPLEFT")
 
+    frame.label:SetScript("OnEnter", function(self, ...)
+        frame.editbox:GetScript("OnEnter")(frame.editbox, ...)
+    end)
+
     frame.editbox = frame:Acquire("GuildBankSnapshotsEditBox")
     frame.editbox:SetPoint("BOTTOMLEFT")
 
     -- Methods
     function frame:ForwardCallback(...)
         self.editbox:SetCallback(...)
+    end
+
+    function frame:ForwardCallbacks(callbacks)
+        for script, args in pairs(callbacks) do
+            self:ForwardCallback(script, unpack(args))
+        end
     end
 
     function frame:IsValidText()

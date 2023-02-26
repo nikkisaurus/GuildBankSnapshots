@@ -10,7 +10,7 @@ function GuildBankSnapshotsSlider_OnLoad(slider)
             self:SetOrientation("HORIZONTAL")
             self:SetObeyStepOnDrag(true)
             self:SetMinMaxValues(0, 1)
-            self:SetValueStep(1)
+            self:SetValueStep(0.1)
             self:SetValue(0)
             self:SetDisabled()
             self:SetBackdropColor(private.interface.colors.dark)
@@ -159,8 +159,9 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
 
         OnSizeChanged = function(self, width, height)
             self.label:SetSize(width, 20)
-            self.lowerText:SetSize(width / 2, 20)
-            self.upperText:SetSize(width / 2, 20)
+            self.lowerText:SetSize(width / 3, 20)
+            self.editbox:SetSize(width / 3, 16)
+            self.upperText:SetSize(width / 3, 20)
             self.slider:SetSize(width, height - 40)
         end,
 
@@ -179,13 +180,39 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
     frame.lowerText:Justify("LEFT")
     frame.lowerText:SetPoint("BOTTOMLEFT")
 
+    frame.editbox = frame:Acquire("GuildBankSnapshotsEditBox")
+    frame.editbox:SetPoint("BOTTOM", 0, 2)
+    frame.editbox:SetCallback("OnEnterPressed", function(self)
+        frame.slider:SetValue(self:GetNumber())
+    end)
+
     frame.upperText = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.upperText:Justify("RIGHT")
     frame.upperText:SetPoint("BOTTOMRIGHT")
 
     -- Methods
-    function frame:ForwardCallback(...)
-        self.slider:SetCallback(...)
+    function frame:ForwardCallback(script, callback, init)
+        local func
+        if script == "OnValueChanged" then
+            func = function(slider, value, userInput)
+                -- Hack to fix values not obeying step... need to find a real solution because this is assuming it's to one decimal
+                -- value = addon:round(value, 1)
+                -- if userInput then
+                --     slider:SetValue(value)
+                -- end
+                frame.editbox:SetText(value)
+                callback(slider, value, userInput)
+            end
+        else
+            func = callback
+        end
+        self.slider:SetCallback(script, func, init)
+    end
+
+    function frame:ForwardCallbacks(callbacks)
+        for script, args in pairs(callbacks) do
+            self:ForwardCallback(script, unpack(args))
+        end
     end
 
     function frame:SetBackdropColor(...)
@@ -209,5 +236,9 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
     function frame:SetMinMaxLabels(lowerText, upperText)
         frame.lowerText:SetText(lowerText)
         frame.upperText:SetText(upperText)
+    end
+
+    function frame:SetValueStep(...)
+        self.slider:SetValueStep(...)
     end
 end

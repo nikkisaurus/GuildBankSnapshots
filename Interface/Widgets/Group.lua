@@ -21,6 +21,10 @@ function GuildBankSnapshotsGroup_OnLoad(group)
     })
 
     -- Methods
+    function group:AddChild(child)
+        tinsert(self.children, child)
+    end
+
     function group:DoLayout()
         local usedWidth, usedHeight = 0, self.spacing
         local maxChildHeight

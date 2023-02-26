@@ -72,6 +72,10 @@ function private:GetGuildInfo(func)
     end
 end
 
+function private:GetInterfaceFlairColor()
+    return private.interface.colors[private:UseClassColor() and "class" or "flair"]
+end
+
 function private:HideTooltip()
     GameTooltip:ClearLines()
     GameTooltip:Hide()

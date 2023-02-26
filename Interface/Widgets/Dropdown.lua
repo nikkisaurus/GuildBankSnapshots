@@ -205,12 +205,25 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.label:SetPoint("TOPLEFT")
 
+    frame.label:SetScript("OnEnter", function(self, ...)
+        local script = frame.dropdown:GetScript("OnEnter")
+        if script then
+            script(frame.dropdown, ...)
+        end
+    end)
+
     frame.dropdown = frame:Acquire("GuildBankSnapshotsDropdownButton")
     frame.dropdown:SetPoint("BOTTOMLEFT")
 
     -- Methods
     function frame:ForwardCallback(...)
         self.dropdown:SetCallback(...)
+    end
+
+    function frame:ForwardCallbacks(callbacks)
+        for script, args in pairs(callbacks) do
+            self:ForwardCallback(script, unpack(args))
+        end
     end
 
     function frame:GetInfo()
@@ -244,6 +257,10 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
 
     function frame:SetStyle(...)
         self.dropdown:SetStyle(...)
+    end
+
+    function frame:SetText(...)
+        self.dropdown:SetText(...)
     end
 end
 
