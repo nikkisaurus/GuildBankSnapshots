@@ -13,6 +13,7 @@ function GuildBankSnapshotsSlider_OnLoad(slider)
             self:SetValueStep(1)
             self:SetValue(0)
             self:SetDisabled()
+            self:SetBackdropColor(private.interface.colors.dark)
         end,
 
         OnRelease = function(self)
@@ -23,7 +24,6 @@ function GuildBankSnapshotsSlider_OnLoad(slider)
     -- Textures
     slider.bg = slider:CreateTexture(nil, "BACKGROUND")
     slider.bg:SetAllPoints(slider)
-    slider.bg:SetColorTexture(private.interface.colors.dark:GetRGBA())
 
     slider.thumb = slider:CreateTexture(nil, "ARTWORK")
     slider.thumb:SetSize(11, 11)
@@ -141,5 +141,73 @@ function GuildBankSnapshotsDualSlider_OnLoad(frame)
     function frame:SetMinValue(value)
         self.lower:SetValue(value)
         self.lowerText:SetText(self.formatter and self.formatter(value) or value)
+    end
+end
+
+function GuildBankSnapshotsSliderFrame_OnLoad(frame)
+    frame = private:MixinContainer(frame)
+    frame:InitScripts({
+        OnAcquire = function(self)
+            self:SetSize(150, 40)
+
+            self.label:Justify("LEFT", "MIDDLE")
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+            self:SetLabel("")
+
+            self:SetMinMaxLabels(L["Min"], L["Max"])
+        end,
+
+        OnSizeChanged = function(self, width, height)
+            self.label:SetSize(width, 20)
+            self.lowerText:SetSize(width / 2, 20)
+            self.upperText:SetSize(width / 2, 20)
+            self.slider:SetSize(width, height - 40)
+        end,
+
+        OnRelease = function(self)
+            self.width = nil
+        end,
+    })
+
+    frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.label:SetPoint("TOPLEFT")
+
+    frame.slider = frame:Acquire("GuildBankSnapshotsSlider")
+    frame.slider:SetPoint("LEFT")
+
+    frame.lowerText = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.lowerText:Justify("LEFT")
+    frame.lowerText:SetPoint("BOTTOMLEFT")
+
+    frame.upperText = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.upperText:Justify("RIGHT")
+    frame.upperText:SetPoint("BOTTOMRIGHT")
+
+    -- Methods
+    function frame:ForwardCallback(...)
+        self.slider:SetCallback(...)
+    end
+
+    function frame:SetBackdropColor(...)
+        self.slider:SetBackdropColor(...)
+    end
+
+    function frame:SetLabel(text)
+        self.label:SetText(text)
+    end
+
+    function frame:SetLabelFont(fontObject, color)
+        self.label:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
+    function frame:SetMinMaxValues(...)
+        self.slider:SetMinMaxValues(...)
+        self:SetMinMaxLabels(...)
+    end
+
+    function frame:SetMinMaxLabels(lowerText, upperText)
+        frame.lowerText:SetText(lowerText)
+        frame.upperText:SetText(upperText)
     end
 end

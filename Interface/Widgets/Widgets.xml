@@ -11,6 +11,12 @@
         </Scripts>
     </CheckButton>
 
+    <Frame name="GuildBankSnapshotsCheckButtonFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsCheckButtonFrame_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <Frame name="GuildBankSnapshotsContainer" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsContainer_OnLoad" />
@@ -94,6 +100,12 @@
             <OnLoad function="GuildBankSnapshotsSlider_OnLoad" />
         </Scripts>
     </Slider>
+
+    <Frame name="GuildBankSnapshotsSliderFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsSliderFrame_OnLoad" />
+        </Scripts>
+    </Frame>
 
     <Button name="GuildBankSnapshotsTabButton" virtual="true">
         <Scripts>

@@ -25,6 +25,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         end,
 
         OnClick = function(self, ...)
+            print("CLICK")
             self:SetChecked(not self:GetChecked())
         end,
 
@@ -69,6 +70,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     -- Methods
     function button:SetAnchors()
         local size = min(self:GetHeight(), 12)
+        size = size == 0 and 12 or size
         local alignment = relPoint[self.alignment]
         self.checkBoxBorder:ClearAllPoints()
         self.checkBoxBorder:SetSize(size, size)
@@ -116,5 +118,65 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
 
     function button:SetTooltipInitializer(tooltip)
         self.tooltip = tooltip
+    end
+end
+
+function GuildBankSnapshotsCheckButtonFrame_OnLoad(frame)
+    frame = private:MixinContainer(frame)
+    frame:InitScripts({
+        OnAcquire = function(self)
+            self:SetSize(150, 40)
+
+            self.label:Justify("LEFT", "MIDDLE")
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+            self:SetLabel("")
+        end,
+
+        -- OnSizeChanged = function(self, width, height)
+        --     self.label:SetSize(width, 20)
+        --     self.checkButton:SetHeight(height - 20)
+        -- end,
+
+        OnRelease = function(self)
+            self.width = nil
+            self.autoWidth = nil
+        end,
+    })
+
+    frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.label:SetPoint("TOPLEFT")
+    frame.label:SetPoint("TOPRIGHT")
+
+    frame.checkButton = frame:Acquire("GuildBankSnapshotsCheckButton")
+    frame.checkButton:SetPoint("BOTTOMLEFT")
+    frame.checkButton:SetPoint("BOTTOMRIGHT")
+
+    -- Methods
+    function frame:ForwardCallback(...)
+        self.checkButton:SetCallback(...)
+    end
+
+    function frame:GetMinWidth()
+        return self.checkButton:GetMinWidth()
+    end
+
+    function frame:SetAutoWidth(autoWidth)
+        self.autoWidth = autoWidth
+    end
+
+    function frame:SetLabel(text)
+        self.label:SetText(text)
+    end
+
+    function frame:SetLabelFont(fontObject, color)
+        self.label:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
+    function frame:SetText(...)
+        self.checkButton:SetText(...)
+        if self.autoWidth then
+            self.checkButton:SetWidth(self:GetMinWidth())
+        end
     end
 end

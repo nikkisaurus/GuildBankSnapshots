@@ -60,6 +60,198 @@ local children = {
                 end, true)
             end,
         },
+        -- {
+        --     template = "GuildBankSnapshotsFontFrame",
+        --     onLoad = function(self)
+        --         self.width = "full"
+        --         self:SetText(L["Auto Scan"])
+        --         self:Justify("LEFT")
+        --         self:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+        --         return nil, 20
+        --     end,
+        -- },
+        {
+            template = "GuildBankSnapshotsGroup",
+            onLoad = function(self)
+                self.width = "full"
+                self:SetWidth(SettingsTab.guildGroup:GetWidth())
+                self:SetPadding(10, 10)
+                self:SetSpacing(5)
+                self.bg, self.border = private:AddBackdrop(self, { bgColor = "dark" })
+
+                local header = self:Acquire("GuildBankSnapshotsFontFrame")
+                header.width = "full"
+                header:SetHeight(20)
+                header:SetText(L["Auto Scan"])
+                header:Justify("LEFT")
+                header:SetFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+                tinsert(self.children, header)
+
+                local enable = self:Acquire("GuildBankSnapshotsCheckButton")
+                enable:SetText(L["Enable"])
+                enable:SetSize(enable:GetMinWidth(), 20)
+                tinsert(self.children, enable)
+
+                enable:SetCallback("OnClick", function(toggle)
+                    private.db.global.guilds[SettingsTab.guildID].settings.autoScan.enabled = toggle:GetChecked()
+                end)
+
+                enable:SetCallback("OnShow", function(toggle)
+                    toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.enabled, true)
+                end, true)
+
+                local alert = self:Acquire("GuildBankSnapshotsCheckButton")
+                alert:SetText(L["Alert scan progress"])
+                alert:SetSize(alert:GetMinWidth(), 20)
+                tinsert(self.children, alert)
+
+                alert:SetCallback("OnClick", function(toggle)
+                    private.db.global.guilds[SettingsTab.guildID].settings.autoScan.alert = toggle:GetChecked()
+                end)
+
+                alert:SetCallback("OnShow", function(toggle)
+                    toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.alert, true)
+                end, true)
+
+                local review = self:Acquire("GuildBankSnapshotsCheckButton")
+                review:SetText(L["Review after auto scan"])
+                review:SetSize(review:GetMinWidth(), 20)
+                tinsert(self.children, review)
+
+                review:SetCallback("OnClick", function(toggle)
+                    private.db.global.guilds[SettingsTab.guildID].settings.autoScan.review = toggle:GetChecked()
+                end)
+
+                review:SetCallback("OnShow", function(toggle)
+                    toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.review, true)
+                end, true)
+
+                local enableFrequency = self:Acquire("GuildBankSnapshotsCheckButton")
+                enableFrequency:SetText(L["Enable frequency limit"])
+                enableFrequency:SetSize(enableFrequency:GetMinWidth(), 20)
+                tinsert(self.children, enableFrequency)
+
+                enableFrequency:SetCallback("OnClick", function(toggle)
+                    private.db.global.guilds[SettingsTab.guildID].settings.autoScan.frequency.enabled = toggle:GetChecked()
+                end)
+
+                enableFrequency:SetCallback("OnShow", function(toggle)
+                    toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.frequency.enabled, true)
+                end, true)
+
+                local spacer = self:Acquire("GuildBankSnapshotsFontFrame")
+                spacer.width = "full"
+                spacer:SetHeight(5)
+                tinsert(self.children, spacer)
+
+                local measure = self:Acquire("GuildBankSnapshotsSliderFrame")
+                measure:SetBackdropColor(private.interface.colors.darker)
+                measure:SetSize(150, 50)
+                measure:SetMinMaxValues(0, 59)
+                measure:SetLabel(L["Frequency Measure"])
+                tinsert(self.children, measure)
+
+                self:DoLayout()
+                SettingsTab.guildGroup:DoLayout()
+            end,
+        },
+        -- {
+        --     template = "GuildBankSnapshotsCheckButton",
+        --     onLoad = function(self)
+        --         self:SetText(L["Enable"])
+
+        --         self:SetCallback("OnClick", function(toggle)
+        --             private.db.global.guilds[SettingsTab.guildID].settings.autoScan.enabled = toggle:GetChecked()
+        --         end)
+
+        --         self:SetCallback("OnShow", function(toggle)
+        --             toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.enabled, true)
+        --         end, true)
+
+        --         return self:GetMinWidth(), 20
+        --     end,
+        -- },
+        -- {
+        --     template = "GuildBankSnapshotsCheckButton",
+        --     onLoad = function(self)
+        --         self:SetText(L["Alert scan progress"])
+
+        --         self:SetCallback("OnClick", function(toggle)
+        --             private.db.global.guilds[SettingsTab.guildID].settings.autoScan.alert = toggle:GetChecked()
+        --         end)
+
+        --         self:SetCallback("OnShow", function(toggle)
+        --             toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.alert, true)
+        --         end, true)
+
+        --         return self:GetMinWidth(), 20
+        --     end,
+        -- },
+        -- {
+        --     template = "GuildBankSnapshotsCheckButton",
+        --     onLoad = function(self)
+        --         self:SetText(L["Review after auto scan"])
+
+        --         self:SetCallback("OnClick", function(toggle)
+        --             private.db.global.guilds[SettingsTab.guildID].settings.autoScan.review = toggle:GetChecked()
+        --         end)
+
+        --         self:SetCallback("OnShow", function(toggle)
+        --             toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.review, true)
+        --         end, true)
+
+        --         return self:GetMinWidth(), 20
+        --     end,
+        -- },
+        -- {
+        --     template = "GuildBankSnapshotsCheckButton",
+        --     onLoad = function(self)
+        --         self:SetText(L["Enable frequency limit"])
+
+        --         self:SetCallback("OnClick", function(toggle)
+        --             private.db.global.guilds[SettingsTab.guildID].settings.autoScan.frequency.enabled = toggle:GetChecked()
+        --         end)
+
+        --         self:SetCallback("OnShow", function(toggle)
+        --             toggle:SetCheckedState(private.db.global.guilds[SettingsTab.guildID].settings.autoScan.frequency.enabled, true)
+        --         end, true)
+
+        --         return self:GetMinWidth(), 20
+        --     end,
+        -- },
+        -- {
+        --     template = "GuildBankSnapshotsFontFrame",
+        --     onLoad = function(self)
+        --         self.width = "full"
+        --         return nil, 10
+        --     end,
+        -- },
+        -- {
+        --     template = "GuildBankSnapshotsDropdownFrame",
+        --     onLoad = function(self)
+        --         self:SetLabel(L["Frequency Unit"])
+        --         self:SetLabelFont(nil, private.interface.colors[private:UseClassColor() and "class" or "flair"])
+        --         self:SetInfo(function()
+        --             local info = {}
+
+        --             -- for _, tab in addon:pairs({ "Analyze", "Review" }) do
+        --             --     tinsert(info, {
+        --             --         id = strlower(tab),
+        --             --         text = L[tab],
+        --             --         func = function()
+        --             --             -- private.db.global.guilds[SettingsTab.guildID].settings.reviewPath = strlower(tab)
+        --             --         end,
+        --             --     })
+        --             -- end
+
+        --             return info
+        --         end)
+
+        --         self:SetCallback("OnShow", function(self)
+        --             -- self:SelectByID(private.db.global.guilds[SettingsTab.guildID].settings.reviewPath)
+        --         end, true)
+        --     end,
+        -- },
     },
 }
 
@@ -141,8 +333,8 @@ local groups = {
 
         for _, child in pairs(children.guild) do
             local object = group:Acquire(child.template)
-            child.onLoad(object)
-            object:SetSize(150, 40)
+            local width, height = child.onLoad(object)
+            object:SetSize(width or 150, height or 40)
             tinsert(group.children, object)
         end
 
