@@ -31,7 +31,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
             self:ShowTooltip()
         end,
 
-        OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        OnLeave = GenerateClosure(private.HideTooltip, private),
 
         OnSizeChanged = function(self)
             self:SetAnchors()
