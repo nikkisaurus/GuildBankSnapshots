@@ -363,6 +363,25 @@ info = {
 
         return info
     end,
+    copySettings = function(self)
+        local info = {}
+
+        private:IterateGuilds(function(guildKey, guildName, guild)
+            if guildKey ~= SettingsTab.guildKey then
+                tinsert(info, {
+                    id = guildKey,
+                    text = guildName,
+                    func = function(dropdown, info)
+                        private.db.global.guilds[SettingsTab.guildKey].settings = addon:CloneTable(private.db.global.guilds[info.id].settings)
+                        dropdown:Clear()
+                        private:LoadFrame("Settings")
+                    end,
+                })
+            end
+        end)
+
+        return info
+    end,
     defaultGuild = function()
         local info = {}
 
@@ -595,6 +614,15 @@ DrawGroup = function(groupType, group)
         autoCleanupGroup:DoLayout()
 
         -----------------------
+
+        local copySettings = group:Acquire("GuildBankSnapshotsDropdownFrame")
+        copySettings:SetWidth(200)
+        copySettings:SetLabel(L["Copy Settings"])
+        copySettings:SetTooltipInitializer(L["Copy settings from another guild"])
+        copySettings:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        copySettings:SetStyle({ hasCheckBox = false })
+        copySettings:SetInfo(info.copySettings)
+        group:AddChild(copySettings)
     elseif groupType == "preferences" then
         local useClassColor = group:Acquire("GuildBankSnapshotsCheckButton")
         useClassColor:SetText(L["Use class color"])

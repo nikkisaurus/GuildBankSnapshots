@@ -340,6 +340,7 @@ info = {
                 text = loadoutID,
                 func = function(dropdown)
                     ReviewTab.guilds[ReviewTab.guildKey].filters = addon:CloneTable(loadout)
+                    dropdown:Clear()
                     LoadTable()
                 end,
             })

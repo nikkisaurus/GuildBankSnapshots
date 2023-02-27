@@ -81,6 +81,14 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     tinsert(menus, dropdown.menu)
 
     -- Methods
+    function dropdown:Clear()
+        wipe(self.selected)
+        self:UpdateText()
+        if self.handlers.OnClear then
+            self.handlers.OnClear(self)
+        end
+    end
+
     function dropdown:GetInfo(id)
         assert(self:GetUserData("info"), "GuildBankSnapshotsDropdownButton: info is not initialized")
 
@@ -464,11 +472,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
 
         clearButton:SetCallback("OnClick", function()
             self:Close()
-            wipe(self.dropdown.selected)
-            self.dropdown:UpdateText()
-            if self.dropdown.handlers.OnClear then
-                self.dropdown.handlers.OnClear(self.dropdown)
-            end
+            self.dropdown:Clear()
         end)
 
         if self.style.hasClear or self.style.hasSearch then

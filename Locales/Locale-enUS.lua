@@ -236,3 +236,5 @@ L["Determines how far back scans are saved"] = true
 L["Example: if this is set to 30 days, all scans older than 30 days will be deleted"] = true
 L["Delete old scans"] = true
 L["Allow auto scan every"] = true
+L["Copy Settings"] = true
+L["Copy settings from another guild"] = true
