@@ -65,7 +65,7 @@
         </Scripts>
     </Frame>
 
-    <Frame name="GuildBankSnapshotsGroup" inherits="ResizeLayoutFrame" virtual="true">
+    <Frame name="GuildBankSnapshotsGroup" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsGroup_OnLoad" />
         </Scripts>

@@ -24,8 +24,7 @@ function GuildBankSnapshotsGroup_OnLoad(group)
     end
 
     function group:DoLayout()
-        local usedWidth, usedHeight = 0, self.spacing
-        local maxChildHeight
+        local usedWidth, usedHeight, maxChildHeight = 0, self:GetUserData("spacing")
         for i, child in addon:pairs(self.children) do
             local width = self:GetWidth()
             local childWidth = child:GetWidth()
@@ -41,8 +40,8 @@ function GuildBankSnapshotsGroup_OnLoad(group)
                     usedWidth = childWidth + self:GetUserData("widthPadding")
                 end
                 maxChildHeight = childHeight
-            elseif usedWidth + self.spacing + childWidth + self:GetUserData("widthPadding") > width or child:GetUserData("width") == "full" then
-                usedHeight = usedHeight + maxChildHeight + self.spacing * 2
+            elseif usedWidth + self:GetUserData("spacing") + childWidth + self:GetUserData("widthPadding") > width or child:GetUserData("width") == "full" then
+                usedHeight = usedHeight + maxChildHeight + self:GetUserData("spacing") * 2
                 child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -usedHeight)
                 if child:GetUserData("width") == "full" then
                     child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -usedHeight)
@@ -52,16 +51,13 @@ function GuildBankSnapshotsGroup_OnLoad(group)
                 end
                 maxChildHeight = childHeight
             else
-                child:SetPoint("TOPLEFT", self.children[i - 1], "TOPRIGHT", self.spacing, 0)
-                usedWidth = usedWidth + self.spacing + childWidth
+                child:SetPoint("TOPLEFT", self.children[i - 1], "TOPRIGHT", self:GetUserData("spacing"), 0)
+                usedWidth = usedWidth + self:GetUserData("spacing") + childWidth
                 maxChildHeight = max(maxChildHeight, childHeight)
             end
-            self:SetHeight(usedHeight + childHeight + self.spacing * 2) -- see note below
-        end
 
-        -- Need to set height in case this group is nested in another group; it needs an explicitly set height in order to properly layout its children
-        self:SetHeight(self:GetHeight() + self:GetUserData("heightPadding"))
-        self:MarkDirty()
+            self:SetHeight(usedHeight + maxChildHeight + self:GetUserData("spacing") * 2)
+        end
     end
 
     function group:SetPadding(widthPadding, heightPadding)
@@ -70,7 +66,7 @@ function GuildBankSnapshotsGroup_OnLoad(group)
     end
 
     function group:SetSpacing(spacing)
-        self.spacing = spacing
+        self:SetUserData("spacing", spacing)
     end
 
     function group:ReleaseChildren()

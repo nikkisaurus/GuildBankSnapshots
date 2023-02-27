@@ -1282,20 +1282,20 @@ function private:LoadReviewTab(content, guildKey)
     ReviewTab.selectGuild = selectGuild
 
     local sidebar = content:Acquire("GuildBankSnapshotsScrollFrame")
-    private:AddBackdrop(sidebar, { bgColor = "darker" })
+    sidebar.bg, sidebar.border = private:AddBackdrop(sidebar, { bgColor = "darker" })
     sidebar:SetWidth(selectGuild:GetWidth())
     sidebar:SetPoint("TOPLEFT", selectGuild, "BOTTOMLEFT")
     sidebar:SetPoint("BOTTOM", 0, 10)
     ReviewTab.sidebar = sidebar
 
     local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
-    private:AddBackdrop(tableContainer, { bgColor = "dark" })
+    tableContainer.bg, tableContainer.border = private:AddBackdrop(tableContainer, { bgColor = "dark" })
     tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
     tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
     ReviewTab.tableContainer = tableContainer
 
     local tableHeaders = content:Acquire("GuildBankSnapshotsContainer")
-    private:AddBackdrop(tableHeaders, { bgColor = "darker" })
+    tableHeaders.bg, tableHeaders.border = private:AddBackdrop(tableHeaders, { bgColor = "darker" })
     tableHeaders:SetPoint("TOP", selectGuild, "TOP")
     tableHeaders:SetPoint("LEFT", tableContainer.scrollBox, "LEFT")
     tableHeaders:SetPoint("RIGHT", tableContainer.scrollBox, "RIGHT")
