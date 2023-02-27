@@ -35,7 +35,7 @@ function private:InitializeFrame()
 
     private.bg, private.border = private:AddBackdrop(frame)
     private:SetFrameSizing(frame, 500, 300, GetScreenWidth() - 400, GetScreenHeight() - 200)
-    addon:AddSpecialFrame(frame)
+    addon:AddSpecialFrame(frame, "GuildBankSnapshotsFrame")
     private.frame = frame
 
     -- [[ Title bar ]]
