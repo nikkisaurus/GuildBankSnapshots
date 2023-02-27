@@ -19,11 +19,7 @@ function private:ConvertDatabaseV5(backup)
             db.faction = faction
             db.realm = realm
 
-            for scanID, scan in
-                addon:pairs(scans, function(a, b)
-                    return a > b
-                end)
-            do
+            for scanID, scan in addon:pairs(scans, private.sortDesc) do
                 db.numTabs = db.numTabs == 0 and (addon:tcount(scan) - 1) or db.numTabs
                 db.scans[scanID] = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
 
