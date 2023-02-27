@@ -4,7 +4,6 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsTabButton_OnLoad(tab)
     tab = private:MixinText(tab)
-
     tab:InitScripts({
         OnAcquire = function(self)
             tab:SetSelected()
@@ -13,31 +12,25 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
             self:UpdateWidth()
         end,
 
-        OnEnter = function(self)
-            self:SetTextColor(private.interface.colors.white:GetRGBA())
-        end,
-
         OnClick = function(self)
             self:SetSelected(true)
 
             -- Unselect other tabs
             for tab, _ in private.frame.tabContainer:EnumerateActive() do
-                if tab:GetTabID() ~= self.tabID then
+                if tab:GetTabID() ~= self:GetUserData("tabID") then
                     tab:SetSelected()
                 end
             end
+        end,
+
+        OnEnter = function(self)
+            self:SetTextColor(private.interface.colors.white:GetRGBA())
         end,
 
         OnLeave = function(self)
             if not self.isSelected then
                 self:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
             end
-        end,
-
-        OnRelease = function(self)
-            self.tabID = nil
-            self.info = nil
-            self.width = nil
         end,
     })
 
@@ -51,11 +44,10 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     -- Text
     tab.text = tab:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     tab.text:SetAllPoints(tab)
-    -- tab:SetPushedTextOffset(0, 0)
 
     -- Methods
     function tab:GetTabID()
-        return self.tabID
+        return self:GetUserData("tabID")
     end
 
     function tab:SetSelected(isSelected)
@@ -72,8 +64,8 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     end
 
     function tab:SetTab(tabID, info)
-        self.tabID = tabID
-        self.info = info
+        self:SetUserData("tabID", tabID)
+        self:SetUserData("info", info)
         self:UpdateText()
         self:UpdateWidth()
     end
@@ -81,17 +73,17 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
     function tab:UpdateText()
         self:SetText("")
 
-        if not self.tabID then
+        if not self:GetUserData("tabID") then
             return
         end
 
-        self:SetText(self.info.header)
+        self:SetText(self:GetUserData("info").header)
     end
 
     function tab:UpdateWidth()
         self:SetWidth(150)
 
-        if not self.tabID then
+        if not self:GetUserData("tabID") then
             return
         end
 

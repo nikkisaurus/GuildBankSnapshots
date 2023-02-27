@@ -65,15 +65,15 @@ function ElementContainerMixin:ForwardCallbacks(callbacks)
 end
 
 function ElementContainerMixin:ForwardCallback(...)
-    assert(self.mainElement, "ElementContainerMixin: mainElement is not initialized")
-    self.mainElement:SetCallback(...)
+    assert(self:GetUserData("mainElement"), "ElementContainerMixin: mainElement is not initialized")
+    self:GetUserData("mainElement"):SetCallback(...)
 end
 
 function ElementContainerMixin:FireScript(script, ...)
-    assert(self.mainElement, "ElementContainerMixin: mainElement is not initialized")
-    local callback = self.mainElement:GetScript(script)
+    assert(self:GetUserData("mainElement"), "ElementContainerMixin: mainElement is not initialized")
+    local callback = self:GetUserData("mainElement"):GetScript(script)
     if callback then
-        callback(self.mainElement, ...)
+        callback(self:GetUserData("mainElement"), ...)
     end
 end
 
@@ -183,6 +183,10 @@ function WidgetMixin:Fire(script, ...)
     end
 end
 
+function WidgetMixin:GetUserData(key)
+    return self.userdata[key]
+end
+
 function WidgetMixin:InitializeScripts()
     for script, callback in pairs(self.scripts) do
         local success, err = pcall(self.SetScript, self, script, callback)
@@ -201,6 +205,7 @@ end
 
 function WidgetMixin:Reset()
     self:Fire("OnRelease")
+    wipe(self.userdata)
 
     for script, callback in pairs(self.handlers) do
         local success, err = pcall(self.SetScript, self, script, callback)
@@ -255,12 +260,16 @@ function WidgetMixin:SetCallbacks(callbacks)
 end
 
 function WidgetMixin:SetTooltipInitializer(tooltip, anchor)
-    self.tooltip = tooltip
-    self.anchor = anchor
+    self:SetUserData("tooltip", tooltip)
+    self:SetUserData("anchor", anchor)
+end
+
+function WidgetMixin:SetUserData(key, value)
+    self.userdata[key] = value
 end
 
 function WidgetMixin:ShowTooltip()
-    local tooltip = self.tooltip
+    local tooltip = self:GetUserData("tooltip")
     if not tooltip then
         return
     end
@@ -269,7 +278,7 @@ function WidgetMixin:ShowTooltip()
         tooltip = GenerateClosure(GameTooltip.AddLine, GameTooltip, tooltip)
     end
 
-    private:InitializeTooltip(self, self.anchor or "ANCHOR_RIGHT", tooltip)
+    private:InitializeTooltip(self, self:GetUserData("anchor") or "ANCHOR_RIGHT", tooltip)
 end
 
 function WidgetMixin:UnregisterCallback(script)
@@ -281,6 +290,7 @@ end
 
 function private:MixinWidget(tbl)
     tbl = Mixin(tbl, WidgetMixin)
+    tbl.userdata = {}
     tbl:InitScripts()
     return tbl
 end

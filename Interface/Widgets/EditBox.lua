@@ -39,15 +39,11 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
         end,
 
         OnTextChanged = function(self)
-            if self.isSearchBox and self:IsValidText() then
+            if self:GetUserData("isSearchBox") and self:IsValidText() then
                 self.clearButton:Show()
             else
                 self.clearButton:Hide()
             end
-        end,
-
-        OnRelease = function(self)
-            self.isSearchBox = nil
         end,
     })
 
@@ -92,7 +88,7 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
     end
 
     function editbox:SetSearchTemplate(isSearchBox)
-        self.isSearchBox = isSearchBox
+        self:SetUserData("isSearchBox", isSearchBox)
         if isSearchBox then
             local iconSize = min(12, self:GetHeight())
             self:SetTextInsets(iconSize + 10, iconSize + 10, 2, 2)
@@ -121,7 +117,7 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
 
             self:SetSize(150, 40)
-            self:Fire("OnSizeChanged", 150, 40)
+            self:Fire("OnSizeChanged", self:GetWidth(), self:GetHeight())
 
             self:RegisterCallbacks(self.editbox)
         end,
@@ -135,13 +131,6 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
             self.editbox:SetPoint("BOTTOMLEFT")
             self.editbox:SetPoint("BOTTOMRIGHT")
         end,
-
-        OnRelease = function(self)
-            self.anchor = nil
-            self.mainElement = nil
-            self.tooltip = nil
-            self.width = nil
-        end,
     })
 
     -- Elements
@@ -154,7 +143,7 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
     end
 
     function frame:RegisterCallbacks(mainElement)
-        self.mainElement = mainElement
+        self:SetUserData("mainElement", mainElement)
 
         self.label:SetCallbacks({
             OnEnter = {
@@ -165,7 +154,7 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
             OnLeave = { GenerateClosure(private.HideTooltip, private) },
         })
 
-        self.mainElement:SetCallbacks({
+        mainElement:SetCallbacks({
             OnEnter = {
                 function(label)
                     self:ShowTooltip()

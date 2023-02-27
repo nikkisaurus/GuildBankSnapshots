@@ -4,10 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 function GuildBankSnapshotsFontFrame_OnLoad(frame)
     frame:EnableMouse(true)
-    frame.text = frame:CreateFontString(nil, "OVERLAY")
-
     frame = private:MixinText(frame)
-
     frame:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 20)
@@ -21,7 +18,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
         OnEnter = function(self)
             -- Show full text if truncated
-            if not self.autoHeight and not self.disableTooltip and self.text:GetStringWidth() > self.text:GetWidth() then
+            if not self.autoHeight and not self:GetUserData("disableTooltip") and self.text:GetStringWidth() > self.text:GetWidth() then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
                     local text = self.text:GetText()
                     GameTooltip:AddLine(text, unpack(private.interface.colors.white))
@@ -30,16 +27,14 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
         end,
 
         OnLeave = GenerateClosure(private.HideTooltip, private),
-
-        OnRelease = function(self)
-            self.disableTooltip = nil
-            self.width = nil
-        end,
     })
+
+    -- Elements
+    frame.text = frame:CreateFontString(nil, "OVERLAY")
 
     -- Methods
     function frame:DisableTooltip(isDisabled)
-        self.disableTooltip = isDisabled
+        self:SetUserData("disableTooltip", isDisabled)
     end
 
     function frame:SetFont(fontObject, color)

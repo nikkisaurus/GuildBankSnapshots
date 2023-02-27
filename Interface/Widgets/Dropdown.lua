@@ -50,7 +50,6 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end,
 
         OnRelease = function(self)
-            self.info = nil
             wipe(self.selected)
         end,
     })
@@ -83,7 +82,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
     -- Methods
     function dropdown:GetInfo(id)
-        assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
+        assert(self:GetUserData("info"), "GuildBankSnapshotsDropdownButton: info is not initialized")
 
         if id then
             for _, info in pairs(self:GetInfo()) do
@@ -92,7 +91,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
                 end
             end
         else
-            return self.info()
+            return self:GetUserData("info")()
         end
     end
 
@@ -105,7 +104,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:SelectByID(value, skipCallback, forceSelect)
-        assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
+        assert(self:GetUserData("info"), "GuildBankSnapshotsDropdownButton: info is not initialized")
 
         for _, info in pairs(self:GetInfo()) do
             if info.id == value then
@@ -144,7 +143,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
     function dropdown:SetInfo(info)
         assert(type(info) == "function", "GuildBankSnapshotsDropdownButton: info must be a callback function")
-        self.info = info
+        self:SetUserData("info", info)
     end
 
     function dropdown:SetStyle(style)
@@ -195,7 +194,7 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
 
             self:SetSize(150, 40)
-            self:Fire("OnSizeChanged", 150, 40)
+            self:Fire("OnSizeChanged", self:GetWidth(), self:GetHeight())
 
             self:RegisterCallbacks(self.dropdown)
         end,
@@ -208,13 +207,6 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
             self.dropdown:SetHeight(height - 20)
             self.dropdown:SetPoint("BOTTOMLEFT")
             self.dropdown:SetPoint("BOTTOMRIGHT")
-        end,
-
-        OnRelease = function(self)
-            self.anchor = nil
-            self.mainElement = nil
-            self.tooltip = nil
-            self.width = nil
         end,
     })
 
@@ -232,7 +224,7 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
     end
 
     function frame:RegisterCallbacks(mainElement)
-        self.mainElement = mainElement
+        self:SetUserData("mainElement", mainElement)
 
         self.label:SetCallbacks({
             OnEnter = {
@@ -243,7 +235,7 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
             OnLeave = { GenerateClosure(private.HideTooltip, private) },
         })
 
-        self.mainElement:SetCallbacks({
+        mainElement:SetCallbacks({
             OnEnter = {
                 function(label)
                     self:ShowTooltip()
@@ -294,12 +286,12 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         end,
 
         OnClick = function(self)
-            self.dropdown:SelectByID(self.info.id)
+            self:GetUserData("dropdown"):SelectByID(self:GetUserData("info").id)
 
-            if self.menu.style.multiSelect then
+            if self:GetUserData("menu").style.multiSelect then
                 self:SetChecked()
             else
-                self.menu:Hide()
+                self:GetUserData("menu"):Hide()
             end
         end,
 
@@ -317,13 +309,6 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         OnLeave = function(self)
             self.highlight:Hide()
             private:HideTooltip()
-        end,
-
-        OnRelease = function(self)
-            self.menu = nil
-            self.dropdown = nil
-            self.buttonID = nil
-            self.info = nil
         end,
     })
 
@@ -353,7 +338,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
 
     -- Methods
     function button:SetAnchors()
-        local style = self.menu.style
+        local style = self:GetUserData("menu").style
         local leftAligned = style.checkAlignment == "LEFT"
         local xMod = leftAligned and 1 or -1
 
@@ -377,7 +362,7 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     end
 
     function button:SetChecked()
-        local checked = self.dropdown:GetSelected(self.info.id)
+        local checked = self:GetUserData("dropdown"):GetSelected(self:GetUserData("info").id)
         if checked then
             self.checked:Show()
         else
@@ -386,26 +371,26 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
     end
 
     function button:SetInfo(menu, buttonID, info)
-        self.menu = menu
-        self.dropdown = menu.dropdown
-        self.buttonID = buttonID
-        self.info = info
+        self:SetUserData("menu", menu)
+        self:SetUserData("dropdown", menu.dropdown)
+        self:SetUserData("buttonID", buttonID)
+        self:SetUserData("info", info)
 
         button:Update()
     end
 
     function button:Update()
-        if not self.info then
+        if not self:GetUserData("info") then
             return
         end
 
-        self.container:SetPoint("TOPLEFT", self.menu.style.paddingX, -self.menu.style.paddingY)
-        self.container:SetPoint("BOTTOMRIGHT", -self.menu.style.paddingX, self.menu.style.paddingY)
+        self.container:SetPoint("TOPLEFT", self:GetUserData("menu").style.paddingX, -self:GetUserData("menu").style.paddingY)
+        self.container:SetPoint("BOTTOMRIGHT", -self:GetUserData("menu").style.paddingX, self:GetUserData("menu").style.paddingY)
 
-        self.highlight:SetColorTexture(self.menu.style.buttonHighlight:GetRGBA())
+        self.highlight:SetColorTexture(self:GetUserData("menu").style.buttonHighlight:GetRGBA())
 
-        self:Justify(self.menu.style.justifyH, self.menu.style.justifyV)
-        self:SetText(self.info.text)
+        self:Justify(self:GetUserData("menu").style.justifyH, self:GetUserData("menu").style.justifyV)
+        self:SetText(self:GetUserData("info").text)
 
         self:SetAnchors()
         self:SetChecked()

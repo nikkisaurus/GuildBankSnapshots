@@ -20,7 +20,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         end,
 
         OnDragStart = function(self)
-            draggingID = self.sortID
+            draggingID = self:GetUserData("sortID")
         end,
 
         OnDragStop = function(self)
@@ -36,7 +36,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         OnEnter = function(self)
             self.highlight:Show()
 
-            local sortID = self.sortID
+            local sortID = self:GetUserData("sortID")
 
             if draggingID then
                 if draggingID == sortID then
@@ -68,7 +68,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         end,
 
         OnReceiveDrag = function(self)
-            local sortID = self.sortID
+            local sortID = self:GetUserData("sortID")
             if not draggingID or draggingID == sortID then
                 return
             end
@@ -77,20 +77,11 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
             tremove(private.db.global.preferences.sortHeaders, draggingID)
             tinsert(private.db.global.preferences.sortHeaders, sortID, inserting)
 
-            self.callback()
+            self:GetUserData("callback")()
 
             draggingID = nil
             self.upper:Hide()
             self.lower:Hide()
-        end,
-
-        OnRelease = function(self)
-            self.sortID = nil
-            self.colID = nil
-            self.maxSorters = nil
-            self.callback = nil
-            self.dCallback = nil
-            self.width = nil
         end,
     })
 
@@ -143,9 +134,9 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
     sorter.direction:SetNormalFontObject(GameFontHighlightSmall)
 
     sorter.direction:SetScript("OnClick", function()
-        private.db.global.preferences.descendingHeaders[sorter.colID] = not private.db.global.preferences.descendingHeaders[sorter.colID]
-        sorter.direction:SetText(private.db.global.preferences.descendingHeaders[sorter.colID] and "DES" or "ASC")
-        sorter.dCallback()
+        private.db.global.preferences.descendingHeaders[sorter:GetUserData("colID")] = not private.db.global.preferences.descendingHeaders[sorter:GetUserData("colID")]
+        sorter.direction:SetText(private.db.global.preferences.descendingHeaders[sorter:GetUserData("colID")] and "DES" or "ASC")
+        sorter:GetUserData("dCallback")()
     end)
 
     -- Text
@@ -156,7 +147,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
     -- Methods
 
     function sorter:Move(i)
-        local sortID = self.sortID
+        local sortID = self:GetUserData("sortID")
         if not sortID then
             return
         end
@@ -165,7 +156,7 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         tremove(private.db.global.preferences.sortHeaders, sortID)
         tinsert(private.db.global.preferences.sortHeaders, sortID + i, inserting)
 
-        self.callback()
+        self:GetUserData("callback")()
     end
 
     function sorter:ResetButtons()
@@ -176,12 +167,11 @@ function GuildBankSnapshotsTableSorter_OnLoad(sorter)
         self.moveDown:SetEnabled(true)
     end
 
-    function sorter:SetSorterData(sortID, colID, tableCols, callback, dCallback)
-        self.sortID = sortID
-        self.colID = colID
-        self.maxSorters = tableCols
-        self.callback = callback
-        self.dCallback = dCallback
+    function sorter:SetSorterData(sortID, colID, maxSorters, callback, dCallback)
+        self:SetUserData("sortID", sortID)
+        self:SetUserData("colID", colID)
+        self:SetUserData("callback", callback)
+        self:SetUserData("dCallback", dCallback)
 
         sorter.direction:SetText(private.db.global.preferences.descendingHeaders[colID] and "DES" or "ASC")
 

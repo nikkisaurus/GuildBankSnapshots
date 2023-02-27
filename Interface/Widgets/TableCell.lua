@@ -7,6 +7,11 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
 
     cell:InitScripts({
         OnAcquire = function(self)
+            self:SetHeight(20)
+            self:SetFontObject("GameFontHighlightSmall")
+            self:SetText("")
+            self:SetPadding(0, 0)
+            self:Justify("LEFT", "TOP")
             self.bg:Hide()
             self:SetBackdropColor(private.interface.colors[private:UseClassColor() and "dimmedClass" or "dimmedFlair"])
         end,
@@ -19,24 +24,24 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
             parent:GetScript("OnEnter")(parent, ...)
 
             -- Show tooltips
-            if not self.data then
+            if not self:GetUserData("data") then
                 return
             end
 
-            if self.data.tooltip then
+            if self:GetUserData("data").tooltip then
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
-                    local line = self.data.tooltip(self.elementData, self.entryID)
+                    local line = self:GetUserData("data").tooltip(self:GetUserData("elementData"), self:GetUserData("entryID"))
 
                     if line then
                         GameTooltip:AddLine(line, 1, 1, 1)
                     elseif self.text:GetStringWidth() > self:GetWidth() then
-                        GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
+                        GameTooltip:AddLine(self:GetUserData("data").text(self:GetUserData("elementData")), 1, 1, 1)
                     end
                 end, self)
             elseif self.text:GetStringWidth() > self:GetWidth() then
                 -- Get truncated text
                 private:InitializeTooltip(self, "ANCHOR_RIGHT", function(self)
-                    GameTooltip:AddLine(self.data.text(self.elementData), 1, 1, 1)
+                    GameTooltip:AddLine(self:GetUserData("data").text(self:GetUserData("elementData")), 1, 1, 1)
                 end, self)
             end
         end,
@@ -51,17 +56,7 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
             private:ClearTooltip()
         end,
 
-        OnRelease = function(self)
-            self:SetHeight(20)
-            self:SetFontObject("GameFontHighlightSmall")
-            self:SetText("")
-            self:SetPadding(0, 0)
-            self:Justify("LEFT", "TOP")
-            self.data = nil
-            self.elementData = nil
-            self.entryID = nil
-            self.width = nil
-        end,
+        OnRelease = function(self) end,
     })
 
     cell:SetHeight(20)
@@ -76,42 +71,41 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
 
     -- Text
     cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    cell:Justify("LEFT", "TOP")
     cell.text:SetWordWrap(false)
 
     -- Methods
     function cell:SetAnchors()
         self.icon:SetTexture()
         self.icon:ClearAllPoints()
-        local iconSize = min(self:GetWidth() - self.paddingX, 12)
+        local iconSize = min(self:GetWidth() - self:GetUserData("paddingX"), 12)
         self.icon:SetSize(iconSize, iconSize)
 
         self.text:ClearAllPoints()
 
-        local icon = self.data.icon
+        local icon = self:GetUserData("data").icon
         if type(icon) == "function" then
-            icon = self.data.icon(self.elementData)
+            icon = self:GetUserData("data").icon(self:GetUserData("elementData"))
         end
 
         if icon then
             self.icon:SetTexture(icon)
-            self.icon:SetPoint("TOPLEFT", self, "TOPLEFT", self.paddingX, -self.paddingY)
+            self.icon:SetPoint("TOPLEFT", self, "TOPLEFT", self:GetUserData("paddingX"), -self:GetUserData("paddingY"))
             self.text:SetPoint("TOPLEFT", self.icon, "TOPRIGHT", 2, 0)
         else
-            self.text:SetPoint("TOPLEFT", self, "TOPLEFT", self.paddingX, -self.paddingY)
+            self.text:SetPoint("TOPLEFT", self, "TOPLEFT", self:GetUserData("paddingX"), -self:GetUserData("paddingY"))
         end
-        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -self.paddingX, self.paddingY)
+        self.text:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -self:GetUserData("paddingX"), self:GetUserData("paddingY"))
     end
 
     function cell:SetData(data, elementData, entryID)
-        self.data = data
-        self.elementData = elementData
-        self.entryID = entryID
+        self:SetUserData("data", data)
+        self:SetUserData("elementData", elementData)
+        self:SetUserData("entryID", entryID)
         self:SetAnchors()
     end
 
     function cell:SetPadding(paddingX, paddingY)
-        self.paddingX = paddingX
-        self.paddingY = paddingY
+        self:SetUserData("paddingX", paddingX)
+        self:SetUserData("paddingY", paddingY)
     end
 end

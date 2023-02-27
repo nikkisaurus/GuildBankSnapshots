@@ -455,7 +455,7 @@ DrawGroup = function(groupType, group)
 
         --.....................
         spacer = group:Acquire("GuildBankSnapshotsFontFrame")
-        spacer.width = "full"
+        spacer:SetUserData("width", "full")
         spacer:SetHeight(1)
         group:AddChild(spacer)
         --.....................
@@ -470,14 +470,14 @@ DrawGroup = function(groupType, group)
         -----------------------
 
         local autoScanHeader = group:Acquire("GuildBankSnapshotsFontFrame")
-        autoScanHeader.width = "full"
+        autoScanHeader:SetUserData("width", "full")
         autoScanHeader:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
         autoScanHeader:Justify("LEFT")
         autoScanHeader:SetText(L["Auto Scan"])
         group:AddChild(autoScanHeader)
 
         local autoScanGroup = group:Acquire("GuildBankSnapshotsGroup")
-        autoScanGroup.width = "full"
+        autoScanGroup:SetUserData("width", "full")
         autoScanGroup:SetWidth(group:GetWidth()) -- have to explicitly set width or its children won't layout properly
         autoScanGroup:SetPadding(10, 10)
         autoScanGroup:SetSpacing(5)
@@ -509,7 +509,7 @@ DrawGroup = function(groupType, group)
 
         --.....................
         spacer = autoScanGroup:Acquire("GuildBankSnapshotsFontFrame")
-        spacer.width = "full"
+        spacer:SetUserData("width", "full")
         spacer:SetHeight(1)
         autoScanGroup:AddChild(spacer)
         --.....................
@@ -535,14 +535,14 @@ DrawGroup = function(groupType, group)
 
         local autoCleanupHeader = group:Acquire("GuildBankSnapshotsFontFrame")
         autoCleanupHeader:SetPoint("TOPLEFT", autoScanGroup, "BOTTOMLEFT", 0, -10)
-        autoCleanupHeader.width = "full"
+        autoCleanupHeader:SetUserData("width", "full")
         autoCleanupHeader:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
         autoCleanupHeader:Justify("LEFT")
         autoCleanupHeader:SetText(L["Auto Cleanup"])
         group:AddChild(autoCleanupHeader)
 
         local autoCleanupGroup = group:Acquire("GuildBankSnapshotsGroup")
-        autoCleanupGroup.width = "full"
+        autoCleanupGroup:SetUserData("width", "full")
         autoCleanupGroup:SetWidth(group:GetWidth()) -- have to explicitly set width or its children won't layout properly
         autoCleanupGroup:SetPadding(10, 10)
         autoCleanupGroup:SetSpacing(5)
@@ -561,7 +561,7 @@ DrawGroup = function(groupType, group)
 
         --.....................
         spacer = autoCleanupGroup:Acquire("GuildBankSnapshotsFontFrame")
-        spacer.width = "full"
+        spacer:SetUserData("width", "full")
         spacer:SetHeight(1)
         autoCleanupGroup:AddChild(spacer)
         --.....................
@@ -583,7 +583,7 @@ DrawGroup = function(groupType, group)
 
         --.....................
         spacer = autoCleanupGroup:Acquire("GuildBankSnapshotsFontFrame")
-        spacer.width = "full"
+        spacer:SetUserData("width", "full")
         spacer:SetHeight(1)
         autoCleanupGroup:AddChild(spacer)
         --.....................
@@ -605,7 +605,7 @@ DrawGroup = function(groupType, group)
 
         --.....................
         spacer = group:Acquire("GuildBankSnapshotsFontFrame")
-        spacer.width = "full"
+        spacer:SetUserData("width", "full")
         spacer:SetHeight(1)
         group:AddChild(spacer)
         --.....................

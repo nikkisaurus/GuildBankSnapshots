@@ -6,51 +6,49 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     frame = private:MixinContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
-            self:SetSize(100, 40)
+            self.lowerText:Fire("OnAcquire")
+            self.lower:Fire("OnAcquire")
+            self.upperText:Fire("OnAcquire")
+            self.upper:Fire("OnAcquire")
+
             self.lowerText:Justify("LEFT", "MIDDLE")
             self.upperText:Justify("LEFT", "MIDDLE")
+
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
-            self:SetLabels()
             self:HideLabels()
+            self:SetLabels()
+
+            self:SetSize(100, 40)
+            self:Fire("OnSizeChanged", self:GetWidth(), self:GetHeight())
+
+            self:RegisterCallbacks()
         end,
 
         OnSizeChanged = function(self, width, height)
             width = width - 5
             self.lowerText:SetSize(width / 2, height - 20)
-            self.lower:SetSize(width / 2, height - (self.hideLabels and 0 or 20))
-            self.upperText:SetSize(width / 2, height - 20)
-            self.upper:SetSize(width / 2, height - (self.hideLabels and 0 or 20))
-        end,
+            self.lowerText:SetPoint("TOPLEFT")
 
-        OnRelease = function(self)
-            self.minValue = nil
-            self.maxValue = nil
-            self.callback = nil
-            self.formatter = nil
-            self.reverseFormatter = nil
-            self.lower.value = nil
-            self.upper.value = nil
-            self.width = nil
+            self.lower:SetSize(width / 2, height - (self:GetUserData("hideLabels") and 0 or 20))
+            self.lower:SetPoint("BOTTOMLEFT")
+
+            self.upperText:SetSize(width / 2, height - 20)
+            self.upperText:SetPoint("TOPRIGHT")
+
+            self.upper:SetSize(width / 2, height - (self:GetUserData("hideLabels") and 0 or 20))
+            self.upper:SetPoint("BOTTOMRIGHT")
         end,
     })
 
+    -- Elements
     frame.lowerText = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.lowerText:SetPoint("TOPLEFT")
-    frame.lowerText:SetText(L["Min"])
-
     frame.lower = frame:Acquire("GuildBankSnapshotsEditBox")
-    frame.lower:SetPoint("BOTTOMLEFT")
-
     frame.upperText = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.upperText:SetPoint("TOPRIGHT")
-    frame.upperText:SetText(L["Max"])
-
     frame.upper = frame:Acquire("GuildBankSnapshotsEditBox")
-    frame.upper:SetPoint("BOTTOMRIGHT")
 
     -- Methods
     function frame:HideLabels(isHidden)
-        self.hideLabels = isHidden
+        self:SetUserData("hideLabels", isHidden)
 
         if isHidden then
             self.lowerText:Hide()
@@ -60,6 +58,66 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
             self.lowerText:Show()
             self.upperText:Show()
         end
+    end
+
+    function frame:RegisterCallbacks()
+        self.lower:SetCallbacks({
+            OnEnterPressed = {
+                function(lower)
+                    lower:ClearFocus()
+
+                    local text = lower:GetText()
+                    if self:GetUserData("reverseFormatter") then
+                        text = self:GetUserData("reverseFormatter")(text) or tonumber(text)
+                    end
+                    text = tonumber(text)
+
+                    local upper = self:GetUserData("upperValue")
+                    if text > upper then
+                        self:SetMinValue(upper)
+                    elseif text > self:GetUserData("maxValue") then
+                        self:SetMinValue(self:GetUserData("maxValue"))
+                    elseif text < self:GetUserData("minValue") then
+                        self:SetMinValue(self:GetUserData("minValue"))
+                    else
+                        self:SetMinValue(text)
+                    end
+
+                    if self:GetUserData("callback") then
+                        self:GetUserData("callback")(self, "lower", lower:GetText())
+                    end
+                end,
+            },
+        })
+
+        self.upper:SetCallbacks({
+            OnEnterPressed = {
+                function(upper)
+                    upper:ClearFocus()
+
+                    local text = upper:GetText()
+                    if self:GetUserData("reverseFormatter") then
+                        text = self:GetUserData("reverseFormatter")(text) or tonumber(text)
+                    end
+                    text = tonumber(text)
+
+                    local lower = self:GetUserData("lowerValue")
+                    if text < lower then
+                        self:SetMaxValue(lower)
+                    elseif text < self:GetUserData("minValue") then
+                        self:SetMaxValue(self:GetUserData("minValue"))
+                    elseif text > self:GetUserData("maxValue") then
+                        self:SetMaxValue(self:GetUserData("maxValue"))
+                    else
+                        self:SetMaxValue(text)
+                    end
+
+                    if self:GetUserData("callback") then
+                        self:GetUserData("callback")(self, "upper", upper:GetText())
+                    end
+                end,
+            },
+        })
     end
 
     function frame:SetDisabled(isDisabled)
@@ -76,21 +134,21 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
     end
 
     function frame:SetMaxValue(maxValue)
-        self.upper.value = tonumber(maxValue)
-        self.upper:SetText(self.formatter and self.formatter(maxValue) or maxValue)
+        self:SetUserData("upperValue", tonumber(maxValue))
+        self.upper:SetText(self:GetUserData("formatter") and self:GetUserData("formatter")(maxValue) or maxValue)
     end
 
     function frame:SetMinMaxValues(minValue, maxValue, callback, formatter, reverseFormatter)
-        self.minValue = minValue
-        self.maxValue = maxValue
-        self.callback = callback
-        self.formatter = formatter
-        self.reverseFormatter = reverseFormatter
+        self:SetUserData("minValue", minValue)
+        self:SetUserData("maxValue", maxValue)
+        self:SetUserData("callback", callback)
+        self:SetUserData("formatter", formatter)
+        self:SetUserData("reverseFormatter", reverseFormatter)
     end
 
     function frame:SetMinValue(minValue)
-        self.lower.value = tonumber(minValue)
-        self.lower:SetText(self.formatter and self.formatter(minValue) or minValue)
+        self:SetUserData("lowerValue", tonumber(minValue))
+        self.lower:SetText(self:GetUserData("formatter") and self:GetUserData("formatter")(minValue) or minValue)
     end
 
     function frame:SetLabels(lower, upper)
@@ -107,61 +165,10 @@ function GuildBankSnapshotsMinMaxFrame_OnLoad(frame)
         value = tonumber(value)
         if not value then
             return true
-        elseif value < self.minValue then
-            self:SetMinValue(self.minValue)
-        elseif value > self.maxValue then
-            self:SetMaxValue(self.maxValue)
+        elseif value < self:GetUserData("minValue") then
+            self:SetMinValue(self:GetUserData("minValue"))
+        elseif value > self:GetUserData("maxValue") then
+            self:SetMaxValue(self:GetUserData("maxValue"))
         end
     end
-
-    -- Scripts
-    frame.lower:SetCallback("OnEnterPressed", function(self)
-        self:ClearFocus()
-
-        local text = self:GetText()
-        if frame.reverseFormatter then
-            text = frame.reverseFormatter(text) or tonumber(text)
-        end
-        text = tonumber(text)
-
-        local upper = frame.upper.value
-        if text > upper then
-            frame:SetMinValue(upper)
-        elseif text > frame.maxValue then
-            frame:SetMinValue(frame.maxValue)
-        elseif text < frame.minValue then
-            frame:SetMinValue(frame.minValue)
-        else
-            frame:SetMinValue(text)
-        end
-
-        if frame.callback then
-            frame.callback(frame, "lower", self:GetText())
-        end
-    end)
-
-    frame.upper:SetCallback("OnEnterPressed", function(self)
-        self:ClearFocus()
-
-        local text = self:GetText()
-        if frame.reverseFormatter then
-            text = frame.reverseFormatter(text) or tonumber(text)
-        end
-        text = tonumber(text)
-
-        local lower = frame.lower.value
-        if text < lower then
-            frame:SetMaxValue(lower)
-        elseif text < frame.minValue then
-            frame:SetMaxValue(frame.minValue)
-        elseif text > frame.maxValue then
-            frame:SetMaxValue(frame.maxValue)
-        else
-            frame:SetMaxValue(text)
-        end
-
-        if frame.callback then
-            frame.callback(frame, "upper", self:GetText())
-        end
-    end)
 end

@@ -28,29 +28,13 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
         end,
 
         OnEnter = function(self)
-            if self.tooltip then
-                local tooltip = self.tooltip
-                if type(tooltip) ~= "function" then
-                    tooltip = GenerateClosure(GameTooltip.AddLine, GameTooltip, tooltip)
-                end
-                self:ShowTooltip(self.anchor, tooltip)
-            end
+            self:ShowTooltip()
         end,
 
-        OnLeave = function(self)
-            private:HideTooltip()
-        end,
+        OnLeave = { GenerateClosure(private.HideTooltip, private) },
 
         OnSizeChanged = function(self)
             self:SetAnchors()
-        end,
-
-        OnRelease = function(self)
-            self.alignment = nil
-            self.anchor = nil
-            self.padding = nil
-            self.tooltip = nil
-            self.width = nil
         end,
     })
 
@@ -76,13 +60,13 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     function button:SetAnchors()
         local size = min(self:GetHeight(), 12)
         size = size == 0 and 12 or size
-        local alignment = alignment[self.alignment]
+        local alignment = alignment[self:GetUserData("alignment")]
         self.checkBoxBorder:ClearAllPoints()
         self.checkBoxBorder:SetSize(size, size)
-        self.checkBoxBorder:SetPoint(self.alignment, self, self.alignment)
+        self.checkBoxBorder:SetPoint(self:GetUserData("alignment"), self, self:GetUserData("alignment"))
         self.text:ClearAllPoints()
-        self.text:SetPoint(self.alignment, self.checkBox, alignment[1], alignment[2] * self.padding, 0)
-        self.text:SetPoint(alignment[3], alignment[4] * self.padding, 0)
+        self.text:SetPoint(self:GetUserData("alignment"), self.checkBox, alignment[1], alignment[2] * self:GetUserData("padding"), 0)
+        self.text:SetPoint(alignment[3], alignment[4] * self:GetUserData("padding"), 0)
     end
 
     function button:GetChecked()
@@ -90,7 +74,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     end
 
     function button:SetCheckAlignment(alignment)
-        self.alignment = alignment
+        self:SetUserData("alignment", alignment)
         self:SetAnchors()
     end
 
@@ -122,7 +106,7 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
     end
 
     function button:SetPadding(padding)
-        self.padding = padding or 0
+        self:SetUserData("padding", padding or 0)
     end
 
     function button:SetText(text, autoWidth)

@@ -14,8 +14,6 @@ function GuildBankSnapshotsGroup_OnLoad(group)
         end,
 
         OnRelease = function(self)
-            self.widthPadding = nil
-            self.heightPadding = nil
             self:ReleaseChildren()
         end,
     })
@@ -35,22 +33,22 @@ function GuildBankSnapshotsGroup_OnLoad(group)
 
             child:ClearAllPoints()
             if i == 1 then
-                child:SetPoint("TOPLEFT", self.widthPadding, -self.heightPadding)
-                if child.width == "full" then
-                    child:SetPoint("TOPRIGHT", -self.widthPadding, -self.heightPadding)
+                child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -self:GetUserData("heightPadding"))
+                if child:GetUserData("width") == "full" then
+                    child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -self:GetUserData("heightPadding"))
                     usedWidth = width
                 else
-                    usedWidth = childWidth + self.widthPadding
+                    usedWidth = childWidth + self:GetUserData("widthPadding")
                 end
                 maxChildHeight = childHeight
-            elseif usedWidth + self.spacing + childWidth + self.widthPadding > width or child.width == "full" then
+            elseif usedWidth + self.spacing + childWidth + self:GetUserData("widthPadding") > width or child:GetUserData("width") == "full" then
                 usedHeight = usedHeight + maxChildHeight + self.spacing * 2
-                child:SetPoint("TOPLEFT", self.widthPadding, -usedHeight)
-                if child.width == "full" then
-                    child:SetPoint("TOPRIGHT", -self.widthPadding, -usedHeight)
+                child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -usedHeight)
+                if child:GetUserData("width") == "full" then
+                    child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -usedHeight)
                     usedWidth = width
                 else
-                    usedWidth = childWidth + self.widthPadding
+                    usedWidth = childWidth + self:GetUserData("widthPadding")
                 end
                 maxChildHeight = childHeight
             else
@@ -62,13 +60,13 @@ function GuildBankSnapshotsGroup_OnLoad(group)
         end
 
         -- Need to set height in case this group is nested in another group; it needs an explicitly set height in order to properly layout its children
-        self:SetHeight(self:GetHeight() + self.heightPadding)
+        self:SetHeight(self:GetHeight() + self:GetUserData("heightPadding"))
         self:MarkDirty()
     end
 
     function group:SetPadding(widthPadding, heightPadding)
-        self.widthPadding = widthPadding
-        self.heightPadding = heightPadding
+        self:SetUserData("widthPadding", widthPadding)
+        self:SetUserData("heightPadding", heightPadding)
     end
 
     function group:SetSpacing(spacing)

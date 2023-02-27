@@ -15,10 +15,6 @@ function GuildBankSnapshotsSlider_OnLoad(slider)
             self:SetValue(0)
             self:SetSize(150, 10)
         end,
-
-        OnRelease = function(self)
-            self.width = nil
-        end,
     })
 
     -- Textures
@@ -69,7 +65,6 @@ end
 
 --         OnRelease = function(self)
 --             self.formatter = nil
---             self.width = nil
 --         end,
 --     })
 
@@ -171,7 +166,7 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
             self:SetMinMaxLabels(L["Min"], L["Max"])
 
             self:SetSize(150, 40)
-            self:Fire("OnSizeChanged", 150, 40) -- doesn't fire on acquire, but we need to initialize the text and editbox
+            self:Fire("OnSizeChanged", self:GetWidth(), self:GetHeight())
 
             self:RegisterCallbacks(self.slider)
         end,
@@ -194,12 +189,8 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
         end,
 
         OnRelease = function(self)
-            self.anchor = nil
-            self.mainElement = nil
             self.numDecimals = nil
-            self.tooltip = nil
             self.userInput = nil
-            self.width = nil
         end,
     })
 
@@ -223,14 +214,14 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
     end
 
     function frame:RegisterCallbacks(mainElement)
-        self.mainElement = mainElement
+        self:SetUserData("mainElement", mainElement)
 
         self.label:SetCallbacks({
             OnEnter = { GenerateClosure(GuildBankSnapshotsSliderFrame_OnEnter, self) },
             OnLeave = { GenerateClosure(private.HideTooltip, private) },
         })
 
-        self.slider:SetCallbacks({
+        mainElement:SetCallbacks({
             OnEnter = {
                 function(slider)
                     self:ShowTooltip()

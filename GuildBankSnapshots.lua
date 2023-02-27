@@ -16,7 +16,7 @@ function addon:OnDisable() end
 
 function addon:OnEnable()
     C_Timer.After(1, function()
-        private:LoadFrame()
+        -- private:LoadFrame()
         -- private:LoadFrame("Settings")
     end)
 end
