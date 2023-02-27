@@ -350,7 +350,7 @@ info = {
     scanDate = function()
         local info = {}
 
-        for scanDate, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.list, private.sortDes) do
+        for scanDate, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.scanDates.list, private.sortDesc) do
             tinsert(info, {
                 id = scanDate,
                 text = date(private.db.global.preferences.dateFormat, scanDate),
@@ -366,11 +366,7 @@ info = {
     transactionDate = function()
         local info = {}
 
-        for scanDate, _ in
-            addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.list, function(a, b)
-                return a > b
-            end)
-        do
+        for scanDate, _ in addon:pairs(ReviewTab.guilds[ReviewTab.guildKey].filters.transactionDates.list, private.sortDesc) do
             tinsert(info, {
                 id = scanDate,
                 text = date(private.db.global.preferences.dateFormat, scanDate),
