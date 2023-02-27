@@ -241,3 +241,5 @@ L["Delete Guild"] = true
 L["Are you sure you want to delete '%s' and all of its scan data? This action is irreversible."] = true
 L["Confirm"] = true
 L["Are you sure you want to overwrite settings for '%s' with those from '%s'?"] = true
+L["Delete Scan"] = true
+L["Are you sure you want to delete the scan '%s'? This action is irreversible."] = true

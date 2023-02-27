@@ -94,7 +94,6 @@ function private:DeleteCorruptedScans(lastScan)
                     end
 
                     for id, _ in addon:pairs(pendingRemoval, private.sortDesc) do
-                        print(scanID, id)
                         tremove(private.db.global.guilds[guildKey].masterScan, id)
                     end
                 end
@@ -103,6 +102,21 @@ function private:DeleteCorruptedScans(lastScan)
     end
 
     return lastScanCorrupted
+end
+
+function private:DeleteScan(guildKey, scanID)
+    private.db.global.guilds[guildKey].scans[scanID] = nil
+
+    wipe(pendingRemoval)
+    for id, info in addon:pairs(private.db.global.guilds[guildKey].masterScan) do
+        if info and info.scanID == scanID then
+            pendingRemoval[id] = true
+        end
+    end
+
+    for id, _ in addon:pairs(pendingRemoval, private.sortDesc) do
+        tremove(private.db.global.guilds[guildKey].masterScan, id)
+    end
 end
 
 function private:UpdateGuildDatabase()

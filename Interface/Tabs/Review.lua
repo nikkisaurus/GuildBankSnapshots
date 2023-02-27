@@ -306,6 +306,13 @@ forwardCallbacks = {
             end,
         },
     },
+    deleteScan = {
+        OnClear = {
+            function(self)
+                self:SetText("")
+            end,
+        },
+    },
 }
 
 info = {
@@ -438,6 +445,31 @@ info = {
                 func = function(dropdown)
                     ReviewTab.guilds[ReviewTab.guildKey].filters.itemNames.values[itemName] = dropdown:GetSelected(itemName) and true or nil
                     LoadTable(true)
+                end,
+            })
+        end
+
+        return info
+    end,
+    deleteScan = function()
+        local info = {}
+
+        for scanID, _ in addon:pairs(private.db.global.guilds[ReviewTab.guildKey].scans, private.sortDesc) do
+            tinsert(info, {
+                id = scanID,
+                text = date(private.db.global.preferences.dateFormat, scanID),
+                func = function(dropdown, info)
+                    local function onAccept(ReviewTab, dropdown, info)
+                        private:DeleteScan(ReviewTab.guildKey, info.id)
+                        dropdown:Clear()
+                        LoadTable()
+                    end
+
+                    local function onCancel(dropdown)
+                        dropdown:Clear()
+                    end
+
+                    private:ShowConfirmationDialog(format(L["Are you sure you want to delete the scan '%s'? This action is irreversible."], date(private.db.global.preferences.dateFormat, scanID)), onAccept, onCancel, { ReviewTab, dropdown, info }, { dropdown })
                 end,
             })
         end
@@ -961,6 +993,17 @@ DrawSidebarSorters = function(content, height)
 end
 
 DrawSidebarTools = function(content, height)
+    local deleteScan = content:Acquire("GuildBankSnapshotsDropdownFrame")
+    deleteScan:SetPoint("TOPLEFT", 5, -height)
+    deleteScan:SetPoint("RIGHT", -5, 0)
+    deleteScan:SetLabel(L["Delete Scan"])
+    deleteScan:SetLabelFont(nil, private:GetInterfaceFlairColor())
+    deleteScan:Justify("LEFT")
+    deleteScan:SetStyle({ hasCheckBox = false })
+    deleteScan:SetInfo(info.deleteScan)
+    deleteScan:ForwardCallbacks(forwardCallbacks.deleteScan)
+    height = height + deleteScan:GetHeight() + 5
+
     return height
 end
 
