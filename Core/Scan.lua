@@ -13,7 +13,7 @@ local function ValidateScan(db, override)
         return
     end
 
-    local guildKey = private:GetguildKey()
+    local guildKey = private:GetGuildKey()
     local scans = private.db.global.guilds[guildKey].scans
 
     local isValid = override
@@ -65,7 +65,7 @@ local function ValidateScan(db, override)
             private:AddScanToMaster(guildKey, scanTime)
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetguildKey())
+                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetGuildKey())
             end
         end
     end
@@ -87,7 +87,7 @@ local function ValidateScanFrequency(autoScanSettings)
     local frequency = autoScanSettings.frequency.measure * private.timeInSeconds[autoScanSettings.frequency.unit]
 
     -- Get the last scan date and compare
-    for scanID, _ in addon:pairs(private.db.global.guilds[private:GetguildKey()].scans, private.sortDesc) do
+    for scanID, _ in addon:pairs(private.db.global.guilds[private:GetGuildKey()].scans, private.sortDesc) do
         return (time() > (scanID + frequency))
     end
 
@@ -101,7 +101,7 @@ function addon:GUILDBANKFRAME_CLOSED()
 
     -- Warn user if scan is canceled before finishing
     if private.isScanning then
-        if private.isScanning ~= "auto" or private.db.global.guilds[private:GetguildKey()].settings.autoScan.alert then
+        if private.isScanning ~= "auto" or private.db.global.guilds[private:GetGuildKey()].settings.autoScan.alert then
             addon:Print(L["Scan failed."])
         end
 
@@ -119,14 +119,14 @@ function addon:GUILDBANKFRAME_OPENED()
     private.bankIsOpen = true
     private:UpdateGuildDatabase() -- Ensure guild bank database is formatted
 
-    local autoScanSettings = private.db.global.guilds[private:GetguildKey()].settings.autoScan
+    local autoScanSettings = private.db.global.guilds[private:GetGuildKey()].settings.autoScan
     if autoScanSettings.enabled and ValidateScanFrequency(autoScanSettings) then
         addon:ScanGuildBank(true) -- AutoScan
     end
 end
 
 function addon:ScanGuildBank(isAutoScan, override)
-    local guildKey = private:GetguildKey()
+    local guildKey = private:GetGuildKey()
 
     -- Alert user of progress
     if not private.bankIsOpen then

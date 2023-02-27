@@ -202,7 +202,7 @@ function private:InitializeDatabase()
 end
 
 function private:UpdateGuildDatabase()
-    local guildKey, guildName, faction, realm = private:GetguildKey()
+    local guildKey, guildName, faction, realm = private:GetGuildKey()
     private.db.global.guilds[guildKey] = private.db.global.guilds[guildKey] or addon:CloneTable(private.defaults.guild)
     local db = private.db.global.guilds[guildKey]
 

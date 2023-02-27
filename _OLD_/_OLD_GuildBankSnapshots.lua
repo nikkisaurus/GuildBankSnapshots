@@ -83,7 +83,7 @@ function private:GetGuildDisplayName(guildKey)
     return guildFormat
 end
 
-function private:GetguildKey()
+function private:GetGuildKey()
     local guildName = GetGuildInfo("player")
     local faction = UnitFactionGroup("player")
     local realm = GetRealmName()

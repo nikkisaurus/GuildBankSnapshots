@@ -13,7 +13,7 @@ local function ValidateScan(db, override)
         return
     end
 
-    local scans = private.db.global.guilds[private:GetguildKey()].scans
+    local scans = private.db.global.guilds[private:GetGuildKey()].scans
 
     local isValid = override
     for scanTime, scan in
@@ -56,14 +56,14 @@ local function ValidateScan(db, override)
         local scanSettings = private.db.global.settings.scans
 
         -- Save db
-        private.db.global.guilds[private:GetguildKey()].scans[scanTime] = db
+        private.db.global.guilds[private:GetGuildKey()].scans[scanTime] = db
 
         if private:DeleteCorruptedScans(scanTime) then
             addon:Print(L.CorruptScan)
         else
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetguildKey(), scanTime)
+                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetGuildKey(), scanTime)
                 if scanSettings.reviewPath == "analyze" then
                     private.frame:GetUserData("reviewTabGroup"):SelectTab("Analyze")
                 end
@@ -89,7 +89,7 @@ local function ValidateScanFrequency(autoScanSettings)
 
     -- Get the last scan date and compare
     for scanID, _ in
-        addon:pairs(private.db.global.guilds[private:GetguildKey()].scans, function(a, b)
+        addon:pairs(private.db.global.guilds[private:GetGuildKey()].scans, function(a, b)
             return b < a
         end)
     do
@@ -142,7 +142,7 @@ function addon:ScanGuildBank(isAutoScan, override)
     private.isScanning = isAutoScan and "auto" or true
 
     -- Query guild bank tabs
-    local numTabs = private.db.global.guilds[private:GetguildKey()].numTabs
+    local numTabs = private.db.global.guilds[private:GetGuildKey()].numTabs
     for tab = 1, numTabs do
         QueryGuildBankTab(tab)
         QueryGuildBankLog(tab)
