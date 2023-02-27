@@ -149,6 +149,30 @@ function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
     end)
 end
 
+function private:ShowConfirmationDialog(msg, onAccept, onCancel, args1, args2)
+    StaticPopupDialogs["GUILDBANKSNAPSHOTS_CONFIRMATION_DIALOG"] = {
+        text = msg,
+        button1 = L["Confirm"],
+        button2 = CANCEL,
+        OnAccept = function()
+            if onAccept then
+                return onAccept(addon:unpack(args1, {}))
+            end
+        end,
+        OnCancel = function()
+            if onCancel then
+                return onCancel(addon:unpack(args2, {}))
+            end
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
+
+    StaticPopup_Show("GUILDBANKSNAPSHOTS_CONFIRMATION_DIALOG")
+end
+
 function private:UseClassColor()
     return private.db.global.preferences.useClassColor
 end

@@ -200,6 +200,11 @@ callbacks = {
         },
     },
     copySettings = {
+        OnClear = {
+            function(self)
+                self:SetText(L["Copy settings from"])
+            end,
+        },
         OnShow = {
             function(self)
                 self:SetText(L["Copy settings from"])
@@ -210,12 +215,16 @@ callbacks = {
     deleteGuild = {
         OnClick = {
             function(self)
-                if private.db.global.preferences.defaultGuild == SettingsTab.guildKey then
-                    private.db.global.preferences.defaultGuild = nil
+                local function onAccept(SettingsTab)
+                    if private.db.global.preferences.defaultGuild == SettingsTab.guildKey then
+                        private.db.global.preferences.defaultGuild = nil
+                    end
+                    private.db.global.guilds[SettingsTab.guildKey] = nil
+                    SettingsTab.guildKey = nil
+                    private:LoadFrame("Settings")
                 end
-                private.db.global.guilds[SettingsTab.guildKey] = nil
-                SettingsTab.guildKey = nil
-                private:LoadFrame("Settings")
+
+                private:ShowConfirmationDialog(format(L["Are you sure you want to delete '%s' and all of its scan data? This action is irreversible."], SettingsTab.guildKey), onAccept, nil, { SettingsTab })
             end,
         },
     },
@@ -392,9 +401,17 @@ info = {
                     id = guildKey,
                     text = guildName,
                     func = function(dropdown, info)
-                        private.db.global.guilds[SettingsTab.guildKey].settings = addon:CloneTable(private.db.global.guilds[info.id].settings)
-                        dropdown:Clear()
-                        private:LoadFrame("Settings")
+                        local function onAccept(SettingsTab, dropdown, info)
+                            private.db.global.guilds[SettingsTab.guildKey].settings = addon:CloneTable(private.db.global.guilds[info.id].settings)
+                            dropdown:Clear()
+                            private:LoadFrame("Settings")
+                        end
+
+                        local function onCancel(dropdown)
+                            dropdown:Clear()
+                        end
+
+                        private:ShowConfirmationDialog(format(L["Are you sure you want to overwrite settings for '%s' with those from '%s'?"], SettingsTab.guildKey, info.id), onAccept, onCancel, { SettingsTab, dropdown, info }, { dropdown })
                     end,
                 })
             end
