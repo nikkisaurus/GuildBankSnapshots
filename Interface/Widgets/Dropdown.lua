@@ -104,23 +104,24 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end
     end
 
-    function dropdown:SelectByID(value, skipCallback)
+    function dropdown:SelectByID(value, skipCallback, forceSelect)
         assert(self.info, "GuildBankSnapshotsDropdownButton: info is not initialized")
 
         for _, info in pairs(self:GetInfo()) do
             if info.id == value then
                 if self.menu.style.multiSelect then
-                    self.selected[info.id] = not self.selected[info.id]
+                    self.selected[info.id] = forceSelect or not self.selected[info.id]
                 else
                     wipe(self.selected)
                     self.selected[info.id] = true
                 end
-                self:UpdateText()
                 if not skipCallback then
                     info.func(self, info)
                 end
             end
         end
+
+        self:UpdateText()
     end
 
     function dropdown:SetButtonHidden(setHidden)
@@ -369,8 +370,8 @@ function GuildBankSnapshotsDropdownListButton_OnLoad(button)
         else
             self.checkBoxBorder:ClearAllPoints()
             self.text:SetPoint("TOP", self.container, "TOP")
-            self.text:SetPoint(style.checkAlignment, self.container, style.checkAlignment)
-            self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self.container, leftAligned and "RIGHT" or "LEFT")
+            self.text:SetPoint(style.checkAlignment, self.container, style.checkAlignment, xMod * style.paddingX, 0)
+            self.text:SetPoint(leftAligned and "RIGHT" or "LEFT", self.container, leftAligned and "RIGHT" or "LEFT", -(xMod * style.paddingX), 0)
             self.text:SetPoint("BOTTOM", self.container, "BOTTOM")
         end
     end

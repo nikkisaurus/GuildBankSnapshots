@@ -3,11 +3,11 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
-local spacer
-
 --*----------[[ Initialize tab ]]----------*--
 local SettingsTab
+local callbacks, forwardCallbacks, info, tooltips
 local DoLayout, DrawGroup, GetUnits
+local spacer
 
 function private:InitializeSettingsTab()
     SettingsTab = {
@@ -16,7 +16,7 @@ function private:InitializeSettingsTab()
 end
 
 --*----------[[ Data ]]----------*--
-local callbacks = {
+callbacks = {
     container = {
         OnSizeChanged = {
             function()
@@ -276,7 +276,32 @@ local callbacks = {
     },
 }
 
-local info = {
+forwardCallbacks = {
+    dateFormat = {
+        OnEnterPressed = {
+            function(self)
+                private.db.global.preferences.dateFormat = self:GetText()
+            end,
+        },
+    },
+    guildFormat = {
+        OnEnterPressed = {
+            function(self)
+                private.db.global.preferences.guildFormat = self:GetText()
+                private:LoadFrame("Settings")
+            end,
+        },
+    },
+    defaultGuild = {
+        OnClear = {
+            function(self)
+                private.db.global.preferences.defaultGuild = false
+            end,
+        },
+    },
+}
+
+info = {
     selectGuild = function()
         local info = {}
 
@@ -376,32 +401,7 @@ local info = {
     end,
 }
 
-local forwardCallbacks = {
-    dateFormat = {
-        OnEnterPressed = {
-            function(self)
-                private.db.global.preferences.dateFormat = self:GetText()
-            end,
-        },
-    },
-    guildFormat = {
-        OnEnterPressed = {
-            function(self)
-                private.db.global.preferences.guildFormat = self:GetText()
-                private:LoadFrame("Settings")
-            end,
-        },
-    },
-    defaultGuild = {
-        OnClear = {
-            function(self)
-                private.db.global.preferences.defaultGuild = false
-            end,
-        },
-    },
-}
-
-local tooltips = {
+tooltips = {
     dateFormat = function()
         -- http://www.lua.org/pil/22.1.html
         GameTooltip:AddDoubleLine("abbreviated weekday name (e.g., Wed)", "%a", 1, 1, 1)
