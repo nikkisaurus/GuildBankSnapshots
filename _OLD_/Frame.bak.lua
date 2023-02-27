@@ -123,7 +123,7 @@ local function CreateSorter()
         end
 
         -- Hide tooltips
-        private:ClearTooltip()
+        private:HideTooltip()
     end)
 
     sorter:SetScript("OnMouseUp", function(self)
@@ -220,7 +220,7 @@ end)
 
 self:SetScript("OnLeave", function(self)
     self:SetHighlighted()
-    private:ClearTooltip()
+    private:HideTooltip()
 end)
 
 self:SetScript("OnSizeChanged", self.ArrangeCells)
@@ -307,7 +307,7 @@ self:AcquireCells()
 --                 GameTooltip:AddLine(self.text:GetText(), 1, 1, 1)
 --             else
 --                 -- Hide tooltip if not truncated
---                 private:ClearTooltip()
+--                 private:HideTooltip()
 --             end
 --         end, self, reviewData)
 --     end)
@@ -316,7 +316,7 @@ self:AcquireCells()
 --         self:GetParent():SetHighlighted()
 
 --         -- Hide tooltips
---         private:ClearTooltip()
+--         private:HideTooltip()
 --     end)
 
 --     return cell
@@ -377,7 +377,7 @@ local function CreateHeader()
 
     header:SetScript("OnLeave", function()
         -- Hide tooltips
-        private:ClearTooltip()
+        private:HideTooltip()
     end)
 
     return header

@@ -48,14 +48,6 @@ function private:AddBackdrop(frame, options)
     return bg, border, highlight
 end
 
-function private:AddSpecialFrame(frame)
-    tinsert(UISpecialFrames, frame:GetName())
-end
-
-function private:ClearTooltip()
-    private:HideTooltip()
-end
-
 function private:GetInterfaceFlairColor()
     return private.interface.colors[private:UseClassColor() and "class" or "flair"]
 end
@@ -63,14 +55,6 @@ end
 function private:HideTooltip()
     GameTooltip:ClearLines()
     GameTooltip:Hide()
-end
-
-function private:InitializeDataProvider(scrollBox, callback)
-    scrollBox:SetDataProvider(function(provider)
-        if type(callback) == "function" then
-            callback(provider)
-        end
-    end)
 end
 
 function private:InitializeInterface()

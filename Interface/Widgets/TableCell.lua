@@ -53,7 +53,7 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
             local parent = self:GetParent()
             parent:GetScript("OnLeave")(parent, ...)
             -- Hide tooltips
-            private:ClearTooltip()
+            private:HideTooltip()
         end,
 
         OnRelease = function(self) end,
