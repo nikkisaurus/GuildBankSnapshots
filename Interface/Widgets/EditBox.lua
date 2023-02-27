@@ -110,56 +110,69 @@ function GuildBankSnapshotsEditBox_OnLoad(editbox)
 end
 
 function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
-    frame = private:MixinContainer(frame)
+    frame = private:MixinElementContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
-            self:SetSize(150, 40)
             self.label:Fire("OnAcquire")
-            self.label:Justify("LEFT", "MIDDLE")
-            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
             self.editbox:Fire("OnAcquire")
 
-            frame.label:SetCallback("OnEnter", function(self, ...)
-                local script = frame.editbox:GetScript("OnEnter")
-                if script then
-                    script(frame.editbox, ...)
-                end
-            end)
+            self.label:Justify("LEFT", "MIDDLE")
+
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+
+            self:SetSize(150, 40)
+            self:Fire("OnSizeChanged", 150, 40)
+
+            self:RegisterCallbacks(self.editbox)
         end,
 
         OnSizeChanged = function(self, width, height)
             self.label:SetWidth(20)
+            self.label:SetPoint("TOPLEFT")
+            self.label:SetPoint("TOPRIGHT")
+
             self.editbox:SetWidth(height - 20)
+            self.editbox:SetPoint("BOTTOMLEFT")
+            self.editbox:SetPoint("BOTTOMRIGHT")
         end,
 
         OnRelease = function(self)
             self.anchor = nil
+            self.mainElement = nil
             self.tooltip = nil
             self.width = nil
         end,
     })
 
+    -- Elements
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.label:SetPoint("TOPLEFT")
-    frame.label:SetPoint("TOPRIGHT")
-
     frame.editbox = frame:Acquire("GuildBankSnapshotsEditBox")
-    frame.editbox:SetPoint("BOTTOMLEFT")
-    frame.editbox:SetPoint("BOTTOMRIGHT")
 
     -- Methods
-    function frame:ForwardCallback(...)
-        self.editbox:SetCallback(...)
-    end
-
-    function frame:ForwardCallbacks(callbacks)
-        for script, args in pairs(callbacks) do
-            self:ForwardCallback(script, unpack(args))
-        end
-    end
-
     function frame:IsValidText()
         return self.editbox:IsValidText()
+    end
+
+    function frame:RegisterCallbacks(mainElement)
+        self.mainElement = mainElement
+
+        self.label:SetCallbacks({
+            OnEnter = {
+                function(label)
+                    self:FireScript("OnEnter")
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
+
+        self.mainElement:SetCallbacks({
+            OnEnter = {
+                function(label)
+                    self:ShowTooltip()
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
     end
 
     function frame:SetDisabled(...)

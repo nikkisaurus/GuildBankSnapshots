@@ -131,9 +131,4 @@ function GuildBankSnapshotsCheckButton_OnLoad(button)
             self:SetMinWidth()
         end
     end
-
-    function button:SetTooltipInitializer(tooltip, anchor)
-        self.tooltip = tooltip
-        self.anchor = anchor
-    end
 end

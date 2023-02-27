@@ -55,6 +55,38 @@ end
 
 -----------------------
 
+local ElementContainerMixin = {}
+
+function ElementContainerMixin:ForwardCallbacks(callbacks)
+    for script, args in pairs(callbacks) do
+        assert(type(args) == "table", "ElementContainerMixin: ensure callback function is wrapped in args table")
+        self:ForwardCallback(script, unpack(args))
+    end
+end
+
+function ElementContainerMixin:ForwardCallback(...)
+    assert(self.mainElement, "ElementContainerMixin: mainElement is not initialized")
+    self.mainElement:SetCallback(...)
+end
+
+function ElementContainerMixin:FireScript(script, ...)
+    assert(self.mainElement, "ElementContainerMixin: mainElement is not initialized")
+    local callback = self.mainElement:GetScript(script)
+    if callback then
+        callback(self.mainElement, ...)
+    end
+end
+
+function private:MixinElementContainer(tbl)
+    tbl = private:MixinWidget(tbl)
+    tbl = private:MixinCollection(tbl)
+    tbl = private:MixinContainer(tbl)
+    tbl = Mixin(tbl, ElementContainerMixin)
+    return tbl
+end
+
+-----------------------
+
 local TextMixin = {}
 
 local function TextMixin_Validate(self)
@@ -220,6 +252,11 @@ function WidgetMixin:SetCallbacks(callbacks)
         assert(type(args) == "table", "WidgetMixin: ensure callback function is wrapped in args table")
         self:SetCallback(script, unpack(args))
     end
+end
+
+function WidgetMixin:SetTooltipInitializer(tooltip, anchor)
+    self.tooltip = tooltip
+    self.anchor = anchor
 end
 
 function WidgetMixin:ShowTooltip()

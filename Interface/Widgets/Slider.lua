@@ -154,7 +154,7 @@ local function GuildBankSnapshotsSliderFrame_OnEnter(self, ...)
 end
 
 function GuildBankSnapshotsSliderFrame_OnLoad(frame)
-    frame = private:MixinContainer(frame)
+    frame = private:MixinElementContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
             self.label:Fire("OnAcquire")
@@ -173,7 +173,7 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
             self:SetSize(150, 40)
             self:Fire("OnSizeChanged", 150, 40) -- doesn't fire on acquire, but we need to initialize the text and editbox
 
-            self:RegisterCallbacks()
+            self:RegisterCallbacks(self.slider)
         end,
 
         OnSizeChanged = function(self, width, height)
@@ -195,6 +195,7 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
 
         OnRelease = function(self)
             self.anchor = nil
+            self.mainElement = nil
             self.numDecimals = nil
             self.tooltip = nil
             self.userInput = nil
@@ -221,13 +222,9 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
         self.slider:SetCallback(script, callback, init)
     end
 
-    function frame:ForwardCallbacks(callbacks)
-        for script, args in pairs(callbacks) do
-            self:ForwardCallback(script, unpack(args))
-        end
-    end
+    function frame:RegisterCallbacks(mainElement)
+        self.mainElement = mainElement
 
-    function frame:RegisterCallbacks()
         self.label:SetCallbacks({
             OnEnter = { GenerateClosure(GuildBankSnapshotsSliderFrame_OnEnter, self) },
             OnLeave = { GenerateClosure(private.HideTooltip, private) },
@@ -239,6 +236,7 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
                     self:ShowTooltip()
                 end,
             },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
             OnValueChanged = {
                 function(slider, value, userInput)
                     if self.numDecimals then
@@ -304,11 +302,6 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
     function frame:SetMinMaxLabels(lowerText, upperText)
         frame.lowerText:SetText(lowerText)
         frame.upperText:SetText(upperText)
-    end
-
-    function frame:SetTooltipInitializer(tooltip, anchor)
-        self.tooltip = tooltip
-        self.anchor = anchor
     end
 
     function frame:SetValue(value)

@@ -381,40 +381,37 @@ DrawGroup = function(groupType, group)
         dateFormat:SetWidth(150)
         dateFormat:SetLabel(L["Date Format"])
         dateFormat:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        dateFormat:SetTooltipInitializer(function()
+            -- http://www.lua.org/pil/22.1.html
+            GameTooltip:AddDoubleLine("abbreviated weekday name (e.g., Wed)", "%a", 1, 1, 1)
+            GameTooltip:AddDoubleLine("full weekday name (e.g., Wednesday)", "%A", 1, 1, 1)
+            GameTooltip:AddDoubleLine("abbreviated month name (e.g., Sep)", "%b", 1, 1, 1)
+            GameTooltip:AddDoubleLine("full month name (e.g., September)", "%B", 1, 1, 1)
+            GameTooltip:AddDoubleLine("date and time (e.g., 09/16/98 23:48:10)", "%c", 1, 1, 1)
+            GameTooltip:AddDoubleLine("day of the month (16) [01-31]", "%d", 1, 1, 1)
+            GameTooltip:AddDoubleLine("hour, using a 24-hour clock (23) [00-23]", "%H", 1, 1, 1)
+            GameTooltip:AddDoubleLine("hour, using a 12-hour clock (11) [01-12]", "%I", 1, 1, 1)
+            GameTooltip:AddDoubleLine("minute (48) [00-59]", "%M", 1, 1, 1)
+            GameTooltip:AddDoubleLine("month (09) [01-12]", "%m", 1, 1, 1)
+            GameTooltip:AddDoubleLine("either 'am' or 'pm' (pm)", "%p", 1, 1, 1)
+            GameTooltip:AddDoubleLine("second (10) [00-61]", "%S", 1, 1, 1)
+            GameTooltip:AddDoubleLine("weekday (3) [0-6 = Sunday-Saturday]", "%w", 1, 1, 1)
+            GameTooltip:AddDoubleLine("date (e.g., 09/16/98)", "%x", 1, 1, 1)
+            GameTooltip:AddDoubleLine("time (e.g., 23:48:10)", "%X", 1, 1, 1)
+            GameTooltip:AddDoubleLine("full year (1998)", "%Y", 1, 1, 1)
+            GameTooltip:AddDoubleLine("two-digit year (98) [00-99]", "%y", 1, 1, 1)
+            GameTooltip:AddDoubleLine("the character `%´", "%%", 1, 1, 1)
+            GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
+            GameTooltip:AddLine(format(L["See '%s' for more information"], "http://www.lua.org/pil/22.1.html"), 1, 1, 1)
+        end)
         dateFormat:ForwardCallbacks({
-            OnEnter = {
-                function(self)
-                    self:ShowTooltip(nil, function()
-                        -- http://www.lua.org/pil/22.1.html
-                        GameTooltip:AddDoubleLine("abbreviated weekday name (e.g., Wed)", "%a", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("full weekday name (e.g., Wednesday)", "%A", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("abbreviated month name (e.g., Sep)", "%b", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("full month name (e.g., September)", "%B", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("date and time (e.g., 09/16/98 23:48:10)", "%c", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("day of the month (16) [01-31]", "%d", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("hour, using a 24-hour clock (23) [00-23]", "%H", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("hour, using a 12-hour clock (11) [01-12]", "%I", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("minute (48) [00-59]", "%M", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("month (09) [01-12]", "%m", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("either 'am' or 'pm' (pm)", "%p", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("second (10) [00-61]", "%S", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("weekday (3) [0-6 = Sunday-Saturday]", "%w", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("date (e.g., 09/16/98)", "%x", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("time (e.g., 23:48:10)", "%X", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("full year (1998)", "%Y", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("two-digit year (98) [00-99]", "%y", 1, 1, 1)
-                        GameTooltip:AddDoubleLine("the character `%´", "%%", 1, 1, 1)
-                        GameTooltip_AddBlankLinesToTooltip(GameTooltip, 1)
-                        GameTooltip:AddLine(format(L["See '%s' for more information"], "http://www.lua.org/pil/22.1.html"), 1, 1, 1)
-                    end)
-                end,
-            },
             OnEnterPressed = {
                 function(self)
                     private.db.global.preferences.dateFormat = self:GetText()
                 end,
             },
-            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
+        dateFormat:SetCallbacks({
             OnShow = {
                 function(self)
                     self:SetText(private.db.global.preferences.dateFormat)
@@ -429,24 +426,21 @@ DrawGroup = function(groupType, group)
         guildFormat:SetWidth(150)
         guildFormat:SetLabel(L["Guild Format"])
         guildFormat:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        guildFormat:SetTooltipInitializer(function()
+            GameTooltip:AddDoubleLine(L["abbreviated faction"], "%f", 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["faction"], "%F", 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["guild name"], "%g", 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["realm name"], "%r", 1, 1, 1)
+        end)
         guildFormat:ForwardCallbacks({
-            OnEnter = {
-                function(self)
-                    self:ShowTooltip(nil, function()
-                        GameTooltip:AddDoubleLine(L["abbreviated faction"], "%f", 1, 1, 1)
-                        GameTooltip:AddDoubleLine(L["faction"], "%F", 1, 1, 1)
-                        GameTooltip:AddDoubleLine(L["guild name"], "%g", 1, 1, 1)
-                        GameTooltip:AddDoubleLine(L["realm name"], "%r", 1, 1, 1)
-                    end)
-                end,
-            },
             OnEnterPressed = {
                 function(self)
                     private.db.global.preferences.guildFormat = self:GetText()
                     private:LoadFrame("Settings")
                 end,
             },
-            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
+        guildFormat:SetCallbacks({
             OnShow = {
                 function(self)
                     self:SetText(private.db.global.preferences.guildFormat)
@@ -461,6 +455,7 @@ DrawGroup = function(groupType, group)
         defaultGuild:SetWidth(200)
         defaultGuild:SetLabel(L["Default Guild"] .. "*")
         defaultGuild:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        defaultGuild:SetTooltipInitializer(L["Will not take effect until after a reload"])
         defaultGuild:SetStyle({ hasClear = true })
         defaultGuild:SetInfo(private:GetGuildInfo(function(dropdown, info)
             private.db.global.preferences.defaultGuild = info.id
@@ -471,14 +466,6 @@ DrawGroup = function(groupType, group)
                     private.db.global.preferences.defaultGuild = false
                 end,
             },
-            OnEnter = {
-                function(self)
-                    self:ShowTooltip(nil, function()
-                        GameTooltip:AddLine(L["Will not take effect until after a reload"])
-                    end)
-                end,
-            },
-            OnLeave = { GenerateClosure(private.HideTooltip, private) },
             OnShow = {
                 function(self)
                     self:SelectByID(private.db.global.preferences.defaultGuild)
@@ -493,6 +480,7 @@ DrawGroup = function(groupType, group)
         exportDelimiter:SetWidth(150)
         exportDelimiter:SetLabel(L["Export Delimiter"])
         exportDelimiter:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        exportDelimiter:SetTooltipInitializer(L["Sets the CSV delimiter used when exporting data"])
         exportDelimiter:SetInfo(function()
             local info = {}
 
@@ -515,14 +503,6 @@ DrawGroup = function(groupType, group)
             return info
         end)
         exportDelimiter:ForwardCallbacks({
-            OnEnter = {
-                function(self)
-                    self:ShowTooltip(nil, function()
-                        GameTooltip:AddLine(L["Sets the CSV delimiter used when exporting data"])
-                    end)
-                end,
-            },
-            OnLeave = { GenerateClosure(private.HideTooltip, private) },
             OnShow = {
                 function(self)
                     self:SelectByID(private.db.global.preferences.exportDelimiter)
@@ -542,17 +522,6 @@ DrawGroup = function(groupType, group)
             GameTooltip:AddLine(L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"])
             GameTooltip:AddLine(L["Increasing this delay may help reduce corrupt scans"])
         end)
-        -- delay:ForwardCallbacks({
-        --     OnEnter = {
-        --         function(self)
-        --             self:ShowTooltip(nil, function()
-        --                 GameTooltip:AddLine(L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"])
-        --                 GameTooltip:AddLine(L["Increasing this delay may help reduce corrupt scans"])
-        --             end)
-        --         end,
-        --     },
-        --     OnLeave = { GenerateClosure(private.HideTooltip, private) },
-        -- })
         delay:SetCallbacks({
             OnShow = {
                 function(self)

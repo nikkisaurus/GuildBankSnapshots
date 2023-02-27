@@ -183,58 +183,73 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 end
 
 function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
-    frame = private:MixinContainer(frame)
+    frame = private:MixinElementContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
-            self:SetSize(150, 40)
             self.label:Fire("OnAcquire")
-            self.label:Justify("LEFT", "MIDDLE")
-            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
             self.dropdown:Fire("OnAcquire")
 
-            frame.label:SetCallback("OnEnter", function(self, ...)
-                local script = frame.dropdown:GetScript("OnEnter")
-                if script then
-                    script(frame.dropdown, ...)
-                end
-            end)
+            self.label:Justify("LEFT", "MIDDLE")
+
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+
+            self:SetSize(150, 40)
+            self:Fire("OnSizeChanged", 150, 40)
+
+            self:RegisterCallbacks(self.dropdown)
         end,
 
         OnSizeChanged = function(self, width, height)
             self.label:SetHeight(20)
+            self.label:SetPoint("TOPLEFT")
+            self.label:SetPoint("TOPRIGHT")
+
             self.dropdown:SetHeight(height - 20)
+            self.dropdown:SetPoint("BOTTOMLEFT")
+            self.dropdown:SetPoint("BOTTOMRIGHT")
         end,
 
         OnRelease = function(self)
+            self.anchor = nil
+            self.mainElement = nil
+            self.tooltip = nil
             self.width = nil
         end,
     })
 
+    -- Elements
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.label:SetPoint("TOPLEFT")
-    frame.label:SetPoint("TOPRIGHT")
-
     frame.dropdown = frame:Acquire("GuildBankSnapshotsDropdownButton")
-    frame.dropdown:SetPoint("BOTTOMLEFT")
-    frame.dropdown:SetPoint("BOTTOMRIGHT")
 
     -- Methods
-    function frame:ForwardCallback(...)
-        self.dropdown:SetCallback(...)
-    end
-
-    function frame:ForwardCallbacks(callbacks)
-        for script, args in pairs(callbacks) do
-            self:ForwardCallback(script, unpack(args))
-        end
-    end
-
     function frame:GetInfo()
         return self.dropdown:GetInfo()
     end
 
     function frame:Justify(...)
         self.dropdown:Justify(...)
+    end
+
+    function frame:RegisterCallbacks(mainElement)
+        self.mainElement = mainElement
+
+        self.label:SetCallbacks({
+            OnEnter = {
+                function(label)
+                    self:FireScript("OnEnter")
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
+
+        self.mainElement:SetCallbacks({
+            OnEnter = {
+                function(label)
+                    self:ShowTooltip()
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
     end
 
     function frame:SelectByID(...)
@@ -263,7 +278,6 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
     end
 
     function frame:SetText(...)
-        print(self, ...)
         self.dropdown:SetText(...)
     end
 end
