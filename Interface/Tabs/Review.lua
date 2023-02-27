@@ -346,8 +346,24 @@ info = {
                 id = loadoutID,
                 text = loadoutID,
                 func = function(dropdown)
-                    ReviewTab.guilds[ReviewTab.guildKey].filters = addon:CloneTable(loadout)
-                    dropdown:Clear()
+                    -- Clear filters and repopulate lists
+                    ReviewTab.guilds[ReviewTab.guildKey].filters = GetFilters()
+                    LoadTable(true)
+
+                    -- Copy filters from loadout
+                    for filterType, filter in pairs(loadout) do
+                        if filter.list and filter.values then
+                            for value, _ in pairs(filter.values) do
+                                if ReviewTab.guilds[ReviewTab.guildKey].filters[filterType].list[value] then
+                                    ReviewTab.guilds[ReviewTab.guildKey].filters[filterType].values[value] = true
+                                end
+                            end
+                        else
+                            ReviewTab.guilds[ReviewTab.guildKey].filters[filterType] = addon:CloneTable(filter)
+                        end
+                    end
+
+                    -- Update table and filters
                     LoadTable()
                 end,
             })
@@ -788,7 +804,7 @@ DrawSidebarFilters = function(content, height)
     scanDate:SetStyle({ multiSelect = true, hasClear = true })
     scanDate:SetInfo(info.scanDate)
     scanDate:ForwardCallbacks(forwardCallbacks.scanDate)
-    scanDate:SetCallbacks(callbacks.scanDate)
+    -- scanDate:SetCallbacks(callbacks.scanDate)
     height = height + scanDate:GetHeight() + 5
 
     local transactionDate = content:Acquire("GuildBankSnapshotsDropdownFrame")

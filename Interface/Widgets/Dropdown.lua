@@ -199,6 +199,7 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
         OnAcquire = function(self)
             self.label:Fire("OnAcquire")
             self.dropdown:Fire("OnAcquire")
+            self.dropdown.menu:Fire("OnAcquire")
 
             self.label:Justify("LEFT", "MIDDLE")
 
@@ -411,6 +412,15 @@ end
 function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     menu = private:MixinContainer(menu)
     menu:SetFrameLevel(1000)
+    menu:InitScripts({
+        OnAcquire = function(self)
+            self:InitializeStyle()
+        end,
+
+        OnRelease = function(self)
+            self:ReleaseAll()
+        end,
+    })
 
     -- Textures
     menu.bg, menu.border = private:AddBackdrop(menu, { bgColor = "dark" })
@@ -431,10 +441,12 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         searchBox.bg:SetColorTexture(private.interface.colors.lightest:GetRGBA())
         searchBox:SetSearchTemplate(true)
         searchBox:SetHeight(20)
+        searchBox:Hide()
         if self.style.hasSearch then
             searchBox:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
             searchBox:SetPoint("TOPRIGHT", self, "TOPRIGHT", -5, 0)
             self:SetHeight(self:GetHeight() + 30)
+            searchBox:Show()
         end
 
         searchBox:SetCallback("OnTextChanged", function(_, userInput)
@@ -462,7 +474,9 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         local clearButton = self:Acquire("GuildBankSnapshotsButton")
         clearButton:SetText(L["Clear"])
         clearButton:SetHeight(20)
+        clearButton:Hide()
         if self.style.hasClear then
+            clearButton:Show()
             if self.style.hasSearch then
                 clearButton:SetPoint("TOPLEFT", searchBox, "BOTTOMLEFT", 0, -5)
                 clearButton:SetPoint("TOPRIGHT", searchBox, "BOTTOMRIGHT", 0, 0)
