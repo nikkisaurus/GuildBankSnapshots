@@ -25,11 +25,11 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self.text:SetHeight(20)
             self:SetButtonHidden(false)
             self:Justify("RIGHT", "MIDDLE")
-            self:SetText("")
             self.menu:InitializeStyle()
             self:SetEnabled(true)
             self:SetBackdropColor(private.interface.colors.dark)
             self.arrow:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
+            self:SetText("")
         end,
 
         OnClick = function(self)
@@ -43,15 +43,15 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self.menu:Hide()
         end,
 
-        OnRelease = function(self)
-            self.info = nil
-            wipe(self.selected)
-        end,
-
         OnSizeChanged = function(self)
             local height = self:GetHeight()
             self.arrow:SetSize(height, height)
             self.text:SetHeight(height)
+        end,
+
+        OnRelease = function(self)
+            self.info = nil
+            wipe(self.selected)
         end,
     })
 
@@ -186,15 +186,23 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
     frame = private:MixinContainer(frame)
     frame:InitScripts({
         OnAcquire = function(self)
+            self:SetSize(150, 40)
+            self.label:Fire("OnAcquire")
             self.label:Justify("LEFT", "MIDDLE")
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
-            self:SetLabel("")
-            self:SetSize(150, 40)
+            self.dropdown:Fire("OnAcquire")
+
+            frame.label:SetCallback("OnEnter", function(self, ...)
+                local script = frame.dropdown:GetScript("OnEnter")
+                if script then
+                    script(frame.dropdown, ...)
+                end
+            end)
         end,
 
         OnSizeChanged = function(self, width, height)
-            self.label:SetSize(width, 20)
-            self.dropdown:SetSize(width, height - 20)
+            self.label:SetHeight(20)
+            self.dropdown:SetHeight(height - 20)
         end,
 
         OnRelease = function(self)
@@ -204,16 +212,11 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
 
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.label:SetPoint("TOPLEFT")
-
-    frame.label:SetScript("OnEnter", function(self, ...)
-        local script = frame.dropdown:GetScript("OnEnter")
-        if script then
-            script(frame.dropdown, ...)
-        end
-    end)
+    frame.label:SetPoint("TOPRIGHT")
 
     frame.dropdown = frame:Acquire("GuildBankSnapshotsDropdownButton")
     frame.dropdown:SetPoint("BOTTOMLEFT")
+    frame.dropdown:SetPoint("BOTTOMRIGHT")
 
     -- Methods
     function frame:ForwardCallback(...)
@@ -260,6 +263,7 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
     end
 
     function frame:SetText(...)
+        print(self, ...)
         self.dropdown:SetText(...)
     end
 end

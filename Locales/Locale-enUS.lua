@@ -70,7 +70,7 @@ L["Use class color"] = true
 L["Scans"] = true
 L["Scan Delay"] = true
 L["Review Path"] = true
-L["Review after scan"] = true
+L["Review after manual scan"] = true
 L["Auto Scan"] = true
 L["Enable"] = true
 L["Alert scan progress"] = true
@@ -223,3 +223,12 @@ L.DateTypeDescription = "Determines whether dates are shown as presented in the 
 L.DefaultGuildDescription = "Sets the default guild to load when reviewing or analyzing a scan."
 L.GuildFormatDescription = "%g = guild name\n%r = realm name\n%f = faction\n%F = shortened faction"
 L.ConfirmDeletionsDescription = "Prompt for confirmation when deleting scans via the review frame. Note: this does not apply to auto cleanup deletions."
+
+L["Shows the review frame after manually scanning the bank"] = true
+L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"] = true
+L["Increasing this delay may help reduce corrupt scans"] = true
+L["Displays a message with the status of auto scans"] = true
+L["Shows the review frame after the bank auto scans"] = true
+L["Limit auto scans"] = true
+L["Limits the number of auto scans allowed to run in a specified time period"] = true
+L["Determines the frequency at which auto scans are allowed to run"] = true

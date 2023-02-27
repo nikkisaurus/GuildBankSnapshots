@@ -114,18 +114,22 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
     frame:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 40)
-
+            self.label:Fire("OnAcquire")
             self.label:Justify("LEFT", "MIDDLE")
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
-            self:SetLabel("")
+            self.editbox:Fire("OnAcquire")
 
-            self:SetEditboxFont(GameFontHighlightSmall)
-            self:SetText("")
+            frame.label:SetCallback("OnEnter", function(self, ...)
+                local script = frame.editbox:GetScript("OnEnter")
+                if script then
+                    script(frame.editbox, ...)
+                end
+            end)
         end,
 
         OnSizeChanged = function(self, width, height)
-            self.label:SetSize(width, 20)
-            self.editbox:SetSize(width, height - 20)
+            self.label:SetWidth(20)
+            self.editbox:SetWidth(height - 20)
         end,
 
         OnRelease = function(self)
@@ -137,13 +141,11 @@ function GuildBankSnapshotsEditBoxFrame_OnLoad(frame)
 
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.label:SetPoint("TOPLEFT")
-
-    frame.label:SetScript("OnEnter", function(self, ...)
-        frame.editbox:GetScript("OnEnter")(frame.editbox, ...)
-    end)
+    frame.label:SetPoint("TOPRIGHT")
 
     frame.editbox = frame:Acquire("GuildBankSnapshotsEditBox")
     frame.editbox:SetPoint("BOTTOMLEFT")
+    frame.editbox:SetPoint("BOTTOMRIGHT")
 
     -- Methods
     function frame:ForwardCallback(...)

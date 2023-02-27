@@ -7,7 +7,7 @@ local spacer
 
 --*----------[[ Initialize tab ]]----------*--
 local SettingsTab
-local DoLayout, DrawGroup, SelectGuild
+local DoLayout, DrawGroup, GetUnits, SelectGuild
 
 function private:InitializeSettingsTab()
     SettingsTab = {
@@ -21,7 +21,213 @@ end
 DrawGroup = function(groupType, group)
     group:ReleaseChildren()
 
-    if groupType == "guild" then
+    local guildKey = SettingsTab.guildKey
+    if groupType == "guild" and guildKey then
+        local review = group:Acquire("GuildBankSnapshotsCheckButton")
+        review:SetText(L["Review after manual scan"], true)
+        review:SetTooltipInitializer(L["Shows the review frame after manually scanning the bank"])
+        review:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.review = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.review, true)
+                end,
+                true,
+            },
+        })
+
+        group:AddChild(review)
+
+        spacer = group:Acquire("GuildBankSnapshotsFontFrame")
+        spacer.width = "full"
+        spacer:SetHeight(1)
+
+        group:AddChild(spacer)
+
+        local reviewPath = group:Acquire("GuildBankSnapshotsDropdownFrame")
+        reviewPath:SetLabel(L["Review Path"])
+        reviewPath:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        reviewPath:SetInfo(function()
+            local info = {}
+
+            for _, tab in addon:pairs({ "Analyze", "Review" }) do
+                tinsert(info, {
+                    id = strlower(tab),
+                    text = L[tab],
+                    func = function()
+                        private.db.global.guilds[guildKey].settings.reviewPath = strlower(tab)
+                    end,
+                })
+            end
+
+            return info
+        end)
+
+        reviewPath:SetCallback("OnShow", function(self)
+            self:SelectByID(private.db.global.guilds[guildKey].settings.reviewPath)
+        end, true)
+
+        group:AddChild(reviewPath)
+
+        local autoScanHeader = group:Acquire("GuildBankSnapshotsFontFrame")
+        autoScanHeader.width = "full"
+        autoScanHeader:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
+        autoScanHeader:Justify("LEFT")
+        autoScanHeader:SetText(L["Auto Scan"])
+
+        group:AddChild(autoScanHeader)
+
+        local autoScanGroup = group:Acquire("GuildBankSnapshotsGroup")
+        autoScanGroup.width = "full"
+        autoScanGroup:SetWidth(group:GetWidth()) -- have to explicitly set width or its children won't layout properly
+        autoScanGroup:SetPadding(10, 10)
+        autoScanGroup:SetSpacing(5)
+        private:AddBackdrop(autoScanGroup, { bgColor = "dark" })
+
+        group:AddChild(autoScanGroup)
+
+        local autoScan = autoScanGroup:Acquire("GuildBankSnapshotsCheckButton")
+        autoScan:SetText(L["Enable"], true)
+        autoScan:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.autoScan.enabled = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.autoScan.enabled, true)
+                end,
+                true,
+            },
+        })
+
+        autoScanGroup:AddChild(autoScan)
+
+        local alert = autoScanGroup:Acquire("GuildBankSnapshotsCheckButton")
+        alert:SetText(L["Alert scan progress"], true)
+        alert:SetTooltipInitializer(L["Displays a message with the status of auto scans"])
+        alert:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.autoScan.alert = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.autoScan.alert, true)
+                end,
+                true,
+            },
+        })
+
+        autoScanGroup:AddChild(alert)
+
+        local autoScanReview = autoScanGroup:Acquire("GuildBankSnapshotsCheckButton")
+        autoScanReview:SetText(L["Review after auto scan"], true)
+        autoScanReview:SetTooltipInitializer(L["Shows the review frame after the bank auto scans"])
+        autoScanReview:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.autoScan.review = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.autoScan.review, true)
+                end,
+                true,
+            },
+        })
+
+        autoScanGroup:AddChild(autoScanReview)
+
+        local limit = autoScanGroup:Acquire("GuildBankSnapshotsCheckButton")
+        limit:SetText(L["Limit auto scans"], true)
+        limit:SetTooltipInitializer(L["Limits the number of auto scans allowed to run in a specified time period"])
+        limit:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.autoScan.frequency.enabled = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.autoScan.frequency.enabled, true)
+                end,
+                true,
+            },
+        })
+
+        autoScanGroup:AddChild(limit)
+
+        spacer = autoScanGroup:Acquire("GuildBankSnapshotsFontFrame")
+        spacer.width = "full"
+        spacer:SetHeight(1)
+
+        autoScanGroup:AddChild(spacer)
+
+        local measure = autoScanGroup:Acquire("GuildBankSnapshotsSliderFrame")
+        measure:SetSize(150, 50)
+        measure:SetBackdropColor(private.interface.colors.darker)
+        measure:SetLabel(L["Frequency Measure"])
+        measure:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        measure:SetMinMaxValues(1, 59, 1)
+        measure:ForwardCallbacks({
+            OnEnter = {
+                function(self)
+                    self:ShowTooltip(nil, function()
+                        GameTooltip:AddLine(L["Determines the frequency at which auto scans are allowed to run"])
+                    end)
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+            OnValueChanged = {
+                function(self, ...)
+                    private.db.global.guilds[guildKey].settings.autoScan.frequency.measure = self:GetValue()
+
+                    SettingsTab.frequencyUnit:SelectByID(private.db.global.guilds[guildKey].settings.autoScan.frequency.unit)
+                end,
+            },
+        })
+        measure:SetCallback("OnShow", function(self)
+            self:SetValue(private.db.global.guilds[guildKey].settings.autoScan.frequency.measure)
+        end, true)
+
+        autoScanGroup:AddChild(measure)
+
+        local unit = autoScanGroup:Acquire("GuildBankSnapshotsDropdownFrame")
+        unit:SetWidth(100)
+        unit:SetLabel(L["Frequency Unit"])
+        unit:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        unit:SetInfo(function()
+            local info = {}
+
+            for id, unit in addon:pairs(GetUnits(private.db.global.guilds[guildKey].settings.autoScan.frequency.measure)) do
+                tinsert(info, {
+                    id = id,
+                    text = unit,
+                    func = function()
+                        private.db.global.guilds[guildKey].settings.autoScan.frequency.unit = id
+                    end,
+                })
+            end
+
+            return info
+        end)
+
+        unit:SetCallback("OnShow", function(self)
+            self:SelectByID(private.db.global.guilds[guildKey].settings.autoScan.frequency.unit)
+        end, true)
+
+        SettingsTab.frequencyUnit = unit
+        autoScanGroup:AddChild(unit)
+
+        autoScanGroup:DoLayout()
     elseif groupType == "preferences" then
         local useClassColor = group:Acquire("GuildBankSnapshotsCheckButton")
         useClassColor:SetText(L["Use class color"])
@@ -133,11 +339,16 @@ DrawGroup = function(groupType, group)
         defaultGuild:SetWidth(200)
         defaultGuild:SetLabel(L["Default Guild"] .. "*")
         defaultGuild:SetLabelFont(nil, private:GetInterfaceFlairColor())
-        defaultGuild:SetText(L["Select a guild"])
+        defaultGuild:SetStyle({ hasClear = true })
         defaultGuild:SetInfo(private:GetGuildInfo(function(dropdown, info)
             private.db.global.preferences.defaultGuild = info.id
         end))
         defaultGuild:ForwardCallbacks({
+            OnClear = {
+                function(self)
+                    private.db.global.preferences.defaultGuild = false
+                end,
+            },
             OnEnter = {
                 function(self)
                     self:ShowTooltip(nil, function()
@@ -206,6 +417,15 @@ DrawGroup = function(groupType, group)
         delay:SetLabelFont(nil, private:GetInterfaceFlairColor())
         delay:SetMinMaxValues(0, 5, 0.1, 1)
         delay:ForwardCallbacks({
+            OnEnter = {
+                function(self)
+                    self:ShowTooltip(nil, function()
+                        GameTooltip:AddLine(L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"])
+                        GameTooltip:AddLine(L["Increasing this delay may help reduce corrupt scans"])
+                    end)
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
             OnValueChanged = {
                 function(self, ...)
                     private.db.global.preferences.delay = self:GetValue()
@@ -246,8 +466,29 @@ DrawGroup = function(groupType, group)
     DoLayout()
 end
 
+GetUnits = function(measure)
+    if measure == 1 then
+        return {
+            minutes = L["minute"],
+            hours = L["hour"],
+            days = L["day"],
+            weeks = L["week"],
+            months = L["month"],
+        }
+    else
+        return {
+            minutes = L["minutes"],
+            hours = L["hours"],
+            days = L["days"],
+            weeks = L["weeks"],
+            months = L["months"],
+        }
+    end
+end
+
 SelectGuild = function(dropdown, info)
     SettingsTab.guildKey = info.id
+    DrawGroup("guild", SettingsTab.guildGroup)
 end
 
 function private:LoadSettingsTab(content, guildKey)
@@ -261,7 +502,7 @@ function private:LoadSettingsTab(content, guildKey)
     end
 
     local selectGuild = container.content:Acquire("GuildBankSnapshotsDropdownButton")
-    selectGuild:SetPoint("TOPLEFT", 10, -10)
+    selectGuild:SetPoint("TOPLEFT", 10, 0)
     selectGuild:SetSize(250, 20)
     selectGuild:SetBackdropColor(private.interface.colors.darker)
     selectGuild:SetText(L["Select a guild"])
@@ -270,10 +511,10 @@ function private:LoadSettingsTab(content, guildKey)
     local guildGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     guildGroup:SetPoint("TOPLEFT", selectGuild, "BOTTOMLEFT", 0, 0)
     guildGroup:SetPoint("TOPRIGHT", -10, 0)
-    guildGroup:SetHeight(100)
     guildGroup:SetPadding(10, 10)
     guildGroup:SetSpacing(5)
     private:AddBackdrop(guildGroup, { bgColor = "darker" })
+    SettingsTab.guildGroup = guildGroup
 
     local preferencesHeader = container.content:Acquire("GuildBankSnapshotsFontFrame")
     preferencesHeader:SetPoint("TOPLEFT", guildGroup, "BOTTOMLEFT", 0, -10)
@@ -286,7 +527,6 @@ function private:LoadSettingsTab(content, guildKey)
     local preferencesGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     preferencesGroup:SetPoint("TOPLEFT", preferencesHeader, "BOTTOMLEFT", 0, 0)
     preferencesGroup:SetPoint("TOPRIGHT", -10, 0)
-    preferencesGroup:SetHeight(100)
     preferencesGroup:SetPadding(10, 10)
     preferencesGroup:SetSpacing(5)
     private:AddBackdrop(preferencesGroup, { bgColor = "darker" })
@@ -302,7 +542,6 @@ function private:LoadSettingsTab(content, guildKey)
     local commandsGroup = container.content:Acquire("GuildBankSnapshotsGroup")
     commandsGroup:SetPoint("TOPLEFT", commandsHeader, "BOTTOMLEFT", 0, 0)
     commandsGroup:SetPoint("TOPRIGHT", -10, 0)
-    commandsGroup:SetHeight(100)
     commandsGroup:SetPadding(10, 10)
     commandsGroup:SetSpacing(5)
     private:AddBackdrop(commandsGroup, { bgColor = "darker" })
@@ -326,10 +565,6 @@ function private:LoadSettingsTab(content, guildKey)
 
     -- Callbacks
     selectGuild:SetCallback("OnShow", GenerateClosure(selectGuild.SelectByID, selectGuild, guildKey or SettingsTab.guildKey), true)
-    guildGroup:SetCallback("OnShow", GenerateClosure(DrawGroup, "guild", guildGroup), true)
-    preferencesGroup:SetCallback("OnShow", GenerateClosure(DrawGroup, "preferences", preferencesGroup), true)
-    commandsGroup:SetCallback("OnShow", GenerateClosure(DrawGroup, "commands", commandsGroup), true)
-
     container:SetCallback("OnSizeChanged", function()
         DrawGroup("guild", guildGroup)
         DrawGroup("preferences", preferencesGroup)

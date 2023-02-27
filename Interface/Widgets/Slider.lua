@@ -149,20 +149,51 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
     frame:InitScripts({
         OnAcquire = function(self)
             self:SetSize(150, 40)
-
+            self.label:Fire("OnAcquire")
             self.label:Justify("LEFT", "MIDDLE")
             self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
-            self:SetLabel("")
-
+            self.lowerText:Fire("OnAcquire")
+            self.lowerText:Justify("LEFT", "MIDDLE")
+            self.upperText:Fire("OnAcquire")
+            self.upperText:Justify("RIGHT", "MIDDLE")
+            self.slider:Fire("OnAcquire")
             self:SetMinMaxLabels(L["Min"], L["Max"])
+
+            frame.label:SetCallback("OnEnter", function(self, ...)
+                local script = frame.slider:GetScript("OnEnter")
+                if script then
+                    script(frame.slider, ...)
+                end
+            end)
+
+            frame.lowerText:SetCallback("OnEnter", function(self, ...)
+                local script = frame.slider:GetScript("OnEnter")
+                if script then
+                    script(frame.slider, ...)
+                end
+            end)
+
+            frame.editbox:SetCallback("OnEnter", function(self, ...)
+                local script = frame.slider:GetScript("OnEnter")
+                if script then
+                    script(frame.slider, ...)
+                end
+            end)
+
+            frame.upperText:SetCallback("OnEnter", function(self, ...)
+                local script = frame.slider:GetScript("OnEnter")
+                if script then
+                    script(frame.slider, ...)
+                end
+            end)
         end,
 
         OnSizeChanged = function(self, width, height)
-            self.label:SetSize(width, 20)
+            self.label:SetWidth(20)
             self.lowerText:SetSize(width / 3, 20)
             self.editbox:SetSize(width / 3, 16)
             self.upperText:SetSize(width / 3, 20)
-            self.slider:SetSize(width, height - 40)
+            self.slider:SetWidth(height - 40)
         end,
 
         OnRelease = function(self)
@@ -173,22 +204,23 @@ function GuildBankSnapshotsSliderFrame_OnLoad(frame)
 
     frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
     frame.label:SetPoint("TOPLEFT")
+    frame.label:SetPoint("TOPRIGHT")
 
     frame.slider = frame:Acquire("GuildBankSnapshotsSlider")
     frame.slider:SetPoint("LEFT")
+    frame.slider:SetPoint("RIGHT")
 
     frame.lowerText = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.lowerText:Justify("LEFT")
     frame.lowerText:SetPoint("BOTTOMLEFT")
 
     frame.editbox = frame:Acquire("GuildBankSnapshotsEditBox")
     frame.editbox:SetPoint("BOTTOM", 0, 2)
+
     frame.editbox:SetCallback("OnEnterPressed", function(self)
         frame.slider:SetValue(self:GetNumber())
     end)
 
     frame.upperText = frame:Acquire("GuildBankSnapshotsFontFrame")
-    frame.upperText:Justify("RIGHT")
     frame.upperText:SetPoint("BOTTOMRIGHT")
 
     -- Methods
