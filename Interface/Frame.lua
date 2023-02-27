@@ -72,7 +72,7 @@ function private:InitializeFrame()
     frame.content:SetPoint("TOPLEFT", frame.tabContainer, "BOTTOMLEFT")
     frame.content:SetPoint("RIGHT", frame.tabContainer, "RIGHT")
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
-    frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "dark" })
+    frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "darkest" })
 
     function frame:SelectTab(tabID, guildKey)
         self.selectedTab = tabID

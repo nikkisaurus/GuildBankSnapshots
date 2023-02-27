@@ -75,6 +75,7 @@ function private:InitializeInterface()
             edgeSize = 1,
         },
         colors = {
+            darkest = CreateColor(0.025, 0.025, 0.025, 1),
             darker = CreateColor(0.05, 0.05, 0.05, 1),
             dark = CreateColor(0.1, 0.1, 0.1, 1),
             normal = CreateColor(0.15, 0.15, 0.15, 1),

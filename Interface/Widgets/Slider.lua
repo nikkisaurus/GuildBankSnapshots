@@ -23,7 +23,7 @@ function GuildBankSnapshotsSlider_OnLoad(slider)
 
     slider.thumb = slider:CreateTexture(nil, "ARTWORK")
     slider.thumb:SetSize(11, 11)
-    slider.thumb:SetColorTexture(private.interface.colors.light:GetRGBA())
+    slider.thumb:SetColorTexture(private.interface.colors.lighter:GetRGBA())
     slider:SetThumbTexture(slider.thumb)
 
     -- -- Methods
