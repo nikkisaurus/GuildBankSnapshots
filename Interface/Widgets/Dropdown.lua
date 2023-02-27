@@ -177,10 +177,12 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             if enabled then
                 local info = dropdown:GetInfo(selectedID)
 
-                if not text then
-                    text = info.text
-                else
-                    text = text .. ", " .. info.text
+                if info then
+                    if not text then
+                        text = info.text
+                    else
+                        text = text .. ", " .. info.text
+                    end
                 end
             end
         end

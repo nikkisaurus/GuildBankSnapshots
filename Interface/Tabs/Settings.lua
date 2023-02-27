@@ -210,7 +210,11 @@ callbacks = {
     deleteGuild = {
         OnClick = {
             function(self)
-                print("DELETE")
+                if private.db.global.preferences.defaultGuild == SettingsTab.guildKey then
+                    private.db.global.preferences.defaultGuild = nil
+                end
+                private.db.global.guilds[SettingsTab.guildKey] = nil
+                SettingsTab.guildKey = nil
                 private:LoadFrame("Settings")
             end,
         },
