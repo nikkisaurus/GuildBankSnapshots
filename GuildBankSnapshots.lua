@@ -27,6 +27,7 @@ function addon:OnInitialize()
     private:InitializeInterface()
     private:InitializeFrame()
     private:InitializeScanner()
+    private:CleanupDatabase()
 end
 
 function addon:SlashCommandFunc(input)

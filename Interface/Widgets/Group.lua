@@ -58,8 +58,11 @@ function GuildBankSnapshotsGroup_OnLoad(group)
                 usedWidth = usedWidth + self.spacing + childWidth
                 maxChildHeight = max(maxChildHeight, childHeight)
             end
+            self:SetHeight(usedHeight + childHeight + self.spacing * 2) -- see note below
         end
 
+        -- Need to set height in case this group is nested in another group; it needs an explicitly set height in order to properly layout its children
+        self:SetHeight(self:GetHeight() + self.heightPadding)
         self:MarkDirty()
     end
 

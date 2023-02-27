@@ -2,33 +2,40 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-function private:CleanupDatabase()
+local pendingRemoval = {}
+function private:CleanupDatabase(guild)
     private:DeleteCorruptedScans()
 
     -- Delete scans by age
     for guildKey, guildInfo in pairs(private.db.global.guilds) do
-        for scanID, _ in addon:pairs(guildInfo.scans) do
+        if not guild or guildKey == guild then
             local autoCleanupSettings = guildInfo.settings.autoCleanup
+
             if autoCleanupSettings.age.enabled then
                 -- Convert age to seconds
-                local age = autoCleanupSettings.age.measure * private.unitsToSeconds[autoCleanupSettings.age.unit]
+                local age = autoCleanupSettings.age.measure * private.timeInSeconds[autoCleanupSettings.age.unit]
+                local ageLimit = time() - age
 
-                -- Delete scans
-                if scanID < time() - age then
-                    private.db.global.guilds[guildKey].scans[scanID] = nil
+                for scanID, _ in addon:pairs(guildInfo.scans) do
+                    -- Delete scans
+                    if scanID < ageLimit then
+                        private.db.global.guilds[guildKey].scans[scanID] = nil
+                    end
+                end
+
+                wipe(pendingRemoval)
+                for id, info in addon:pairs(guildInfo.masterScan) do
+                    if info and info.scanID < ageLimit then
+                        pendingRemoval[id] = true
+                    end
+                end
+
+                for id, _ in addon:pairs(pendingRemoval, private.sortDesc) do
+                    tremove(private.db.global.guilds[guildKey].masterScan, id)
                 end
             end
         end
     end
-
-    -- TODO
-    -- -- Clear selected scans that have been deleted
-    -- if private.analyze.scan and not private.db.global.guilds[private.analyze.guildKey].scans[private.analyze.scan[1]] then
-    --     private:SelectAnalyzeScan()
-    -- end
-    -- if private.review.scan and not private.db.global.guilds[private.review.guildKey].scans[private.review.scan] then
-    --     private:SelectReviewScan()
-    -- end
 end
 
 function private:DeleteCorruptedScans(lastScan)
@@ -77,6 +84,19 @@ function private:DeleteCorruptedScans(lastScan)
                 if corruptItems or empty == (guildInfo.numTabs or MAX_GUILDBANK_TABS) + 1 or (scan.totalMoney == 0 and addon:tcount(scan.tabs) == 0 and addon:tcount(scan.moneyTransactions) == 0) or addon:tcount(scan.tabs) ~= (guildInfo.numTabs or MAX_GUILDBANK_TABS) then
                     lastScanCorrupted = scanID == lastScan
                     private.db.global.guilds[guildKey].scans[scanID] = nil
+
+                    -- Remove transactions from masterScan
+                    wipe(pendingRemoval)
+                    for id, info in addon:pairs(guildInfo.masterScan) do
+                        if info and info.scanID == scanID then
+                            pendingRemoval[id] = true
+                        end
+                    end
+
+                    for id, _ in addon:pairs(pendingRemoval, private.sortDesc) do
+                        print(scanID, id)
+                        tremove(private.db.global.guilds[guildKey].masterScan, id)
+                    end
                 end
             end
         end

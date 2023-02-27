@@ -171,40 +171,32 @@ DrawGroup = function(groupType, group)
 
         autoScanGroup:AddChild(spacer)
 
-        local measure = autoScanGroup:Acquire("GuildBankSnapshotsSliderFrame")
-        measure:SetSize(150, 50)
-        measure:SetBackdropColor(private.interface.colors.darker)
-        measure:SetLabel(L["Frequency Measure"])
-        measure:SetLabelFont(nil, private:GetInterfaceFlairColor())
-        measure:SetMinMaxValues(1, 59, 1)
-        measure:ForwardCallbacks({
-            OnEnter = {
-                function(self)
-                    self:ShowTooltip(nil, function()
-                        GameTooltip:AddLine(L["Determines the frequency at which auto scans are allowed to run"])
-                    end)
-                end,
-            },
-            OnLeave = { GenerateClosure(private.HideTooltip, private) },
-            OnValueChanged = {
-                function(self, ...)
-                    private.db.global.guilds[guildKey].settings.autoScan.frequency.measure = self:GetValue()
+        -- local frequencyMeasure = autoScanGroup:Acquire("GuildBankSnapshotsSliderFrame")
+        -- frequencyMeasure:SetSize(150, 50)
+        -- frequencyMeasure:SetBackdropColor(private.interface.colors.darker)
+        -- frequencyMeasure:SetLabel(L["Allow auto scan every"] .. ":")
+        -- frequencyMeasure:SetMinMaxValues(1, 59, 1)
+        -- frequencyMeasure:ForwardCallbacks({
+        --     -- OnValueChanged = {
+        --     --     function(self, value, userInput)
+        --     --         if userInput then
+        --     --             private.db.global.guilds[guildKey].settings.autoScan.frequency.measure = value
+        --     --         end
+        --     --         if SettingsTab.frequencyUnit then
+        --     --             SettingsTab.frequencyUnit:SelectByID(private.db.global.guilds[guildKey].settings.autoScan.frequency.unit)
+        --     --         end
+        --     --     end,
+        --     -- },
+        -- })
+        -- frequencyMeasure:SetCallback("OnShow", function(self)
+        --     self:SetValue(private.db.global.guilds[guildKey].settings.autoScan.frequency.measure)
+        -- end, true)
 
-                    SettingsTab.frequencyUnit:SelectByID(private.db.global.guilds[guildKey].settings.autoScan.frequency.unit)
-                end,
-            },
-        })
-        measure:SetCallback("OnShow", function(self)
-            self:SetValue(private.db.global.guilds[guildKey].settings.autoScan.frequency.measure)
-        end, true)
+        -- autoScanGroup:AddChild(frequencyMeasure)
 
-        autoScanGroup:AddChild(measure)
-
-        local unit = autoScanGroup:Acquire("GuildBankSnapshotsDropdownFrame")
-        unit:SetWidth(100)
-        unit:SetLabel(L["Frequency Unit"])
-        unit:SetLabelFont(nil, private:GetInterfaceFlairColor())
-        unit:SetInfo(function()
+        local frequencyUnit = autoScanGroup:Acquire("GuildBankSnapshotsDropdownFrame")
+        frequencyUnit:SetWidth(100)
+        frequencyUnit:SetInfo(function()
             local info = {}
 
             for id, unit in addon:pairs(GetUnits(private.db.global.guilds[guildKey].settings.autoScan.frequency.measure)) do
@@ -220,14 +212,144 @@ DrawGroup = function(groupType, group)
             return info
         end)
 
-        unit:SetCallback("OnShow", function(self)
+        frequencyUnit:SetCallback("OnShow", function(self)
             self:SelectByID(private.db.global.guilds[guildKey].settings.autoScan.frequency.unit)
         end, true)
 
-        SettingsTab.frequencyUnit = unit
-        autoScanGroup:AddChild(unit)
+        SettingsTab.frequencyUnit = frequencyUnit
+        autoScanGroup:AddChild(frequencyUnit)
 
         autoScanGroup:DoLayout()
+
+        local autoCleanupHeader = group:Acquire("GuildBankSnapshotsFontFrame")
+        autoCleanupHeader:SetPoint("TOPLEFT", autoScanGroup, "BOTTOMLEFT", 0, -10)
+        autoCleanupHeader.width = "full"
+        autoCleanupHeader:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
+        autoCleanupHeader:Justify("LEFT")
+        autoCleanupHeader:SetText(L["Auto Cleanup"])
+
+        group:AddChild(autoCleanupHeader)
+
+        local autoCleanupGroup = group:Acquire("GuildBankSnapshotsGroup")
+        autoCleanupGroup.width = "full"
+        autoCleanupGroup:SetWidth(group:GetWidth()) -- have to explicitly set width or its children won't layout properly
+        autoCleanupGroup:SetPadding(10, 10)
+        autoCleanupGroup:SetSpacing(5)
+        private:AddBackdrop(autoCleanupGroup, { bgColor = "dark" })
+
+        group:AddChild(autoCleanupGroup)
+
+        local corrupted = autoCleanupGroup:Acquire("GuildBankSnapshotsCheckButton")
+        corrupted:SetText(L["Delete corrupted scans"], true)
+        corrupted:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.autoCleanup.corrupted = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.autoCleanup.corrupted, true)
+                end,
+                true,
+            },
+        })
+
+        autoCleanupGroup:AddChild(corrupted)
+
+        local ageEnabled = autoCleanupGroup:Acquire("GuildBankSnapshotsCheckButton")
+        ageEnabled:SetText(L["Delete old scans"], true)
+        ageEnabled:SetCallbacks({
+            OnClick = {
+                function(self)
+                    private.db.global.guilds[guildKey].settings.autoCleanup.age.enabled = self:GetChecked()
+                end,
+            },
+            OnShow = {
+                function(self)
+                    self:SetCheckedState(private.db.global.guilds[guildKey].settings.autoCleanup.age.enabled, true)
+                end,
+                true,
+            },
+        })
+
+        autoCleanupGroup:AddChild(ageEnabled)
+
+        spacer = autoCleanupGroup:Acquire("GuildBankSnapshotsFontFrame")
+        spacer.width = "full"
+        spacer:SetHeight(1)
+
+        autoCleanupGroup:AddChild(spacer)
+
+        -- local ageMeasure = autoCleanupGroup:Acquire("GuildBankSnapshotsSliderFrame")
+        -- ageMeasure:SetSize(150, 50)
+        -- ageMeasure:SetBackdropColor(private.interface.colors.darker)
+        -- ageMeasure:SetLabel(L["Delete scans older than"] .. ":")
+        -- ageMeasure:SetMinMaxValues(1, 59, 1)
+        -- ageMeasure:ForwardCallbacks({
+        --     -- OnValueChanged = {
+        --     --     function(self, value, userInput)
+        --     --         if userInput then
+        --     --             private.db.global.guilds[guildKey].settings.autoCleanup.age.measure = value
+        --     --         end
+        --     --         if SettingsTab.ageUnit then
+        --     --             SettingsTab.ageUnit:SelectByID(private.db.global.guilds[guildKey].settings.autoCleanup.age.unit)
+        --     --         end
+        --     --     end,
+        --     -- },
+        -- })
+        -- ageMeasure:SetCallback("OnShow", function(self)
+        --     self:SetValue(private.db.global.guilds[guildKey].settings.autoCleanup.age.measure)
+        -- end, true)
+
+        -- autoCleanupGroup:AddChild(ageMeasure)
+
+        local ageUnit = autoCleanupGroup:Acquire("GuildBankSnapshotsDropdownFrame")
+        ageUnit:SetWidth(100)
+        ageUnit:SetInfo(function()
+            local info = {}
+
+            for id, unit in addon:pairs(GetUnits(private.db.global.guilds[guildKey].settings.autoCleanup.age.measure)) do
+                tinsert(info, {
+                    id = id,
+                    text = unit,
+                    func = function()
+                        private.db.global.guilds[guildKey].settings.autoCleanup.age.unit = id
+                    end,
+                })
+            end
+
+            return info
+        end)
+
+        ageUnit:SetCallbacks({
+            OnShow = {
+                function(self)
+                    self:SelectByID(private.db.global.guilds[guildKey].settings.autoCleanup.age.unit)
+                end,
+                true,
+            },
+        })
+
+        SettingsTab.ageUnit = ageUnit
+        autoCleanupGroup:AddChild(ageUnit)
+
+        spacer = autoCleanupGroup:Acquire("GuildBankSnapshotsFontFrame")
+        spacer.width = "full"
+        spacer:SetHeight(1)
+
+        autoCleanupGroup:AddChild(spacer)
+
+        local cleanup = autoCleanupGroup:Acquire("GuildBankSnapshotsButton")
+        cleanup:SetText(L["Cleanup"])
+        cleanup:SetCallback("OnClick", function(self)
+            private:CleanupDatabase(guildKey)
+            addon:Print(L["Cleanup finished."])
+        end)
+
+        autoCleanupGroup:AddChild(cleanup)
+
+        autoCleanupGroup:DoLayout()
     elseif groupType == "preferences" then
         local useClassColor = group:Acquire("GuildBankSnapshotsCheckButton")
         useClassColor:SetText(L["Use class color"])
@@ -416,25 +538,34 @@ DrawGroup = function(groupType, group)
         delay:SetLabel(L["Scan Delay"])
         delay:SetLabelFont(nil, private:GetInterfaceFlairColor())
         delay:SetMinMaxValues(0, 5, 0.1, 1)
-        delay:ForwardCallbacks({
-            OnEnter = {
+        delay:SetTooltipInitializer(function()
+            GameTooltip:AddLine(L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"])
+            GameTooltip:AddLine(L["Increasing this delay may help reduce corrupt scans"])
+        end)
+        -- delay:ForwardCallbacks({
+        --     OnEnter = {
+        --         function(self)
+        --             self:ShowTooltip(nil, function()
+        --                 GameTooltip:AddLine(L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"])
+        --                 GameTooltip:AddLine(L["Increasing this delay may help reduce corrupt scans"])
+        --             end)
+        --         end,
+        --     },
+        --     OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        -- })
+        delay:SetCallbacks({
+            OnShow = {
                 function(self)
-                    self:ShowTooltip(nil, function()
-                        GameTooltip:AddLine(L["Determines the amount of time (in seconds) between querying the guild bank transaction logs and saving the scan"])
-                        GameTooltip:AddLine(L["Increasing this delay may help reduce corrupt scans"])
-                    end)
+                    self:SetValue(private.db.global.preferences.delay)
                 end,
+                true,
             },
-            OnLeave = { GenerateClosure(private.HideTooltip, private) },
-            OnValueChanged = {
-                function(self, ...)
-                    private.db.global.preferences.delay = self:GetValue()
+            OnSliderValueChanged = {
+                function(self, value)
+                    private.db.global.preferences.delay = value
                 end,
             },
         })
-        delay:SetCallback("OnShow", function(self)
-            self:SetValue(private.db.global.preferences.delay)
-        end, true)
 
         group:AddChild(delay)
     elseif groupType == "commands" then

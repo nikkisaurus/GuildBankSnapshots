@@ -41,11 +41,11 @@
         </Scripts>
     </Button>
 
-    <Frame name="GuildBankSnapshotsDualSlider" virtual="true">
+    <!-- <Frame name="GuildBankSnapshotsDualSlider" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsDualSlider_OnLoad" />
         </Scripts>
-    </Frame>
+    </Frame> -->
 
     <EditBox name="GuildBankSnapshotsEditBox" virtual="true">
         <Scripts>

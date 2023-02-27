@@ -122,6 +122,7 @@ local WidgetMixin = {}
 local validScripts = {
     OnClear = true,
     OnRelease = true,
+    OnSliderValueChanged = true,
 }
 
 function WidgetMixin:ClearBackdrop()
@@ -216,13 +217,22 @@ end
 
 function WidgetMixin:SetCallbacks(callbacks)
     for script, args in pairs(callbacks) do
+        assert(type(args) == "table", "WidgetMixin: ensure callback function is wrapped in args table")
         self:SetCallback(script, unpack(args))
     end
 end
 
-function WidgetMixin:ShowTooltip(anchor, callback)
-    assert(type(callback) == "function", "WidgetMixin: ShowTooltip callback must be a function")
-    private:InitializeTooltip(self, anchor or "ANCHOR_RIGHT", callback)
+function WidgetMixin:ShowTooltip()
+    local tooltip = self.tooltip
+    if not tooltip then
+        return
+    end
+
+    if type(tooltip) ~= "function" then
+        tooltip = GenerateClosure(GameTooltip.AddLine, GameTooltip, tooltip)
+    end
+
+    private:InitializeTooltip(self, self.anchor or "ANCHOR_RIGHT", tooltip)
 end
 
 function WidgetMixin:UnregisterCallback(script)
@@ -256,7 +266,7 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownButton", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsDropdownFrame", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsDropdownListButton", Resetter)
-    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsDualSlider", Resetter)
+    -- tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsDualSlider", Resetter)
     tbl.pool:CreatePool("EditBox", parent or tbl, "GuildBankSnapshotsEditBox", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsEditBoxFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsFontFrame", Resetter)

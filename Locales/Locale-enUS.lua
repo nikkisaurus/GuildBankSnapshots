@@ -232,3 +232,7 @@ L["Shows the review frame after the bank auto scans"] = true
 L["Limit auto scans"] = true
 L["Limits the number of auto scans allowed to run in a specified time period"] = true
 L["Determines the frequency at which auto scans are allowed to run"] = true
+L["Determines how far back scans are saved"] = true
+L["Example: if this is set to 30 days, all scans older than 30 days will be deleted"] = true
+L["Delete old scans"] = true
+L["Allow auto scan every"] = true
