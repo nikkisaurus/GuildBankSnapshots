@@ -20,7 +20,6 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
     dropdown:InitScripts({
         OnAcquire = function(self)
-            self:SetSize(150, 20)
             self.arrow:SetSize(20, 20)
             self.text:SetHeight(20)
             self:SetButtonHidden(false)
@@ -30,6 +29,8 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             self:SetBackdropColor(private.interface.colors.dark)
             self.arrow:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
             self:SetText("")
+
+            self:SetSize(150, 20)
         end,
 
         OnClick = function(self)
@@ -171,8 +172,6 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:UpdateText()
-        self:SetText("")
-
         local text
         for selectedID, enabled in addon:pairs(self.selected) do
             if enabled then
@@ -186,7 +185,9 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             end
         end
 
-        self:SetText(text)
+        if text then
+            self:SetText(text)
+        end
     end
 end
 

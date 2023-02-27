@@ -20,8 +20,8 @@ callbacks = {
     container = {
         OnSizeChanged = {
             function()
-                DrawGroup("guild", SettingsTab.guildGroup)
                 DrawGroup("preferences", SettingsTab.preferencesGroup)
+                DrawGroup("guild", SettingsTab.guildGroup)
                 DrawGroup("commands", SettingsTab.commandsGroup)
             end,
             true,
@@ -196,6 +196,22 @@ callbacks = {
             function(self)
                 private:CleanupDatabase(SettingsTab.guildKey)
                 addon:Print(L["Cleanup finished."])
+            end,
+        },
+    },
+    copySettings = {
+        OnShow = {
+            function(self)
+                self:SetText(L["Copy settings from"])
+            end,
+            true,
+        },
+    },
+    deleteGuild = {
+        OnClick = {
+            function(self)
+                print("DELETE")
+                private:LoadFrame("Settings")
             end,
         },
     },
@@ -615,14 +631,17 @@ DrawGroup = function(groupType, group)
 
         -----------------------
 
-        local copySettings = group:Acquire("GuildBankSnapshotsDropdownFrame")
+        local copySettings = group:Acquire("GuildBankSnapshotsDropdownButton")
         copySettings:SetWidth(200)
-        copySettings:SetLabel(L["Copy Settings"])
-        copySettings:SetTooltipInitializer(L["Copy settings from another guild"])
-        copySettings:SetLabelFont(nil, private:GetInterfaceFlairColor())
         copySettings:SetStyle({ hasCheckBox = false })
         copySettings:SetInfo(info.copySettings)
+        copySettings:SetCallbacks(callbacks.copySettings)
         group:AddChild(copySettings)
+
+        local deleteGuild = group:Acquire("GuildBankSnapshotsButton")
+        deleteGuild:SetText(L["Delete Guild"])
+        deleteGuild:SetCallbacks(callbacks.deleteGuild)
+        group:AddChild(deleteGuild)
     elseif groupType == "preferences" then
         local useClassColor = group:Acquire("GuildBankSnapshotsCheckButton")
         useClassColor:SetText(L["Use class color"])
@@ -725,23 +744,8 @@ function private:LoadSettingsTab(content, guildKey)
     container:SetAllPoints(content)
     SettingsTab.container = container
 
-    local selectGuild = container.content:Acquire("GuildBankSnapshotsDropdownButton")
-    selectGuild:SetPoint("TOPLEFT", 10, 0)
-    selectGuild:SetSize(250, 20)
-    selectGuild:SetBackdropColor(private.interface.colors.darker)
-    selectGuild:SetText(L["Select a guild"])
-    selectGuild:SetInfo(info.selectGuild)
-
-    local guildGroup = container.content:Acquire("GuildBankSnapshotsGroup")
-    guildGroup.bg, guildGroup.border = private:AddBackdrop(guildGroup, { bgColor = "darker" })
-    guildGroup:SetPoint("TOPLEFT", selectGuild, "BOTTOMLEFT", 0, 0)
-    guildGroup:SetPoint("TOPRIGHT", -10, 0)
-    guildGroup:SetPadding(10, 10)
-    guildGroup:SetSpacing(5)
-    SettingsTab.guildGroup = guildGroup
-
     local preferencesHeader = container.content:Acquire("GuildBankSnapshotsFontFrame")
-    preferencesHeader:SetPoint("TOPLEFT", guildGroup, "BOTTOMLEFT", 0, -10)
+    preferencesHeader:SetPoint("TOPLEFT", 10, 0)
     preferencesHeader:SetPoint("TOPRIGHT", -10, 0)
     preferencesHeader:SetHeight(20)
     preferencesHeader:SetText(L["Preferences"])
@@ -756,8 +760,23 @@ function private:LoadSettingsTab(content, guildKey)
     preferencesGroup:SetSpacing(5)
     SettingsTab.preferencesGroup = preferencesGroup
 
+    local selectGuild = container.content:Acquire("GuildBankSnapshotsDropdownButton")
+    selectGuild:SetPoint("TOPLEFT", preferencesGroup, "BOTTOMLEFT", 0, -10)
+    selectGuild:SetSize(250, 20)
+    selectGuild:SetBackdropColor(private.interface.colors.darker)
+    selectGuild:SetText(L["Select a guild"])
+    selectGuild:SetInfo(info.selectGuild)
+
+    local guildGroup = container.content:Acquire("GuildBankSnapshotsGroup")
+    guildGroup.bg, guildGroup.border = private:AddBackdrop(guildGroup, { bgColor = "darker" })
+    guildGroup:SetPoint("TOPLEFT", selectGuild, "BOTTOMLEFT", 0, 0)
+    guildGroup:SetPoint("TOPRIGHT", -10, 0)
+    guildGroup:SetPadding(10, 10)
+    guildGroup:SetSpacing(5)
+    SettingsTab.guildGroup = guildGroup
+
     local commandsHeader = container.content:Acquire("GuildBankSnapshotsFontFrame")
-    commandsHeader:SetPoint("TOPLEFT", preferencesGroup, "BOTTOMLEFT", 0, -10)
+    commandsHeader:SetPoint("TOPLEFT", guildGroup, "BOTTOMLEFT", 0, -10)
     commandsHeader:SetPoint("TOPRIGHT", -10, 0)
     commandsHeader:SetHeight(20)
     commandsHeader:SetText(L["Commands"])
