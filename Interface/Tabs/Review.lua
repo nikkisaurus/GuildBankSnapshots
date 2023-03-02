@@ -791,7 +791,6 @@ DrawSidebarFilters = function(content, height)
     clearFilters:SetPoint("TOPLEFT", 5, -height)
     clearFilters:SetPoint("RIGHT", -5, 0)
     clearFilters:SetText(L["Clear Filters"])
-    clearFilters:SetFont(nil, private:GetInterfaceFlairColor())
     clearFilters:SetCallbacks(callbacks.clearFilters)
     height = height + clearFilters:GetHeight() + 5
 
