@@ -143,6 +143,22 @@ callbacks = {
             true,
         },
     },
+    renameLoadout = {
+        OnShow = {
+            function(self)
+                self:SetDisabled(#self:GetInfo() == 0)
+            end,
+            true,
+        },
+    },
+    deleteLoadout = {
+        OnShow = {
+            function(self)
+                self:SetDisabled(#self:GetInfo() == 0)
+            end,
+            true,
+        },
+    },
     autoCleanupCorrupted = {
         OnClick = {
             function(self)
@@ -315,6 +331,13 @@ forwardCallbacks = {
             end,
         },
     },
+    deleteLoadout = {
+        OnClear = {
+            function(self)
+                self:SetDisabled(#self:GetInfo() == 0)
+            end,
+        },
+    },
 }
 
 info = {
@@ -358,6 +381,66 @@ info = {
                 text = unit,
                 func = function()
                     private.db.global.guilds[SettingsTab.guildKey].settings.autoScan.frequency.unit = id
+                end,
+            })
+        end
+
+        return info
+    end,
+    renameLoadout = function()
+        local info = {}
+
+        for loadoutID, loadout in addon:pairs(private.db.global.guilds[SettingsTab.guildKey].filters) do
+            tinsert(info, {
+                id = loadoutID,
+                text = loadoutID,
+                func = function(dropdown)
+                    local function onAccept(input, SettingsTab, loadoutID, dropdown)
+                        dropdown:Clear()
+
+                        -- Make sure this doesn't already exist
+                        if private.db.global.guilds[SettingsTab.guildKey].filters[input] then
+                            addon:Printf(L["Filter loadout '%s' already exists for %s. Please supply a unique loadout name."], input, SettingsTab.guildKey)
+                            return
+                        end
+
+                        private.db.global.guilds[SettingsTab.guildKey].filters[input] = addon:CloneTable(private.db.global.guilds[SettingsTab.guildKey].filters[loadoutID])
+                        private.db.global.guilds[SettingsTab.guildKey].filters[loadoutID] = nil
+                    end
+
+                    local function onCancel(dropdown)
+                        dropdown:Clear()
+                    end
+
+                    private:ShowInputDialog(nil, onAccept, onCancel, { SettingsTab, loadoutID, dropdown }, { dropdown })
+                end,
+            })
+        end
+
+        return info
+    end,
+    deleteLoadout = function()
+        local info = {}
+
+        for loadoutID, loadout in addon:pairs(private.db.global.guilds[SettingsTab.guildKey].filters) do
+            tinsert(info, {
+                id = loadoutID,
+                text = loadoutID,
+                func = function(dropdown)
+                    local function onAccept(SettingsTab, loadoutID, dropdown)
+                        private.db.global.guilds[SettingsTab.guildKey].filters[loadoutID] = nil
+                        dropdown:Clear()
+
+                        local numButtons = #dropdown:GetInfo()
+                        dropdown:SetDisabled(numButtons == 0)
+                        SettingsTab.renameLoadout:SetDisabled(numButtons == 0)
+                    end
+
+                    local function onCancel(dropdown)
+                        dropdown:Clear()
+                    end
+
+                    private:ShowConfirmationDialog(format(L["Are you sure you want to delete the loadout '%s' from '%s'? This action is irreversible."], loadoutID, SettingsTab.guildKey), onAccept, onCancel, { SettingsTab, loadoutID, dropdown }, { dropdown })
                 end,
             })
         end
@@ -573,6 +656,46 @@ DrawGroup = function(groupType, group)
         autoScanGroup:AddChild(autoScanFrequencyUnit)
 
         autoScanGroup:DoLayout()
+
+        -----------------------
+
+        local loadoutHeader = group:Acquire("GuildBankSnapshotsFontFrame")
+        loadoutHeader:SetUserData("width", "full")
+        loadoutHeader:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
+        loadoutHeader:Justify("LEFT")
+        loadoutHeader:SetText(L["Filter Loadouts"])
+        group:AddChild(loadoutHeader)
+
+        local loadoutGroup = group:Acquire("GuildBankSnapshotsGroup")
+        loadoutGroup:SetUserData("width", "full")
+        loadoutGroup:SetWidth(group:GetWidth()) -- have to explicitly set width or its children won't layout properly
+        loadoutGroup:SetPadding(10, 10)
+        loadoutGroup:SetSpacing(5)
+        loadoutGroup.bg, loadoutGroup.border = private:AddBackdrop(loadoutGroup, { bgColor = "dark" })
+        group:AddChild(loadoutGroup)
+
+        local renameLoadout = loadoutGroup:Acquire("GuildBankSnapshotsDropdownFrame")
+        renameLoadout:SetWidth(200)
+        renameLoadout:SetLabel(L["Rename"])
+        renameLoadout:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        renameLoadout:SetStyle({ hasSearch = true, hasCheckBox = false })
+        renameLoadout:SetInfo(info.renameLoadout)
+        -- renameLoadout:ForwardCallbacks(forwardCallbacks.renameLoadout)
+        renameLoadout:SetCallbacks(callbacks.renameLoadout)
+        SettingsTab.renameLoadout = renameLoadout
+        loadoutGroup:AddChild(renameLoadout)
+
+        local deleteLoadout = loadoutGroup:Acquire("GuildBankSnapshotsDropdownFrame")
+        deleteLoadout:SetWidth(200)
+        deleteLoadout:SetLabel(L["Delete"])
+        deleteLoadout:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        deleteLoadout:SetStyle({ hasSearch = true, hasCheckBox = false })
+        deleteLoadout:SetInfo(info.deleteLoadout)
+        deleteLoadout:ForwardCallbacks(forwardCallbacks.deleteLoadout)
+        deleteLoadout:SetCallbacks(callbacks.deleteLoadout)
+        loadoutGroup:AddChild(deleteLoadout)
+
+        loadoutGroup:DoLayout()
 
         -----------------------
 
