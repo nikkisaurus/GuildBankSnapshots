@@ -37,6 +37,24 @@ callbacks = {
             true,
         },
     },
+    header = {
+        OnClick = {
+            function(self)
+                local colID = self:GetUserData("colID")
+                local sortID = addon:GetTableKey(private.db.global.preferences.sortHeaders, colID)
+
+                if sortID == 1 then
+                    private.db.global.preferences.descendingHeaders[colID] = not private.db.global.preferences.descendingHeaders[colID]
+                else
+                    tremove(private.db.global.preferences.sortHeaders, sortID)
+                    tinsert(private.db.global.preferences.sortHeaders, 1, colID)
+                end
+
+                DrawSidebar()
+                ReviewTab.tableContainer.scrollBox:GetDataProvider():Sort()
+            end,
+        },
+    },
     row = {
         OnEnter = {
             function(self)
@@ -1020,11 +1038,14 @@ DrawTableHeaders = function(self)
 
     local width = 0
     for colID, col in addon:pairs(tableCols) do
-        local header = self:Acquire("GuildBankSnapshotsFontFrame")
+        local header = self:Acquire("GuildBankSnapshotsButton")
+        header:SetBackdropColor(private.interface.colors.darker, private.interface.colors.dark)
         header:SetPadding(4, 4)
         header:SetText(col.header)
         header:SetSize(self:GetWidth() / addon:tcount(tableCols) * col.width, self:GetHeight())
         header:SetPoint("LEFT", width, 0)
+        header:SetUserData("colID", colID)
+        header:SetCallbacks(callbacks.header)
         width = width + header:GetWidth()
     end
 end
