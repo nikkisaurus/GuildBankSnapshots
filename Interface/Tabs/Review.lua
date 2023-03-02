@@ -306,13 +306,6 @@ forwardCallbacks = {
             end,
         },
     },
-    deleteScan = {
-        OnClear = {
-            function(self)
-                self:SetText("")
-            end,
-        },
-    },
 }
 
 info = {
@@ -1336,7 +1329,7 @@ function private:LoadReviewTab(content, guildKey)
     local selectGuild = content:Acquire("GuildBankSnapshotsDropdownButton")
     selectGuild:SetPoint("TOPLEFT", 10, -10)
     selectGuild:SetSize(250, 20)
-    selectGuild:SetText(L["Select a guild"])
+    selectGuild:SetDefaultText(L["Select a guild"])
     selectGuild:SetBackdropColor(private.interface.colors.darker)
     selectGuild:SetInfo(info.selectGuild)
     ReviewTab.selectGuild = selectGuild

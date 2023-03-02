@@ -199,19 +199,6 @@ callbacks = {
             end,
         },
     },
-    copySettings = {
-        OnClear = {
-            function(self)
-                self:SetText(L["Copy settings from"])
-            end,
-        },
-        OnShow = {
-            function(self)
-                self:SetText(L["Copy settings from"])
-            end,
-            true,
-        },
-    },
     deleteGuild = {
         OnClick = {
             function(self)
@@ -656,7 +643,7 @@ DrawGroup = function(groupType, group)
         copySettings:SetWidth(200)
         copySettings:SetStyle({ hasCheckBox = false })
         copySettings:SetInfo(info.copySettings)
-        copySettings:SetCallbacks(callbacks.copySettings)
+        copySettings:SetDefaultText(L["Copy settings from"])
         group:AddChild(copySettings)
 
         local deleteGuild = group:Acquire("GuildBankSnapshotsButton")
@@ -700,6 +687,7 @@ DrawGroup = function(groupType, group)
         defaultGuild:SetLabel(L["Default Guild"] .. "*")
         defaultGuild:SetLabelFont(nil, private:GetInterfaceFlairColor())
         defaultGuild:SetTooltipInitializer(L["Will not take effect until after a reload"])
+        defaultGuild:SetDefaultText(L["Select a guild"])
         defaultGuild:SetStyle({ hasClear = true })
         defaultGuild:SetInfo(info.defaultGuild)
         defaultGuild:ForwardCallbacks(forwardCallbacks.defaultGuild)
@@ -785,7 +773,7 @@ function private:LoadSettingsTab(content, guildKey)
     selectGuild:SetPoint("TOPLEFT", preferencesGroup, "BOTTOMLEFT", 0, -10)
     selectGuild:SetSize(250, 20)
     selectGuild:SetBackdropColor(private.interface.colors.darker)
-    selectGuild:SetText(L["Select a guild"])
+    selectGuild:SetDefaultText(L["Select a guild"])
     selectGuild:SetInfo(info.selectGuild)
 
     local guildGroup = container.content:Acquire("GuildBankSnapshotsGroup")

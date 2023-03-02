@@ -140,6 +140,11 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end
     end
 
+    function dropdown:SetDefaultText(text)
+        self:SetUserData("defaultText", text)
+        self:UpdateText()
+    end
+
     function dropdown:SetDisabled(isDisabled)
         self.disabled = isDisabled
         if isDisabled then
@@ -172,6 +177,8 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:UpdateText()
+        self:SetText(self:GetUserData("defaultText") or "")
+
         local text
         for selectedID, enabled in addon:pairs(self.selected) do
             if enabled then
@@ -259,6 +266,10 @@ function GuildBankSnapshotsDropdownFrame_OnLoad(frame)
 
     function frame:SelectByID(...)
         self.dropdown:SelectByID(...)
+    end
+
+    function frame:SetDefaultText(...)
+        self.dropdown:SetDefaultText(...)
     end
 
     function frame:SetDisabled(...)
