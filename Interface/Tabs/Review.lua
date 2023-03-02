@@ -1010,7 +1010,6 @@ DrawSidebarTools = function(content, height)
     deleteScan:Justify("LEFT")
     deleteScan:SetStyle({ hasCheckBox = false })
     deleteScan:SetInfo(info.deleteScan)
-    deleteScan:ForwardCallbacks(forwardCallbacks.deleteScan)
     height = height + deleteScan:GetHeight() + 5
 
     return height

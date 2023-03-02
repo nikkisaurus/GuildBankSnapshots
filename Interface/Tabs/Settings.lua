@@ -22,7 +22,6 @@ callbacks = {
             function()
                 DrawGroup("preferences", SettingsTab.preferencesGroup)
                 DrawGroup("guild", SettingsTab.guildGroup)
-                DrawGroup("commands", SettingsTab.commandsGroup)
             end,
             true,
         },
@@ -834,15 +833,34 @@ DrawGroup = function(groupType, group)
         delay:SetTooltipInitializer(tooltips.delay)
         delay:SetCallbacks(callbacks.delay)
         group:AddChild(delay)
-    elseif groupType == "commands" then
+
+        -----------------------
+
+        local commandsHeader = group:Acquire("GuildBankSnapshotsFontFrame")
+        commandsHeader:SetUserData("width", "full")
+        commandsHeader:SetTextColor(private:GetInterfaceFlairColor():GetRGBA())
+        commandsHeader:Justify("LEFT")
+        commandsHeader:SetText(L["Commands"])
+        group:AddChild(commandsHeader)
+
+        local commandsGroup = group:Acquire("GuildBankSnapshotsGroup")
+        commandsGroup:SetUserData("width", "full")
+        commandsGroup:SetWidth(group:GetWidth()) -- have to explicitly set width or its children won't layout properly
+        commandsGroup:SetPadding(10, 10)
+        commandsGroup:SetSpacing(5)
+        commandsGroup.bg, commandsGroup.border = private:AddBackdrop(commandsGroup, { bgColor = "dark" })
+        group:AddChild(commandsGroup)
+
         for cmd, info in pairs(private.db.global.commands) do
             if cmd ~= "gbs" then
-                local command = group:Acquire("GuildBankSnapshotsCheckButton")
+                local command = commandsGroup:Acquire("GuildBankSnapshotsCheckButton")
                 command:SetText("/" .. cmd, true)
                 command:SetCallbacks(callbacks.command)
-                group:AddChild(command)
+                commandsGroup:AddChild(command)
             end
         end
+
+        commandsGroup:DoLayout()
     end
 
     group:DoLayout()
@@ -895,7 +913,7 @@ function private:LoadSettingsTab(content, guildKey)
     local selectGuild = container.content:Acquire("GuildBankSnapshotsDropdownButton")
     selectGuild:SetPoint("TOPLEFT", preferencesGroup, "BOTTOMLEFT", 0, -10)
     selectGuild:SetSize(250, 20)
-    selectGuild:SetBackdropColor(private.interface.colors.darker)
+    selectGuild:SetBackdropColor(private.interface.colors.dark)
     selectGuild:SetDefaultText(L["Select a guild"])
     selectGuild:SetInfo(info.selectGuild)
 
@@ -907,24 +925,8 @@ function private:LoadSettingsTab(content, guildKey)
     guildGroup:SetSpacing(5)
     SettingsTab.guildGroup = guildGroup
 
-    local commandsHeader = container.content:Acquire("GuildBankSnapshotsFontFrame")
-    commandsHeader:SetPoint("TOPLEFT", guildGroup, "BOTTOMLEFT", 0, -10)
-    commandsHeader:SetPoint("TOPRIGHT", -10, 0)
-    commandsHeader:SetHeight(20)
-    commandsHeader:SetText(L["Commands"])
-    commandsHeader:Justify("LEFT")
-    commandsHeader:SetFont(nil, private:GetInterfaceFlairColor())
-
-    local commandsGroup = container.content:Acquire("GuildBankSnapshotsGroup")
-    commandsGroup.bg, commandsGroup.border = private:AddBackdrop(commandsGroup, { bgColor = "darker" })
-    commandsGroup:SetPoint("TOPLEFT", commandsHeader, "BOTTOMLEFT", 0, 0)
-    commandsGroup:SetPoint("TOPRIGHT", -10, 0)
-    commandsGroup:SetPadding(10, 10)
-    commandsGroup:SetSpacing(5)
-    SettingsTab.commandsGroup = commandsGroup
-
     local debug = container.content:Acquire("GuildBankSnapshotsCheckButton")
-    debug:SetPoint("TOPLEFT", commandsGroup, "BOTTOMLEFT", 0, -10)
+    debug:SetPoint("TOPLEFT", guildGroup, "BOTTOMLEFT", 0, -10)
     debug:SetText(L["Enable debug messages"], true)
     debug:SetCallbacks(callbacks.debug)
 
