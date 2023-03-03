@@ -32,9 +32,17 @@ function GuildBankSnapshotsGroup_OnLoad(group)
 
             child:ClearAllPoints()
             if i == 1 then
-                child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -self:GetUserData("heightPadding"))
+                if self:GetUserData("isReverse") then
+                    child:SetPoint("BOTTOMLEFT", self:GetUserData("widthPadding"), self:GetUserData("heightPadding"))
+                else
+                    child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -self:GetUserData("heightPadding"))
+                end
                 if child:GetUserData("width") == "full" then
-                    child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -self:GetUserData("heightPadding"))
+                    if self:GetUserData("isReverse") then
+                        child:SetPoint("BOTTOMRIGHT", -self:GetUserData("widthPadding"), self:GetUserData("heightPadding"))
+                    else
+                        child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -self:GetUserData("heightPadding"))
+                    end
                     usedWidth = width
                 else
                     usedWidth = childWidth + self:GetUserData("widthPadding")
@@ -42,16 +50,24 @@ function GuildBankSnapshotsGroup_OnLoad(group)
                 maxChildHeight = childHeight
             elseif usedWidth + self:GetUserData("spacing") + childWidth + self:GetUserData("widthPadding") > width or child:GetUserData("width") == "full" then
                 usedHeight = usedHeight + maxChildHeight + self:GetUserData("spacing") * 2
-                child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -usedHeight)
+                if self:GetUserData("isReverse") then
+                    child:SetPoint("BOTTOMLEFT", self:GetUserData("widthPadding"), usedHeight)
+                else
+                    child:SetPoint("TOPLEFT", self:GetUserData("widthPadding"), -usedHeight)
+                end
                 if child:GetUserData("width") == "full" then
-                    child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -usedHeight)
+                    if self:GetUserData("isReverse") then
+                        child:SetPoint("BOTTOMRIGHT", -self:GetUserData("widthPadding"), usedHeight)
+                    else
+                        child:SetPoint("TOPRIGHT", -self:GetUserData("widthPadding"), -usedHeight)
+                    end
                     usedWidth = width
                 else
                     usedWidth = childWidth + self:GetUserData("widthPadding")
                 end
                 maxChildHeight = childHeight
             else
-                child:SetPoint("TOPLEFT", self.children[i - 1], "TOPRIGHT", self:GetUserData("spacing"), 0)
+                child:SetPoint(self:GetUserData("isReverse") and "BOTTOMLEFT" or "TOPLEFT", self.children[i - 1], self:GetUserData("isReverse") and "BOTTOMRIGHT" or "TOPRIGHT", self:GetUserData("spacing"), 0)
                 usedWidth = usedWidth + self:GetUserData("spacing") + childWidth
                 maxChildHeight = max(maxChildHeight, childHeight)
             end
@@ -63,6 +79,10 @@ function GuildBankSnapshotsGroup_OnLoad(group)
     function group:SetPadding(widthPadding, heightPadding)
         self:SetUserData("widthPadding", widthPadding)
         self:SetUserData("heightPadding", heightPadding)
+    end
+
+    function group:SetReverse(isReverse)
+        self:SetUserData("isReverse", isReverse)
     end
 
     function group:SetSpacing(spacing)

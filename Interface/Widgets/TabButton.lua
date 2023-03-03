@@ -16,7 +16,7 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
             self:SetSelected(true)
 
             -- Unselect other tabs
-            for tab, _ in private.frame.tabContainer:EnumerateActive() do
+            for tab, _ in tab:GetUserData("owner"):EnumerateActive() do
                 if tab:GetTabID() ~= self:GetUserData("tabID") then
                     tab:SetSelected()
                 end
@@ -63,7 +63,8 @@ function GuildBankSnapshotsTabButton_OnLoad(tab)
         self.selected:SetColorTexture(private.interface.colors[private:UseClassColor() and "lightClass" or "lightFlair"]:GetRGBA())
     end
 
-    function tab:SetTab(tabID, info)
+    function tab:SetTab(owner, tabID, info)
+        self:SetUserData("owner", owner)
         self:SetUserData("tabID", tabID)
         self:SetUserData("info", info)
         self:UpdateText()

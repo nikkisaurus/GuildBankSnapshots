@@ -3,8 +3,8 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 local AnalyzeTab
-local callbacks, forwardCallbacks, info, mods, sidebarSections
-local AnalyzeScans, DrawSidebar, DrawSidebarGold, DrawSidebarItems, GetGuildDataTable, GetItemTable, GetNameTable
+local callbacks, forwardCallbacks, info, mods, sidebarSections, tabs
+local AnalyzeScans, DrawGoldContent, DrawItemContent, DrawNameContent, DrawSidebar, DrawSidebarGold, DrawSidebarItems, DrawTabs, GetGuildDataTable, GetItemTable, GetNameTable
 local dividerString, divider = "....................................................................................................."
 local names = {}
 
@@ -22,6 +22,13 @@ callbacks = {
                 self:SelectByID(AnalyzeTab.guild or AnalyzeTab.guildKey)
             end,
             true,
+        },
+    },
+    container = {
+        OnSizeChanged = {
+            function(self)
+                AnalyzeTab.tabContainer:DoLayout()
+            end,
         },
     },
     selectScans = {
@@ -181,6 +188,15 @@ callbacks = {
             true,
         },
     },
+    tab = {
+        OnClick = {
+            function(self)
+                local tabID = self:GetTabID()
+                AnalyzeTab.guilds[AnalyzeTab.guildKey].selectedTab = tabID
+                tabs[tabID].onClick(self)
+            end,
+        },
+    },
 }
 
 forwardCallbacks = {
@@ -213,11 +229,12 @@ info = {
                 func = function(dropdown, info)
                     AnalyzeTab.guildKey = guildKey
                     AnalyzeTab.guilds[guildKey] = AnalyzeTab.guilds[guildKey] or {
+                        -- selectedTab = 1,-- TODO
+                        selectedTab = 3,
                         removeDupes = true,
                         scans = {},
                         data = GetGuildDataTable(),
                     }
-                    -- LoadTable()
                     DrawSidebar()
                 end,
             })
@@ -268,6 +285,42 @@ sidebarSections = {
     },
 }
 
+tabs = {
+    {
+        header = L["Item"],
+        onClick = function()
+            local tabContent = AnalyzeTab.tabContent
+            local content = tabContent.content
+            content:ReleaseAll()
+            DrawItemContent(content)
+            content:MarkDirty()
+            tabContent.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+        end,
+    },
+    {
+        header = L["Name"],
+        onClick = function()
+            local tabContent = AnalyzeTab.tabContent
+            local content = tabContent.content
+            content:ReleaseAll()
+            DrawNameContent(content)
+            content:MarkDirty()
+            tabContent.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+        end,
+    },
+    {
+        header = L["Gold"],
+        onClick = function()
+            local tabContent = AnalyzeTab.tabContent
+            local content = tabContent.content
+            content:ReleaseAll()
+            DrawGoldContent(content)
+            content:MarkDirty()
+            tabContent.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+        end,
+    },
+}
+
 AnalyzeScans = function(skipDrawSidebar)
     if not AnalyzeTab.guildKey then
         return
@@ -280,8 +333,17 @@ AnalyzeScans = function(skipDrawSidebar)
     -- Get current gold total
     for scanID, selected in addon:pairs(analyzeInfo.scans, private.sortDesc) do
         if selected then
-            analyzeInfo.data.gold.total = guildInfo.scans[scanID].totalMoney
-            break
+            local totalMoney = guildInfo.scans[scanID].totalMoney
+            if analyzeInfo.data.gold.total == 0 then
+                analyzeInfo.data.gold.total = totalMoney
+            end
+            tinsert(analyzeInfo.data.gold.totals, {
+                scanID,
+                totalMoney,
+            })
+            analyzeInfo.data.minX = analyzeInfo.data.minX and min(analyzeInfo.data.minX, scanID) or scanID
+            analyzeInfo.data.maxX = analyzeInfo.data.maxX and max(analyzeInfo.data.maxX, scanID) or scanID
+            analyzeInfo.data.maxY = analyzeInfo.data.maxY and max(analyzeInfo.data.maxY, totalMoney) or totalMoney
         end
     end
 
@@ -361,6 +423,18 @@ AnalyzeScans = function(skipDrawSidebar)
     end
 end
 
+DrawGoldContent = function(content)
+    local height = 0
+end
+
+DrawItemContent = function(content)
+    local height = 0
+end
+
+DrawNameContent = function(content)
+    local height = 0
+end
+
 DrawSidebar = function()
     local sidebar = AnalyzeTab.sidebar
     local content = sidebar.content
@@ -371,6 +445,14 @@ DrawSidebar = function()
     end
 
     local height = 0
+
+    local analyze = content:Acquire("GuildBankSnapshotsButton")
+    analyze:SetPoint("TOPLEFT", 5, -height)
+    analyze:SetPoint("RIGHT", -5, 0)
+    analyze:SetText(L["Analyze"])
+    analyze:SetTooltipInitializer(L["Changes will not be calculated until analyze is re-run"])
+    analyze:SetCallbacks(callbacks.analyze)
+    height = height + analyze:GetHeight() + 5
 
     local selectScans = content:Acquire("GuildBankSnapshotsDropdownFrame")
     selectScans:SetPoint("TOPLEFT", 5, -height)
@@ -390,19 +472,13 @@ DrawSidebar = function()
     removeDupes:SetText(L["Remove duplicates"] .. "*")
     removeDupes:SetTooltipInitializer(L["Experimental"])
     removeDupes:SetCallbacks(callbacks.removeDupes)
-    height = height + removeDupes:GetHeight() + 5
-
-    local analyze = content:Acquire("GuildBankSnapshotsButton")
-    analyze:SetPoint("TOPLEFT", 5, -height)
-    analyze:SetPoint("RIGHT", -5, 0)
-    analyze:SetText(L["Analyze"])
-    analyze:SetTooltipInitializer(L["Changes will not be calculated until analyze is re-run"])
-    analyze:SetCallbacks(callbacks.analyze)
-    height = height + analyze:GetHeight() + 10
+    height = height + removeDupes:GetHeight() + 10
 
     if addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
         content:MarkDirty()
         sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+
+        DrawTabs()
         return
     end
 
@@ -434,24 +510,7 @@ DrawSidebar = function()
     content:MarkDirty()
     sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
 
-    -- local Graph = LibStub("LibGraph-2.0")
-    -- local g = Graph:CreateGraphLine(addonName .. "GoldTrends", content, "TOPLEFT", "TOPLEFT", 10, -10, sidebar:GetWidth() - 20, 150)
-    -- g:SetXAxis(-1, 1)
-    -- g:SetYAxis(-1, 1)
-    -- g:SetGridSpacing(0.25, 0.25)
-    -- g:SetGridColor({ 0.5, 0.5, 0.5, 0.5 })
-    -- g:SetAxisDrawing(true, true)
-    -- g:SetAxisColor({ 1.0, 1.0, 1.0, 1.0 })
-    -- g:SetAutoScale(true)
-
-    -- local Data1 = { { 0.05, 0.05 }, { 0.2, 0.3 }, { 0.4, 0.2 }, { 0.9, 0.6 } }
-    -- local Data2 = { { 0.05, 0.8 }, { 0.3, 0.1 }, { 0.5, 0.4 }, { 0.95, 0.05 } }
-
-    -- g:AddDataSeries(Data1, { 1.0, 0.0, 0.0, 0.8 })
-    -- g:AddDataSeries(Data2, { 0.0, 1.0, 0.0, 0.8 })
-
-    content:MarkDirty()
-    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+    DrawTabs()
 end
 
 DrawSidebarGold = function(content, height)
@@ -620,6 +679,26 @@ DrawSidebarItems = function(content, height)
     return height
 end
 
+DrawTabs = function()
+    local tabContainer = AnalyzeTab.tabContainer
+    tabContainer:ReleaseChildren()
+
+    if not AnalyzeTab.guildKey or addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
+        return
+    end
+
+    for tabID, info in addon:pairs(tabs) do
+        local tab = tabContainer:Acquire("GuildBankSnapshotsTabButton")
+        tab:SetTab(tabContainer, tabID, info)
+        tab:SetCallbacks(callbacks.tab)
+        if tabID == AnalyzeTab.guilds[AnalyzeTab.guildKey].selectedTab then
+            tab:Fire("OnClick")
+        end
+        tabContainer:AddChild(tab)
+    end
+    tabContainer:DoLayout()
+end
+
 GetGuildDataTable = function()
     return {
         deposit = 0,
@@ -646,6 +725,8 @@ GetGuildDataTable = function()
             repairs = {},
             withdrawForTabs = {},
             withdraws = {},
+
+            totals = {},
         },
         items = {},
         names = {},
@@ -707,11 +788,25 @@ function private:LoadAnalyzeTab(content, guildKey)
     sidebar:SetPoint("BOTTOM", 0, 10)
     AnalyzeTab.sidebar = sidebar
 
-    local tableContainer = content:Acquire("GuildBankSnapshotsListScrollFrame")
-    tableContainer.bg, tableContainer.border = private:AddBackdrop(tableContainer, { bgColor = "dark" })
-    tableContainer:SetPoint("TOPLEFT", sidebar, "TOPRIGHT")
-    tableContainer:SetPoint("BOTTOMRIGHT", -10, 10)
-    AnalyzeTab.tableContainer = tableContainer
+    local container = content:Acquire("GuildBankSnapshotsContainer")
+    container.bg, container.border = private:AddBackdrop(container, { bgColor = "darker" })
+    container:SetPoint("TOPLEFT", selectGuild, "TOPRIGHT")
+    container:SetPoint("BOTTOMRIGHT", -10, 10)
+    container:SetCallbacks(callbacks.container)
+    AnalyzeTab.container = container
+
+    local tabContainer = container:Acquire("GuildBankSnapshotsGroup")
+    tabContainer:SetHeight(20)
+    tabContainer:SetPoint("TOPLEFT")
+    tabContainer:SetPoint("RIGHT")
+    tabContainer:SetReverse(true)
+    AnalyzeTab.tabContainer = tabContainer
+
+    local tabContent = container:Acquire("GuildBankSnapshotsScrollFrame")
+    tabContent:SetPoint("TOPLEFT", tabContainer, "BOTTOMLEFT")
+    tabContent:SetPoint("BOTTOMRIGHT")
+    tabContent.bg, tabContent.border = private:AddBackdrop(tabContent, { bgColor = "dark" })
+    AnalyzeTab.tabContent = tabContent
 
     selectGuild:SetCallbacks(callbacks.selectGuild)
 end

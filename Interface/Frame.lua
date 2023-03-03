@@ -91,7 +91,7 @@ function private:InitializeFrame()
 
         for tabID, info in addon:pairs(tabs) do
             local tab = self.tabContainer:Acquire("GuildBankSnapshotsTabButton")
-            tab:SetTab(tabID, info)
+            tab:SetTab(frame.tabContainer, tabID, info)
             if tabID == self.selectedTab then
                 -- Ensure active tab stays selected when frame size changes, since the tabs are being released and redrawn
                 tab:SetSelected(true)
