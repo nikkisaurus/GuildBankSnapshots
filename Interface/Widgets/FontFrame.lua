@@ -14,6 +14,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
             self:SetText("")
             self:SetPadding(0, 0)
             self:SetTextColor(1, 1, 1, 1)
+            self:SetHeader()
         end,
 
         OnEnter = function(self)
@@ -31,6 +32,7 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
     -- Elements
     frame.text = frame:CreateFontString(nil, "OVERLAY")
+    frame.header = frame:CreateTexture(nil, "BACKGROUND")
 
     -- Methods
     function frame:DisableTooltip(isDisabled)
@@ -39,6 +41,107 @@ function GuildBankSnapshotsFontFrame_OnLoad(frame)
 
     function frame:SetFont(fontObject, color)
         self.text:SetFontObject(fontObject or GameFontHighlightSmall)
-        self.text:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+        self:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
+    function frame:SetHeader(isHeader, height)
+        self:SetUserData("isHeader", isHeader)
+
+        if isHeader then
+            self.header:Show()
+        else
+            self.header:Hide()
+        end
+
+        self.header:SetHeight(height or 1)
+        self.header:SetPoint("BOTTOMLEFT")
+        self.header:SetPoint("BOTTOMRIGHT")
+    end
+
+    function frame:SetTextColor(r, g, b, a)
+        if r and g and b and a then
+            self.text:SetTextColor(r, g, b, a)
+            self.header:SetColorTexture(r, g, b, a)
+        else
+            self.text:SetTextColor(private.interface.colors.white:GetRGBA())
+            self.header:SetColorTexture(private.interface.colors.white:GetRGBA())
+        end
+    end
+end
+
+function GuildBankSnapshotsFontLabelFrame_OnLoad(frame)
+    frame = private:MixinElementContainer(frame)
+    frame:InitScripts({
+        OnAcquire = function(self)
+            self.label:Fire("OnAcquire")
+            self.fontFrame:Fire("OnAcquire")
+
+            self.label:Justify("LEFT", "MIDDLE")
+
+            self:SetLabelFont(GameFontHighlightSmall, private.interface.colors.white)
+
+            self:SetSize(150, 40)
+            self:Fire("OnSizeChanged", self:GetWidth(), self:GetHeight())
+
+            self:RegisterCallbacks(self.fontFrame)
+        end,
+
+        OnSizeChanged = function(self, width, height)
+            self.label:SetHeight(20)
+            self.label:SetPoint("TOPLEFT")
+            self.label:SetPoint("TOPRIGHT")
+
+            self.fontFrame:SetHeight(height - 20)
+            self.fontFrame:SetPoint("BOTTOMLEFT")
+            self.fontFrame:SetPoint("BOTTOMRIGHT")
+        end,
+    })
+
+    -- Elements
+    frame.label = frame:Acquire("GuildBankSnapshotsFontFrame")
+    frame.fontFrame = frame:Acquire("GuildBankSnapshotsFontFrame")
+
+    -- Methods
+    function frame:Justify(...)
+        self.fontFrame:Justify(...)
+    end
+
+    function frame:RegisterCallbacks(mainElement)
+        self:SetUserData("mainElement", mainElement)
+
+        self.label:SetCallbacks({
+            OnEnter = {
+                function(label)
+                    self:FireScript("OnEnter")
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
+
+        mainElement:SetCallbacks({
+            OnEnter = {
+                function(label)
+                    self:ShowTooltip()
+                end,
+            },
+            OnLeave = { GenerateClosure(private.HideTooltip, private) },
+        })
+    end
+
+    function frame:SetLabel(text)
+        self.label:SetText(text)
+    end
+
+    function frame:SetLabelFont(fontObject, color)
+        self.label:SetFontObject(fontObject or GameFontHighlightSmall)
+        self.label:SetTextColor((color and color or private.interface.colors.white):GetRGBA())
+    end
+
+    function frame:SetText(...)
+        self.fontFrame:SetText(...)
+    end
+
+    function frame:SetTextColor(...)
+        self.fontFrame:SetTextColor(...)
     end
 end

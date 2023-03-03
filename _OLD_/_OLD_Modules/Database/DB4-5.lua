@@ -40,7 +40,7 @@ function private:ConvertDB4_5(backup)
                                     name = transaction,
                                     icon = 134400,
                                 }
-                            elseif tab ~= MAX_GUILDBANK_TABS + 1 then
+                            elseif tab ~= private.moneyTab then
                                 local name, icon = GetGuildBankTabInfo(tab)
                                 db.tabs[tab] = {
                                     name = name,

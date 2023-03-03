@@ -94,7 +94,7 @@ function private:GetTabName(guildKey, tabID)
         return
     end
 
-    if tabID == MAX_GUILDBANK_TABS + 1 then
+    if tabID == private.moneyTab then
         return L["Money Tab"]
     end
     return private.db.global.guilds[guildKey].tabs[tabID] and private.db.global.guilds[guildKey].tabs[tabID].name or L["Tab"] .. " " .. tabID

@@ -98,6 +98,14 @@ L["faction"] = true
 L["guild name"] = true
 L["realm name"] = true
 L["Will not take effect until after a reload"] = true
+L["All-Star"] = true
+L["Deposits All-Star"] = true
+L["Withdrawals All-Star"] = true
+L["Gold"] = true
+L["Filter Names"] = true
+L["Useful to filter out banker transactions"] = true
+L["Other"] = true
+L["Summary"] = true
 
 -- -- OLD STRINGS:
 L["Buy Tab"] = true
@@ -167,6 +175,12 @@ L["months"] = true
 L["Move"] = true
 L["Name"] = true
 L["Net"] = true
+L["Net Gold"] = true
+L["Total Gold"] = true
+L["Deposit Summary"] = true
+L["Changes will not be calculated until analyze is re-run"] = true
+L["Buy Tab"] = true
+L["Withdraw For Tab"] = true
 L["No changes detected."] = true
 L["None"] = true
 L["Pipe"] = true

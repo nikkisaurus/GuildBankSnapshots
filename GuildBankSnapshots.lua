@@ -17,11 +17,14 @@ function addon:OnDisable() end
 function addon:OnEnable()
     C_Timer.After(1, function()
         -- private:LoadFrame()
+        private:LoadFrame("Analyze")
         -- private:LoadFrame("Settings")
     end)
 end
 
 function addon:OnInitialize()
+    private.moneyTab = MAX_GUILDBANK_TABS + 1
+
     private:InitializeDatabase()
     private:InitializeSlashCommands()
     private:InitializeInterface()

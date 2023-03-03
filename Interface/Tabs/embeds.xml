@@ -1,4 +1,5 @@
 <Ui>
+    <Include file="Analyze.lua" />
     <Include file="Review.lua" />
     <Include file="Settings.lua" />
 </Ui>

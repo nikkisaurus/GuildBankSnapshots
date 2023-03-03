@@ -150,7 +150,7 @@ function addon:ScanGuildBank(isAutoScan, override)
         end
     end
 
-    QueryGuildBankLog(MAX_GUILDBANK_TABS + 1)
+    QueryGuildBankLog(private.moneyTab)
     for i = 1, GetNumGuildBankMoneyTransactions() do
         GetGuildBankMoneyTransaction(i)
     end
@@ -268,7 +268,7 @@ function private:AddScanToMaster(guildKey, scanID)
         local elementData = {
             transactionID = #private.db.global.guilds[guildKey].masterScan + 1,
             scanID = scanID,
-            tabID = MAX_GUILDBANK_TABS + 1,
+            tabID = private.moneyTab,
             transactionDate = transactionDate,
 
             transactionType = transactionType,

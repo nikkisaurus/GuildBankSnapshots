@@ -153,6 +153,8 @@ end
 local WidgetMixin = {}
 local validScripts = {
     OnClear = true,
+    OnInfoSet = true,
+    OnMenuClosed = true,
     OnRelease = true,
     OnSliderValueChanged = true,
 }
@@ -317,6 +319,7 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("EditBox", parent or tbl, "GuildBankSnapshotsEditBox", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsEditBoxFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsFontFrame", Resetter)
+    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsFontLabelFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsGroup", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsListScrollFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsMinMaxFrame", Resetter)

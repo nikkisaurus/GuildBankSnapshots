@@ -11,6 +11,12 @@ function GuildBankSnapshotsButton_OnLoad(button)
             self:SetFont(GameFontHighlightSmall, private.interface.colors.white)
             self:SetBackdropColor(private.interface.colors.normal, private.interface.colors.light)
         end,
+
+        OnEnter = function(self)
+            self:ShowTooltip()
+        end,
+
+        OnLeave = GenerateClosure(private.HideTooltip, private),
     })
 
     -- Textures

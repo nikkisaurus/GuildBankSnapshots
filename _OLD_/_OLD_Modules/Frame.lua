@@ -136,7 +136,7 @@ function private:GetGuildTabs(guildKey, scanID)
     end
 
     tinsert(tabs, {
-        value = MAX_GUILDBANK_TABS + 1,
+        value = private.moneyTab,
         text = L["Money"],
     })
 

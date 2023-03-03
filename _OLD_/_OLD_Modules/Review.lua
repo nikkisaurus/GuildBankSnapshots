@@ -42,7 +42,7 @@ local function GetFilters()
 end
 
 local function GetTab(reviewTabGroup, _, tab)
-    local moneyTab = MAX_GUILDBANK_TABS + 1
+    local moneyTab = private.moneyTab
     private.selectedBankTab = tab
     reviewTabGroup:ReleaseChildren()
 

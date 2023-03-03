@@ -6,7 +6,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local ReviewTab
 local callbacks, forwardCallbacks, info, otherCallbacks, sidebarSections, tableCols
 local DrawRow, DrawSidebar, DrawSidebarFilters, DrawSidebarInfo, DrawSidebarSorters, DrawSidebarTools, DrawTableHeaders, GetFilters, IsFiltered, IsQueryMatch, LoadTable
-local dividerString, divider = ".................................................................."
+local dividerString, divider = "....................................................................................................."
 
 function private:InitializeReviewTab()
     ReviewTab = {
@@ -126,16 +126,16 @@ callbacks = {
             true,
         },
     },
-    duplicates = {
+    removeDupes = {
         OnClick = {
             function(self)
-                ReviewTab.guilds[ReviewTab.guildKey].filters.duplicates.value = self:GetChecked()
+                ReviewTab.guilds[ReviewTab.guildKey].filters.removeDupes.value = self:GetChecked()
                 LoadTable()
             end,
         },
         OnShow = {
             function(self)
-                self:SetCheckedState(ReviewTab.guilds[ReviewTab.guildKey].filters.duplicates.value, true)
+                self:SetCheckedState(ReviewTab.guilds[ReviewTab.guildKey].filters.removeDupes.value, true)
             end,
             true,
         },
@@ -342,7 +342,6 @@ info = {
                         multiSort = #private.db.global.guilds[guildKey].masterScan < ReviewTab.warningMax,
                     }
                     LoadTable()
-                    DrawSidebar()
                 end,
             })
         end)
@@ -749,13 +748,13 @@ DrawSidebar = function()
 end
 
 DrawSidebarFilters = function(content, height)
-    local duplicates = content:Acquire("GuildBankSnapshotsCheckButton")
-    duplicates:SetPoint("TOPLEFT", 5, -height)
-    duplicates:SetPoint("RIGHT", -5, 0)
-    duplicates:SetText(L["Remove duplicates"] .. "*")
-    duplicates:SetTooltipInitializer(L["Experimental"])
-    duplicates:SetCallbacks(callbacks.duplicates)
-    height = height + duplicates:GetHeight()
+    local removeDupes = content:Acquire("GuildBankSnapshotsCheckButton")
+    removeDupes:SetPoint("TOPLEFT", 5, -height)
+    removeDupes:SetPoint("RIGHT", -5, 0)
+    removeDupes:SetText(L["Remove duplicates"] .. "*")
+    removeDupes:SetTooltipInitializer(L["Experimental"])
+    removeDupes:SetCallbacks(callbacks.removeDupes)
+    height = height + removeDupes:GetHeight()
 
     --.....................
     divider = content:Acquire("GuildBankSnapshotsFontFrame")
@@ -916,7 +915,7 @@ DrawSidebarFilters = function(content, height)
     itemName:SetLabel(L["Item"])
     itemName:SetLabelFont(nil, private:GetInterfaceFlairColor())
     itemName:Justify("LEFT")
-    itemName:SetStyle({ height = "auto", multiSelect = true, hasSearch = true, hasClear = true })
+    itemName:SetStyle({ multiSelect = true, hasSearch = true, hasClear = true })
     itemName:SetCallbacks(callbacks.itemName)
     itemName:ForwardCallbacks(forwardCallbacks.itemName)
     itemName:SetInfo(info.itemName)
@@ -1066,7 +1065,7 @@ GetFilters = function()
                 return true
             end,
         },
-        duplicates = {
+        removeDupes = {
             value = true,
             func = function(self, elementData)
                 if not self.value then

@@ -28,6 +28,7 @@ function private:ConvertDatabaseV7()
             for guildKey, guildInfo in pairs(private.db.global.guilds) do
                 if not guildInfo.settings then
                     private.db.global.guilds[guildKey].settings = {
+                        bankers = {},
                         autoCleanup = {
                             corrupted = scanSettings.autoCleanup.corrupted ~= false and true or false,
                             age = {

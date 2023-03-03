@@ -12,7 +12,9 @@ local tabs = {
     },
     {
         header = L["Analyze"],
-        onClick = function(content, guildKey) end,
+        onClick = function(content, guildKey)
+            private:LoadAnalyzeTab(content, guildKey)
+        end,
     },
     {
         header = L["Settings"],
@@ -116,6 +118,7 @@ function private:InitializeFrame()
     end, true)
 
     private:InitializeReviewTab()
+    private:InitializeAnalyzeTab()
     private:InitializeSettingsTab()
 end
 

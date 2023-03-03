@@ -15,11 +15,11 @@ end
 
 --*----------[[ Widgets ]]----------*--
 function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
-    dropdown.selected = {}
     dropdown = private:MixinText(dropdown)
-
     dropdown:InitScripts({
         OnAcquire = function(self)
+            self:SetUserData("selected", {})
+
             self.arrow:SetSize(20, 20)
             self.text:SetHeight(20)
             self:SetButtonHidden(false)
@@ -48,10 +48,6 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
             local height = self:GetHeight()
             self.arrow:SetSize(height, height)
             self.text:SetHeight(height)
-        end,
-
-        OnRelease = function(self)
-            wipe(self.selected)
         end,
     })
 
@@ -83,7 +79,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
     -- Methods
     function dropdown:Clear()
-        wipe(self.selected)
+        wipe(self:GetUserData("selected"))
         self:UpdateText()
         if self.handlers.OnClear then
             self.handlers.OnClear(self)
@@ -105,7 +101,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     end
 
     function dropdown:GetSelected(searchID)
-        for selectedID, enabled in addon:pairs(self.selected) do
+        for selectedID, enabled in addon:pairs(self:GetUserData("selected")) do
             if selectedID == searchID and enabled then
                 return self:GetInfo(selectedID)
             end
@@ -118,10 +114,10 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         for _, info in pairs(self:GetInfo()) do
             if info.id == value then
                 if self.menu.style.multiSelect then
-                    self.selected[info.id] = forceSelect or not self.selected[info.id]
+                    self:GetUserData("selected")[info.id] = forceSelect or not self:GetUserData("selected")[info.id]
                 else
-                    wipe(self.selected)
-                    self.selected[info.id] = true
+                    wipe(self:GetUserData("selected"))
+                    self:GetUserData("selected")[info.id] = true
                 end
                 if not skipCallback then
                     info.func(self, info)
@@ -158,6 +154,10 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
     function dropdown:SetInfo(info)
         assert(type(info) == "function", "GuildBankSnapshotsDropdownButton: info must be a callback function")
         self:SetUserData("info", info)
+
+        if self.handlers.OnInfoSet then
+            self.handlers.OnInfoSet(self)
+        end
     end
 
     function dropdown:SetStyle(style)
@@ -171,6 +171,10 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
         if self.menu:IsVisible() then
             self.menu:Close()
+
+            if self.handlers.OnMenuClosed then
+                self.handlers.OnMenuClosed(self)
+            end
         else
             self.menu:Open()
         end
@@ -180,7 +184,7 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         self:SetText(self:GetUserData("defaultText") or "")
 
         local text
-        for selectedID, enabled in addon:pairs(self.selected) do
+        for selectedID, enabled in addon:pairs(self:GetUserData("selected")) do
             if enabled then
                 local info = dropdown:GetInfo(selectedID)
 
@@ -540,6 +544,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             hasSearch = false,
             multiSelect = false,
             hasClear = false,
+            hasSelectAll = false,
         }
     end
 

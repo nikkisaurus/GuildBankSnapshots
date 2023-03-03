@@ -25,6 +25,7 @@ private.defaults = {
         scans = {},
         filters = {},
         settings = {
+            bankers = {},
             autoCleanup = {
                 corrupted = true,
                 age = {

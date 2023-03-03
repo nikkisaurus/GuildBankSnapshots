@@ -65,6 +65,12 @@
         </Scripts>
     </Frame>
 
+    <Frame name="GuildBankSnapshotsFontLabelFrame" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsFontLabelFrame_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <Frame name="GuildBankSnapshotsGroup" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsGroup_OnLoad" />

@@ -48,6 +48,10 @@ function private:AddBackdrop(frame, options)
     return bg, border, highlight
 end
 
+function private:GetDoubleLine(left, right)
+    return format("%s %s", private:GetInterfaceFlairColor():WrapTextInColorCode(left .. ":"), right)
+end
+
 function private:GetInterfaceFlairColor()
     return private.interface.colors[private:UseClassColor() and "class" or "flair"]
 end
@@ -89,6 +93,9 @@ function private:InitializeInterface()
             dimmedWhite = CreateColor(1, 1, 1, 0.25),
             lightWhite = CreateColor(1, 1, 1, 0.5),
             white = CreateColor(1, 1, 1, 1),
+
+            red = CreateColor(1, 0, 0, 1),
+            green = CreateColor(0, 1, 0, 1),
 
             dimmedClass = CreateColor(r, g, b, 0.25),
             lightClass = CreateColor(r, g, b, 0.5),
