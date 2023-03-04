@@ -8,6 +8,17 @@ local loaded
 
 --*----------[[ Data ]]----------*--
 callbacks = {
+    frame = {
+        OnSizeChanged = {
+            function(self)
+                private:CloseMenus(nil, true)
+                for _, child in pairs(self:GetUserData("resizeChildren")) do
+                    assert(child.DoLayout, "Resize child does not have a DoLayout function")
+                    child:DoLayout()
+                end
+            end,
+        },
+    },
     title_ = {
         OnDragStart = {
             function(self)
@@ -28,14 +39,6 @@ callbacks = {
             end,
         },
     },
-    tabContainer = {
-        OnSizeChanged = {
-            function(self)
-                private:CloseMenus(nil, true)
-                self:DoLayout()
-            end,
-        },
-    },
     tab = {
         OnClick = {
             function(self)
@@ -46,7 +49,6 @@ callbacks = {
             function(self)
                 local tabID = self:GetTabID()
                 if tabID == private.frame.selectedTab then
-                    -- Using OnClick handler to make sure the button is properly highlighted
                     self:Fire("OnClick")
                 end
             end,
@@ -87,7 +89,7 @@ tabs = {
     {
         header = L["Help"],
         init = function()
-            -- private:InitializeHelpTab()
+            -- private:InitializeHelpTab() -- TODO
         end,
         onClick = function(content) end,
     },
@@ -104,6 +106,7 @@ end
 
 function private:InitializeFrame()
     local frame = CreateFrame("Frame", "GuildBankSnapshotsFrame", UIParent, "GuildBankSnapshotsContainer")
+    frame:SetUserData("resizeChildren", {})
     frame:SetPoint("CENTER")
     frame:SetSize(1000, 500)
     frame:Hide()
@@ -112,6 +115,7 @@ function private:InitializeFrame()
     private:SetFrameMovable(frame, true)
     private:SetFrameSizing(frame, 500, 300, GetScreenWidth() - 400, GetScreenHeight() - 200)
     addon:AddSpecialFrame(frame, "GuildBankSnapshotsFrame")
+    frame:SetCallbacks(callbacks.frame)
     private.frame = frame
 
     local titleBar = frame:Acquire("GuildBankSnapshotsContainer")
@@ -143,7 +147,7 @@ function private:InitializeFrame()
     tabContainer:SetPoint("RIGHT", -10, 0)
     tabContainer:SetHeight(20)
     tabContainer:SetReverse(true)
-    tabContainer:SetCallbacks(callbacks.tabContainer)
+    private:RegisterResizeCallback(tabContainer)
     frame.tabContainer = tabContainer
 
     for tabID, info in addon:pairs(tabs) do
@@ -168,23 +172,24 @@ end
 function private:LoadFrame(reviewPath, guildKey, scanID)
     private.frame:Show()
 
-    if reviewPath then
-        for tab, _ in private.frame.tabContainer:EnumerateActive() do
-            if tab:GetText() == reviewPath then
-                -- Passing these as userdata because not all OnClick calls have the same number of args, so it's hard to pinpoint if guildKey and scanID are provided
-                tab:SetUserData("guildKey", guildKey)
-                tab:SetUserData("scanID", scanID)
-                tab:Fire("OnClick")
-            end
-        end
-    elseif not loaded then -- Load default tab
-        for tab, _ in private.frame.tabContainer:EnumerateActive() do
-            if tab:GetTabID() == 1 then
-                tab:Fire("OnClick")
-                return
-            end
+    for tab, _ in private.frame.tabContainer:EnumerateActive() do
+        if reviewPath and tab:GetText() == reviewPath then
+            tab:SetUserData("guildKey", guildKey)
+            tab:SetUserData("scanID", scanID)
+            tab:Fire("OnClick")
+            break
+        elseif not loaded and not reviewPath and tab:GetTabID() == 1 then
+            tab:Fire("OnClick")
+            break
         end
     end
 
     loaded = true
+end
+
+------------------------
+
+function private:RegisterResizeCallback(child)
+    assert(private.frame:GetUserData("resizeChildren"), "GuildBankSnapshotsFrame does not have a resizeChildren table")
+    tinsert(private.frame:GetUserData("resizeChildren"), child)
 end
