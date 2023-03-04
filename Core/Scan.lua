@@ -65,7 +65,7 @@ local function ValidateScan(db, override)
             private:AddScanToMaster(guildKey, scanTime)
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
-                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetGuildKey())
+                private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), (private:GetGuildKey()), scanTime)
             end
         end
     end

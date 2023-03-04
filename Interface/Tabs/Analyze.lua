@@ -20,6 +20,7 @@ callbacks = {
         OnShow = {
             function(self)
                 self:SelectByID(AnalyzeTab.guild or AnalyzeTab.guildKey)
+                AnalyzeTab.guild = nil
             end,
             true,
         },
@@ -28,6 +29,16 @@ callbacks = {
         OnSizeChanged = {
             function(self)
                 AnalyzeTab.tabContainer:DoLayout()
+            end,
+        },
+    },
+    analyze = {
+        OnClick = {
+            function(self)
+                if addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
+                    return
+                end
+                AnalyzeScans()
             end,
         },
     },
@@ -50,16 +61,6 @@ callbacks = {
                 self:SetCheckedState(AnalyzeTab.guilds[AnalyzeTab.guildKey].removeDupes, true)
             end,
             true,
-        },
-    },
-    analyze = {
-        OnClick = {
-            function(self)
-                if addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
-                    return
-                end
-                AnalyzeScans()
-            end,
         },
     },
     deposit = {
@@ -210,8 +211,14 @@ forwardCallbacks = {
         },
         OnInfoSet = {
             function(self)
-                for scanID, _ in pairs(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) do
-                    self:SelectByID(scanID, true, true)
+                if AnalyzeTab.scanID then
+                    AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[AnalyzeTab.scanID] = true
+                    AnalyzeTab.scanID = nil
+                    AnalyzeScans()
+                else
+                    for scanID, _ in pairs(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) do
+                        self:SelectByID(scanID, true, true)
+                    end
                 end
             end,
         },
@@ -452,6 +459,7 @@ DrawSidebar = function()
     analyze:SetText(L["Analyze"])
     analyze:SetTooltipInitializer(L["Changes will not be calculated until analyze is re-run"])
     analyze:SetCallbacks(callbacks.analyze)
+    AnalyzeTab.analyze = analyze
     height = height + analyze:GetHeight() + 5
 
     local selectScans = content:Acquire("GuildBankSnapshotsDropdownFrame")
@@ -770,8 +778,9 @@ GetNameTable = function()
     }
 end
 
-function private:LoadAnalyzeTab(content, guildKey)
+function private:LoadAnalyzeTab(content, guildKey, scanID)
     AnalyzeTab.guild = guildKey
+    AnalyzeTab.scanID = scanID
 
     local selectGuild = content:Acquire("GuildBankSnapshotsDropdownButton")
     selectGuild:SetPoint("TOPLEFT", 10, -10)
@@ -789,13 +798,13 @@ function private:LoadAnalyzeTab(content, guildKey)
     AnalyzeTab.sidebar = sidebar
 
     local container = content:Acquire("GuildBankSnapshotsContainer")
-    container.bg, container.border = private:AddBackdrop(container, { bgColor = "darker" })
     container:SetPoint("TOPLEFT", selectGuild, "TOPRIGHT")
     container:SetPoint("BOTTOMRIGHT", -10, 10)
     container:SetCallbacks(callbacks.container)
     AnalyzeTab.container = container
 
     local tabContainer = container:Acquire("GuildBankSnapshotsGroup")
+    tabContainer.bg, tabContainer.border = private:AddBackdrop(tabContainer, { bgColor = "darker" })
     tabContainer:SetHeight(20)
     tabContainer:SetPoint("TOPLEFT")
     tabContainer:SetPoint("RIGHT")

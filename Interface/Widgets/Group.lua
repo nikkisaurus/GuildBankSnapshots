@@ -7,10 +7,10 @@ function GuildBankSnapshotsGroup_OnLoad(group)
     group.children = {}
     group:InitScripts({
         OnAcquire = function(self)
+            self:ClearBackdrop()
             self:SetSize(600, 200)
             self:SetPadding(0, 0)
             self:SetSpacing(0)
-            self:ClearBackdrop()
         end,
 
         OnRelease = function(self)
@@ -24,6 +24,11 @@ function GuildBankSnapshotsGroup_OnLoad(group)
     end
 
     function group:DoLayout()
+        if not self:GetUserData("spacing") or not self:GetUserData("widthPadding") or not self:GetUserData("heightPadding") then
+            private:dprint("GuildBankSnapshotsGroup: DoLayout is being called before OnAcquire has been fired.")
+            self:Fire("OnAcquire")
+        end
+
         local usedWidth, usedHeight, maxChildHeight = 0, self:GetUserData("spacing")
         for i, child in addon:pairs(self.children) do
             local width = self:GetWidth()

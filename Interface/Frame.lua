@@ -12,8 +12,8 @@ local tabs = {
     },
     {
         header = L["Analyze"],
-        onClick = function(content, guildKey)
-            private:LoadAnalyzeTab(content, guildKey)
+        onClick = function(content, guildKey, scanID)
+            private:LoadAnalyzeTab(content, guildKey, scanID)
         end,
     },
     {
@@ -64,10 +64,11 @@ function private:InitializeFrame()
     frame.title:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
 
     -- [[ Tabs ]]
-    frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsContainer")
+    frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsGroup")
+    frame.tabContainer:SetHeight(20)
     frame.tabContainer:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 10, -10)
     frame.tabContainer:SetPoint("RIGHT", -10, 0)
-    frame.tabContainer.children = {}
+    frame.tabContainer:SetReverse(true)
 
     -- [[ Content ]]
     frame.content = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsContainer")
@@ -76,45 +77,40 @@ function private:InitializeFrame()
     frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
     frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "darkest" })
 
-    function frame:SelectTab(tabID, guildKey)
+    function frame:SelectTab(tabID, guildKey, scanID)
         self.selectedTab = tabID
         self.content:ReleaseAll()
-        tabs[tabID].onClick(self.content, guildKey)
+        tabs[tabID].onClick(self.content, guildKey, scanID)
     end
 
     -- [[ Scripts ]]
-    frame:SetScript("OnSizeChanged", function(self)
-        self.tabContainer:ReleaseAll()
+    frame.tabContainer:SetScript("OnSizeChanged", function(self)
         private:CloseMenus()
-
-        local width, height = 0, 0
+        self:ReleaseChildren()
 
         for tabID, info in addon:pairs(tabs) do
-            local tab = self.tabContainer:Acquire("GuildBankSnapshotsTabButton")
-            tab:SetTab(frame.tabContainer, tabID, info)
-            if tabID == self.selectedTab then
-                -- Ensure active tab stays selected when frame size changes, since the tabs are being released and redrawn
-                tab:SetSelected(true)
-            end
-            tab:SetCallback("OnClick", function(...)
-                local guildKey = select(#{ ... }, ...)
-                guildKey = private.db.global.guilds[guildKey] and guildKey
-                self:SelectTab(tabID, guildKey)
-            end)
-
-            local tabWidth = tab:GetWidth()
-            local tabHeight = tab:GetHeight()
-
-            if (width + tabWidth + ((tabID - 1) * 2)) > self.tabContainer:GetWidth() then
-                width = 0
-                height = height + tabHeight
-            end
-
-            tab:SetPoint("BOTTOMLEFT", width, height)
-            width = width + tabWidth
-
-            self.tabContainer:SetHeight(height + tabHeight)
+            local tab = self:Acquire("GuildBankSnapshotsTabButton")
+            tab:SetTab(self, tabID, info)
+            tab:SetCallbacks({
+                OnClick = {
+                    function(tab, ...)
+                        frame:SelectTab(tab:GetTabID(), tab:GetUserData("guildKey"), tab:GetUserData("scanID"))
+                    end,
+                },
+                OnShow = {
+                    function(tab)
+                        local tabID = tab:GetTabID()
+                        if tabID == self.selectedTab then
+                            -- Using OnClick handler to make sure the button is properly highlighted
+                            tab:Fire("OnClick")
+                        end
+                    end,
+                },
+            })
+            self:AddChild(tab)
         end
+
+        self:DoLayout()
     end, true)
 
     private:InitializeReviewTab()
@@ -123,22 +119,26 @@ function private:InitializeFrame()
 end
 
 local loaded
-function private:LoadFrame(reviewPath, guildKey)
+function private:LoadFrame(reviewPath, guildKey, scanID)
     private.frame:Show()
+
     if reviewPath then
-        loaded = true
         for tab, _ in private.frame.tabContainer:EnumerateActive() do
             if tab:GetText() == reviewPath then
-                tab:Fire("OnClick", guildKey)
-            end
-        end
-    elseif not loaded then
-        -- Load default tab
-        loaded = true
-        for tab, _ in private.frame.tabContainer:EnumerateActive() do
-            if tab:GetTabID() == 1 then
+                -- Passing these as userdata because not all OnClick calls have the same number of args, so it's hard to pinpoint if guildKey and scanID are provided
+                tab:SetUserData("guildKey", guildKey)
+                tab:SetUserData("scanID", scanID)
                 tab:Fire("OnClick")
             end
         end
+    elseif not loaded then -- Load default tab
+        for tab, _ in private.frame.tabContainer:EnumerateActive() do
+            if tab:GetTabID() == 1 then
+                tab:Fire("OnClick")
+                return
+            end
+        end
     end
+
+    loaded = true
 end

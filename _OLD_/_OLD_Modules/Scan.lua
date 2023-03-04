@@ -64,9 +64,6 @@ local function ValidateScan(db, override)
             -- Open the review frame
             if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
                 private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), private:GetGuildKey(), scanTime)
-                if scanSettings.reviewPath == "analyze" then
-                    private.frame:GetUserData("reviewTabGroup"):SelectTab("Analyze")
-                end
             end
         end
     end
