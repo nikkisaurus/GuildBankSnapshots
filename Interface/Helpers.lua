@@ -130,14 +130,17 @@ function private:SetColorTexture(texture, color)
     texture:SetColorTexture(color:GetRGBA())
 end
 
-function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
-    -- Set movable
-    frame:EnableMouse(true)
-    frame:SetMovable(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+function private:SetFrameMovable(frame, movable)
+    frame:EnableMouse(movable or false)
+    frame:SetMovable(movable or false)
+    if movable then
+        frame:RegisterForDrag("LeftButton")
+    end
+    frame:SetScript("OnDragStart", movable and frame.StartMoving or private.NullFunc)
+    frame:SetScript("OnDragStop", movable and frame.StopMovingOrSizing or private.NullFunc)
+end
 
+function private:SetFrameSizing(frame, minWidth, minHeight, maxWidth, maxHeight)
     -- Set resizable
     frame:SetResizable(true)
     frame:SetResizeBounds(minWidth, minHeight, maxWidth, maxHeight)

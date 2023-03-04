@@ -27,19 +27,13 @@ callbacks = {
             true,
         },
     },
-    container = {
-        OnSizeChanged = {
-            function(self)
-                AnalyzeTab.tabContainer:DoLayout()
-            end,
-        },
-    },
     analyze = {
         OnClick = {
             function(self)
                 if addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
                     return
                 end
+                private:dprint("Analyze clicked")
                 AnalyzeScans()
             end,
         },
@@ -200,15 +194,77 @@ callbacks = {
             end,
         },
     },
+    goldDepositPie = {
+        OnShow = {
+            function(self)
+                local data = AnalyzeTab.guilds[AnalyzeTab.guildKey].data
+                local total = data.gold.buyTab + data.gold.deposit + data.gold.depositSummary
+                local buyTab = (data.gold.buyTab / total) * 100
+                local deposit = (data.gold.deposit / total) * 100
+                local depositSummary = (data.gold.depositSummary / total) * 100
+
+                if buyTab == 100 then
+                    self:CompletePie(L["Buy Tab"], { 0, 0.5, 0, 1 })
+                elseif buyTab > 0 then
+                    self:AddPie(L["Buy Tab"], buyTab, { 0, 0.5, 0, 1 })
+                end
+
+                if deposit == 100 then
+                    self:CompletePie(L["Deposit"], { 0, 0.75, 0, 1 })
+                elseif deposit > 0 then
+                    self:AddPie(L["Deposit"], deposit, { 0, 0.75, 0, 1 })
+                end
+
+                if depositSummary == 100 then
+                    self:CompletePie(L["Deposit Summary"], { 0, 1, 0, 1 })
+                elseif depositSummary > 0 then
+                    self:AddPie(L["Deposit Summary"], depositSummary, { 0, 1, 0, 1 })
+                end
+            end,
+            true,
+        },
+    },
+    goldWithdrawPie = {
+        OnShow = {
+            function(self)
+                local data = AnalyzeTab.guilds[AnalyzeTab.guildKey].data
+                local total = data.gold.repair + data.gold.withdraw + data.gold.withdrawForTab
+                local repair = (data.gold.repair / total) * 100
+                local withdraw = (data.gold.withdraw / total) * 100
+                local withdrawForTab = (data.gold.withdrawForTab / total) * 100
+
+                if repair == 100 then
+                    self:CompletePie(L["Repair"], { 0.5, 0, 0, 1 })
+                elseif repair > 0 then
+                    self:AddPie(L["Repair"], repair, { 0.5, 0, 0, 1 })
+                end
+
+                if withdraw == 100 then
+                    self:CompletePie(L["Withdraw"], { 0.75, 0, 0, 1 })
+                elseif withdraw > 0 then
+                    self:AddPie(L["Withdraw"], withdraw, { 0.75, 0, 0, 1 })
+                end
+
+                if withdrawForTab == 100 then
+                    self:CompletePie(L["Withdraw For Tab"], { 1, 0, 0, 1 })
+                elseif withdrawForTab > 0 then
+                    self:AddPie(L["Withdraw For Tab"], withdrawForTab, { 1, 0, 0, 1 })
+                end
+            end,
+            true,
+        },
+    },
 }
 
 forwardCallbacks = {
     selectScans = {
         OnClear = {
             function(self)
+                private:dprint("Clearing scans")
                 wipe(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans)
                 AnalyzeTab.guilds[AnalyzeTab.guildKey].data = GetGuildDataTable()
                 DrawSidebar()
+                AnalyzeTab.tabContent:ReleaseChildren()
             end,
         },
         OnInfoSet = {
@@ -216,6 +272,7 @@ forwardCallbacks = {
                 if AnalyzeTab.scanID then
                     AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[AnalyzeTab.scanID] = true
                     AnalyzeTab.scanID = nil
+                    private:dprint("ScanID provided; analyze scans")
                     AnalyzeScans()
                 else
                     for scanID, _ in pairs(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) do
@@ -226,7 +283,8 @@ forwardCallbacks = {
         },
         OnMenuClosed = {
             function(self)
-                AnalyzeScans()
+                private:dprint("Scan menu closed")
+                AnalyzeScans(true)
             end,
         },
         OnSelectAll = {
@@ -234,6 +292,7 @@ forwardCallbacks = {
                 for _, info in pairs(self:GetInfo()) do
                     AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[info.id] = true
                 end
+                private:dprint("All scans selected")
                 AnalyzeScans()
             end,
         },
@@ -257,6 +316,7 @@ info = {
                         scans = {},
                         data = GetGuildDataTable(),
                     }
+                    private:dprint("Selected analyze guild")
                     DrawSidebar()
                 end,
             })
@@ -312,33 +372,28 @@ tabs = {
         header = L["Item"],
         onClick = function()
             local tabContent = AnalyzeTab.tabContent
-            local content = tabContent.content
-            content:ReleaseAll()
-            DrawItemContent(content)
-            content:MarkDirty()
-            tabContent.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+            tabContent:ReleaseChildren()
+            DrawItemContent(tabContent)
+            tabContent:DoLayout()
         end,
     },
     {
         header = L["Name"],
         onClick = function()
             local tabContent = AnalyzeTab.tabContent
-            local content = tabContent.content
-            content:ReleaseAll()
-            DrawNameContent(content)
-            content:MarkDirty()
-            tabContent.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+            tabContent:ReleaseChildren()
+            DrawNameContent(tabContent)
+            tabContent:DoLayout()
         end,
     },
     {
         header = L["Gold"],
         onClick = function()
+            print("click")
             local tabContent = AnalyzeTab.tabContent
-            local content = tabContent.content
-            content:ReleaseAll()
-            DrawGoldContent(content)
-            content:MarkDirty()
-            tabContent.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+            tabContent:ReleaseChildren()
+            DrawGoldContent(tabContent)
+            tabContent:DoLayout()
         end,
     },
 }
@@ -442,12 +497,31 @@ AnalyzeScans = function(skipDrawSidebar)
     end
 
     if not skipDrawSidebar then
+        private:dprint("Analyze scans")
         DrawSidebar()
     end
 end
 
 DrawGoldContent = function(content)
+    local data = AnalyzeTab.guilds[AnalyzeTab.guildKey].data
     local height = 0
+
+    if data.gold.deposit + data.gold.depositSummary + data.gold.buyTab > 0 then
+        local goldDepositPie = content:Acquire("GuildBankSnapshotsPieGraph")
+        goldDepositPie:SetLabel(L["Deposits"])
+        goldDepositPie:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        goldDepositPie:SetCallbacks(callbacks.goldDepositPie)
+        content:AddChild(goldDepositPie)
+        height = height + goldDepositPie:GetHeight()
+    end
+
+    if data.gold.repair + data.gold.withdraw + data.gold.withdrawForTab > 0 then
+        local goldWithdrawPie = content:Acquire("GuildBankSnapshotsPieGraph")
+        goldWithdrawPie:SetLabel(L["Withdrawals"])
+        goldWithdrawPie:SetLabelFont(nil, private:GetInterfaceFlairColor())
+        goldWithdrawPie:SetCallbacks(callbacks.goldWithdrawPie)
+        content:AddChild(goldWithdrawPie)
+    end
 end
 
 DrawItemContent = function(content)
@@ -459,6 +533,7 @@ DrawNameContent = function(content)
 end
 
 DrawSidebar = function()
+    private:dprint("Drawing sidebar")
     local sidebar = AnalyzeTab.sidebar
     local content = sidebar.content
     content:ReleaseAll()
@@ -813,25 +888,37 @@ function private:LoadAnalyzeTab(content, guildKey, scanID)
     sidebar:SetPoint("BOTTOM", 0, 10)
     AnalyzeTab.sidebar = sidebar
 
-    local container = content:Acquire("GuildBankSnapshotsContainer")
-    container:SetPoint("TOPLEFT", selectGuild, "TOPRIGHT")
-    container:SetPoint("BOTTOMRIGHT", -10, 10)
-    container:SetCallbacks(callbacks.container)
-    AnalyzeTab.container = container
-
-    local tabContainer = container:Acquire("GuildBankSnapshotsGroup")
+    local tabContainer = content:Acquire("GuildBankSnapshotsGroup")
     tabContainer.bg, tabContainer.border = private:AddBackdrop(tabContainer, { bgColor = "darker" })
     tabContainer:SetHeight(20)
-    tabContainer:SetPoint("TOPLEFT")
-    tabContainer:SetPoint("RIGHT")
+    tabContainer:SetPoint("TOPLEFT", selectGuild, "TOPRIGHT")
+    tabContainer:SetPoint("RIGHT", -10, 0)
     tabContainer:SetReverse(true)
     AnalyzeTab.tabContainer = tabContainer
 
-    local tabContent = container:Acquire("GuildBankSnapshotsScrollFrame")
-    tabContent:SetPoint("TOPLEFT", tabContainer, "BOTTOMLEFT")
-    tabContent:SetPoint("BOTTOMRIGHT")
-    tabContent.bg, tabContent.border = private:AddBackdrop(tabContent, { bgColor = "dark" })
+    local container = content:Acquire("GuildBankSnapshotsScrollFrame")
+    container.bg, container.border = private:AddBackdrop(container, { bgColor = "dark" })
+    container:SetPoint("TOPLEFT", tabContainer, "BOTTOMLEFT")
+    container:SetPoint("BOTTOMRIGHT", -10, 10)
+    AnalyzeTab.container = container
+
+    local tabContent = container.content:Acquire("GuildBankSnapshotsGroup")
+    tabContent:SetHeight(1)
+    tabContent:SetPoint("TOPLEFT", container.content, "TOPLEFT")
+    tabContent:SetPoint("TOPRIGHT", container.content, "TOPRIGHT")
+    tabContent:SetPadding(5, 5)
+    tabContent:SetSpacing(10)
     AnalyzeTab.tabContent = tabContent
 
     selectGuild:SetCallbacks(callbacks.selectGuild)
+    -- content:SetCallback("OnSizeChanged", function()
+    --     tabContainer:DoLayout()
+    --     tabContent:DoLayout()
+    --     container:Fire("OnSizeChanged")
+    -- end)
+    -- tinsert(private.frame.OnSizeFinished, function()
+    --     tabContainer:DoLayout()
+    --     tabContent:DoLayout()
+    --     container:Fire("OnSizeChanged")
+    -- end)
 end

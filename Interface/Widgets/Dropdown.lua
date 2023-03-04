@@ -5,10 +5,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 --*----------[[ Menus ]]----------*--
 local menus = {}
 
-function private:CloseMenus(ignoredMenu)
+function private:CloseMenus(ignoredMenu, skipCallback)
     for _, menu in pairs(menus) do
         if menu ~= ignoredMenu then
-            menu:Close()
+            menu:Close(skipCallback)
         end
     end
 end
@@ -449,10 +449,10 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     menu.bg, menu.border = private:AddBackdrop(menu, { bgColor = "dark" })
 
     -- Methods
-    function menu:Close()
+    function menu:Close(skipCallback)
         self:ClearAllPoints()
         self:Hide()
-        if self.dropdown.handlers.OnMenuClosed then
+        if not skipCallback and self.dropdown.handlers.OnMenuClosed then
             self.dropdown.handlers.OnMenuClosed(self.dropdown)
         end
     end

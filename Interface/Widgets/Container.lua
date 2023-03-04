@@ -7,6 +7,7 @@ function GuildBankSnapshotsContainer_OnLoad(frame)
     frame:InitScripts({
         OnAcquire = function(self)
             self:ClearBackdrop()
+            private:SetFrameMovable(self)
         end,
 
         OnRelease = function(self)

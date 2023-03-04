@@ -2,123 +2,169 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+local callbacks, tabs
+local SelectTab
+local loaded
+
 --*----------[[ Data ]]----------*--
-local tabs = {
+callbacks = {
+    title_ = {
+        OnDragStart = {
+            function(self)
+                private.frame:Fire("OnDragStart")
+            end,
+        },
+
+        OnDragStop = {
+            function(self)
+                private.frame:Fire("OnDragStop")
+            end,
+        },
+    },
+    closeButton = {
+        OnClick = {
+            function()
+                private.frame:Hide()
+            end,
+        },
+    },
+    tabContainer = {
+        OnSizeChanged = {
+            function(self)
+                private:CloseMenus(nil, true)
+                self:DoLayout()
+            end,
+        },
+    },
+    tab = {
+        OnClick = {
+            function(self)
+                SelectTab(self:GetTabID(), self:GetUserData("guildKey"), self:GetUserData("scanID"))
+            end,
+        },
+        OnShow = {
+            function(self)
+                local tabID = self:GetTabID()
+                if tabID == private.frame.selectedTab then
+                    -- Using OnClick handler to make sure the button is properly highlighted
+                    self:Fire("OnClick")
+                end
+            end,
+        },
+    },
+}
+
+------------------------
+
+tabs = {
     {
         header = L["Review"],
+        init = function()
+            private:InitializeReviewTab()
+        end,
         onClick = function(content, guildKey)
             private:LoadReviewTab(content, guildKey)
         end,
     },
     {
         header = L["Analyze"],
+        init = function()
+            private:InitializeAnalyzeTab()
+        end,
         onClick = function(content, guildKey, scanID)
             private:LoadAnalyzeTab(content, guildKey, scanID)
         end,
     },
     {
         header = L["Settings"],
+        init = function()
+            private:InitializeSettingsTab()
+        end,
         onClick = function(content, guildKey)
             private:LoadSettingsTab(content, guildKey)
         end,
     },
     {
         header = L["Help"],
+        init = function()
+            -- private:InitializeHelpTab()
+        end,
         onClick = function(content) end,
     },
 }
 
 --*----------[[ Methods ]]----------*--
+SelectTab = function(tabID, guildKey, scanID)
+    private.frame.selectedTab = tabID
+    private.frame.content:ReleaseAll()
+    tabs[tabID].onClick(private.frame.content, guildKey, scanID)
+end
+
+------------------------
+
 function private:InitializeFrame()
-    local frame = CreateFrame("Frame", "GuildBankSnapshotsFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(1000, 500)
+    local frame = CreateFrame("Frame", "GuildBankSnapshotsFrame", UIParent, "GuildBankSnapshotsContainer")
     frame:SetPoint("CENTER")
+    frame:SetSize(1000, 500)
     frame:Hide()
 
     private.bg, private.border = private:AddBackdrop(frame)
+    private:SetFrameMovable(frame, true)
     private:SetFrameSizing(frame, 500, 300, GetScreenWidth() - 400, GetScreenHeight() - 200)
     addon:AddSpecialFrame(frame, "GuildBankSnapshotsFrame")
     private.frame = frame
 
-    -- [[ Title bar ]]
-    frame.titleBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.titleBar:SetHeight(20)
-    frame.titleBar:SetPoint("TOPLEFT")
-    frame.titleBar:SetPoint("RIGHT")
-    frame.titleBar.bg, frame.titleBar.border = private:AddBackdrop(frame.titleBar)
+    local titleBar = frame:Acquire("GuildBankSnapshotsContainer")
+    titleBar:SetPoint("TOPLEFT")
+    titleBar:SetPoint("RIGHT")
+    titleBar:SetHeight(20)
+    titleBar.bg, titleBar.border = private:AddBackdrop(titleBar)
+    private:SetFrameMovable(titleBar, true)
+    titleBar:SetCallbacks(callbacks.title_)
 
-    frame.closeButton = CreateFrame("Button", nil, frame.titleBar)
-    frame.closeButton:SetSize(22, 22)
-    frame.closeButton:SetPoint("RIGHT", -4, 0)
-    frame.closeButton:SetText("x")
-    frame.closeButton:SetNormalFontObject(GameFontHighlightSmall)
-    frame.closeButton:SetHighlightFontObject(GameFontHighlightSmall)
-    frame.closeButton:SetScript("OnClick", function()
-        frame:Hide()
-    end)
+    local closeButton = titleBar:Acquire("GuildBankSnapshotsButton")
+    closeButton:SetPoint("RIGHT", titleBar, "RIGHT", -4, 0)
+    closeButton:SetSize(16, 16)
+    closeButton:ClearBackdrop()
+    closeButton:SetText("x")
+    closeButton:SetCallbacks(callbacks.closeButton)
 
-    frame.title = frame.titleBar:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    frame.title:SetText(L.addonName)
-    frame.title:SetPoint("TOPLEFT", 4, -2)
-    frame.title:SetPoint("BOTTOMRIGHT", -4, 2)
-    frame.title:SetTextColor(private.interface.colors[private:UseClassColor() and "class" or "flair"]:GetRGBA())
+    local title = titleBar:Acquire("GuildBankSnapshotsFontFrame")
+    title:SetPoint("TOPLEFT", 2, -2)
+    title:SetPoint("RIGHT", closeButton, "LEFT", -2, 0)
+    title:SetPoint("BOTTOM", 0, 2)
+    title:SetText(L.addonName)
+    title:SetFont(nil, private:GetInterfaceFlairColor())
+    private:SetFrameMovable(title, true)
+    title:SetCallbacks(callbacks.title_)
 
-    -- [[ Tabs ]]
-    frame.tabContainer = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsGroup")
-    frame.tabContainer:SetHeight(20)
-    frame.tabContainer:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 10, -10)
-    frame.tabContainer:SetPoint("RIGHT", -10, 0)
-    frame.tabContainer:SetReverse(true)
+    local tabContainer = frame:Acquire("GuildBankSnapshotsGroup")
+    tabContainer:SetPoint("TOPLEFT", titleBar, "BOTTOMLEFT", 10, -10)
+    tabContainer:SetPoint("RIGHT", -10, 0)
+    tabContainer:SetHeight(20)
+    tabContainer:SetReverse(true)
+    tabContainer:SetCallbacks(callbacks.tabContainer)
+    frame.tabContainer = tabContainer
 
-    -- [[ Content ]]
-    frame.content = CreateFrame("Frame", nil, frame, "GuildBankSnapshotsContainer")
-    frame.content:SetPoint("TOPLEFT", frame.tabContainer, "BOTTOMLEFT")
-    frame.content:SetPoint("RIGHT", frame.tabContainer, "RIGHT")
-    frame.content:SetPoint("BOTTOMRIGHT", -10, 10)
-    frame.content.bg, frame.content.border = private:AddBackdrop(frame.content, { bgColor = "darkest" })
+    for tabID, info in addon:pairs(tabs) do
+        local tab = tabContainer:Acquire("GuildBankSnapshotsTabButton")
+        tab:SetTab(tabContainer, tabID, info)
+        tab:SetCallbacks(callbacks.tab)
+        tabContainer:AddChild(tab)
 
-    function frame:SelectTab(tabID, guildKey, scanID)
-        self.selectedTab = tabID
-        self.content:ReleaseAll()
-        tabs[tabID].onClick(self.content, guildKey, scanID)
+        info.init()
     end
 
-    -- [[ Scripts ]]
-    frame.tabContainer:SetScript("OnSizeChanged", function(self)
-        private:CloseMenus()
-        self:ReleaseChildren()
-
-        for tabID, info in addon:pairs(tabs) do
-            local tab = self:Acquire("GuildBankSnapshotsTabButton")
-            tab:SetTab(self, tabID, info)
-            tab:SetCallbacks({
-                OnClick = {
-                    function(tab, ...)
-                        frame:SelectTab(tab:GetTabID(), tab:GetUserData("guildKey"), tab:GetUserData("scanID"))
-                    end,
-                },
-                OnShow = {
-                    function(tab)
-                        local tabID = tab:GetTabID()
-                        if tabID == self.selectedTab then
-                            -- Using OnClick handler to make sure the button is properly highlighted
-                            tab:Fire("OnClick")
-                        end
-                    end,
-                },
-            })
-            self:AddChild(tab)
-        end
-
-        self:DoLayout()
-    end, true)
-
-    private:InitializeReviewTab()
-    private:InitializeAnalyzeTab()
-    private:InitializeSettingsTab()
+    local content = frame:Acquire("GuildBankSnapshotsContainer")
+    content:SetPoint("TOPLEFT", tabContainer, "BOTTOMLEFT")
+    content:SetPoint("RIGHT", tabContainer, "RIGHT")
+    content:SetPoint("BOTTOMRIGHT", -10, 10)
+    content.bg, content.border = private:AddBackdrop(content, { bgColor = "darkest" })
+    frame.content = content
 end
 
-local loaded
+------------------------
+
 function private:LoadFrame(reviewPath, guildKey, scanID)
     private.frame:Show()
 

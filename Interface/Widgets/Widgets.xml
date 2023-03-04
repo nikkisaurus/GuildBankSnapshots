@@ -89,6 +89,12 @@
         </Scripts>
     </Frame>
 
+    <Frame name="GuildBankSnapshotsPieGraph" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsPieGraph_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <Frame name="GuildBankSnapshotsScrollFrame" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsScrollFrame_OnLoad" />

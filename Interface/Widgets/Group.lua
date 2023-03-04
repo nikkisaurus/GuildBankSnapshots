@@ -29,7 +29,7 @@ function GuildBankSnapshotsGroup_OnLoad(group)
             self:Fire("OnAcquire")
         end
 
-        local usedWidth, usedHeight, maxChildHeight = 0, self:GetUserData("spacing")
+        local usedWidth, usedHeight, maxChildHeight = 0, self:GetUserData("heightPadding")
         for i, child in addon:pairs(self.children) do
             local width = self:GetWidth()
             local childWidth = child:GetWidth()
@@ -77,7 +77,7 @@ function GuildBankSnapshotsGroup_OnLoad(group)
                 maxChildHeight = max(maxChildHeight, childHeight)
             end
 
-            self:SetHeight(usedHeight + maxChildHeight + self:GetUserData("spacing") * 2)
+            self:SetHeight(usedHeight + maxChildHeight + self:GetUserData("spacing") + self:GetUserData("heightPadding"))
         end
     end
 

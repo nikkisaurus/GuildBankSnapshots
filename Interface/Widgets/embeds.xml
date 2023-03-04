@@ -5,6 +5,7 @@
     <Include file="Dropdown.lua" />
     <Include file="EditBox.lua" />
     <Include file="FontFrame.lua" />
+    <Include file="Graphs.lua" />
     <Include file="Group.lua" />
     <Include file="ListScrollFrame.lua" />
     <Include file="MinMaxFrame.lua" />

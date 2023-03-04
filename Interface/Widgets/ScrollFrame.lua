@@ -11,7 +11,8 @@ function GuildBankSnapshotsScrollFrame_OnLoad(frame)
         end,
 
         OnSizeChanged = function(self)
-            self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
+            self.content:MarkDirty()
+            self.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
         end,
 
         OnRelease = function(self)

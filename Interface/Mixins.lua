@@ -168,6 +168,10 @@ function WidgetMixin:ClearBackdrop()
     if self.border then
         self.border:SetTexture()
     end
+
+    if self.highlight then
+        self.highlight:SetTexture()
+    end
 end
 
 function WidgetMixin:Fire(script, ...)
@@ -175,9 +179,12 @@ function WidgetMixin:Fire(script, ...)
         self.scripts.OnAcquire(self)
     else
         assert(self.scripts, "WidgetMixin: Scripts have not been initialized")
+        local success, err = pcall(self.GetScript, self, script)
 
         if self.scripts[script] then
             self.scripts[script](self, ...)
+        elseif success then
+            self:GetScript(script)(self, ...)
         end
 
         if self.handlers[script] then
@@ -324,6 +331,7 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsGroup", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsListScrollFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsMinMaxFrame", Resetter)
+    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsPieGraph", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollFrame", Resetter)
     tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsSlider", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsSliderFrame", Resetter)
