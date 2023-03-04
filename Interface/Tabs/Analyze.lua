@@ -5,9 +5,8 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 --*----------[[ Initialize tab ]]----------*--
 local AnalyzeTab
 local callbacks, forwardCallbacks, info, mods, sidebarSections, tabs
-local AnalyzeScans, DrawGoldContent, DrawItemContent, DrawNameContent, DrawSidebar, DrawSidebarGold, DrawSidebarItems, DrawTabs, GetGuildDataTable, GetItemTable, GetNameTable
-local dividerString, divider = "....................................................................................................."
-local names = {}
+local AnalyzeScans, DrawGoldContent, DrawGraphContent, DrawItemContent, DrawNameContent, DrawSidebar, DrawSidebarGold, DrawSidebarItems, DrawTabs, GetGuildDataTable, GetItemTable, GetNameTable, GetSelectedGuild
+local divider
 
 function private:InitializeAnalyzeTab()
     AnalyzeTab = {
@@ -30,10 +29,9 @@ callbacks = {
     analyze = {
         OnClick = {
             function(self)
-                if addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
+                if addon:tcount(GetSelectedGuild().scans) == 0 then
                     return
                 end
-                private:dprint("Analyze clicked")
                 AnalyzeScans()
             end,
         },
@@ -49,20 +47,35 @@ callbacks = {
     removeDupes = {
         OnClick = {
             function(self)
-                AnalyzeTab.guilds[AnalyzeTab.guildKey].removeDupes = self:GetChecked()
+                GetSelectedGuild().removeDupes = self:GetChecked()
             end,
         },
         OnShow = {
             function(self)
-                self:SetCheckedState(AnalyzeTab.guilds[AnalyzeTab.guildKey].removeDupes, true)
+                self:SetCheckedState(GetSelectedGuild().removeDupes, true)
             end,
             true,
+        },
+    },
+    sectionHeader = {
+        OnClick = {
+            function(self)
+                local info = self:GetUserData("info")
+                local sectionID = self:GetUserData("sectionID")
+                if info.collapsed then
+                    sidebarSections[sectionID].collapsed = false
+                else
+                    sidebarSections[sectionID].collapsed = true
+                end
+
+                DrawSidebar(true)
+            end,
         },
     },
     deposit = {
         OnShow = {
             function(self)
-                local deposits = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.deposit
+                local deposits = GetSelectedGuild().data.deposit
                 self:SetText(private:GetDoubleLine(L["Deposits"], deposits > 0 and addon:ColorFontString(deposits, "GREEN") or deposits))
             end,
             true,
@@ -71,7 +84,7 @@ callbacks = {
     topDeposit = {
         OnShow = {
             function(self)
-                local topDeposit = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.topDeposit
+                local topDeposit = GetSelectedGuild().data.topDeposit
                 self:SetText(topDeposit and format("%s (%s)", topDeposit.name, addon:ColorFontString(topDeposit.quantity, "GREEN")))
             end,
             true,
@@ -80,7 +93,7 @@ callbacks = {
     withdraw = {
         OnShow = {
             function(self)
-                local withdrawals = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.withdraw
+                local withdrawals = GetSelectedGuild().data.withdraw
                 self:SetText(private:GetDoubleLine(L["Withdrawals"], withdrawals > 0 and addon:ColorFontString(withdrawals, "RED") or withdrawals))
             end,
             true,
@@ -89,7 +102,7 @@ callbacks = {
     topWithdraw = {
         OnShow = {
             function(self)
-                local topWithdraw = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.topWithdraw
+                local topWithdraw = GetSelectedGuild().data.topWithdraw
                 self:SetText(topWithdraw and format("%s (%s)", topWithdraw.name, addon:ColorFontString(topWithdraw.quantity, "RED")))
             end,
             true,
@@ -98,7 +111,7 @@ callbacks = {
     goldTotal = {
         OnShow = {
             function(self)
-                self:SetText(private:GetDoubleLine(L["Total Money"], GetCoinTextureString(AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.total)))
+                self:SetText(private:GetDoubleLine(L["Total Money"], GetCoinTextureString(GetSelectedGuild().data.gold.total)))
             end,
             true,
         },
@@ -106,7 +119,7 @@ callbacks = {
     goldNet = {
         OnShow = {
             function(self)
-                local net = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.net
+                local net = GetSelectedGuild().data.gold.net
                 local coinString = GetCoinTextureString(abs(net))
                 self:SetText(private:GetDoubleLine(L["Net Gold"], net == 0 and coinString or addon:ColorFontString(coinString, net < 0 and "RED" or net > 0 and "GREEN")))
             end,
@@ -116,7 +129,7 @@ callbacks = {
     goldDeposit = {
         OnShow = {
             function(self)
-                local deposits = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.deposit
+                local deposits = GetSelectedGuild().data.gold.deposit
                 self:SetText(private:GetDoubleLine(L["Deposits"], deposits > 0 and addon:ColorFontString(GetCoinTextureString(deposits), "GREEN") or GetCoinTextureString(deposits)))
             end,
             true,
@@ -125,7 +138,7 @@ callbacks = {
     goldDepositSummary = {
         OnShow = {
             function(self)
-                local depositSummary = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.depositSummary
+                local depositSummary = GetSelectedGuild().data.gold.depositSummary
                 self:SetText(private:GetDoubleLine(L["Deposit Summary"], depositSummary > 0 and addon:ColorFontString(GetCoinTextureString(depositSummary), "GREEN") or GetCoinTextureString(depositSummary)))
             end,
             true,
@@ -134,7 +147,7 @@ callbacks = {
     goldTopDeposit = {
         OnShow = {
             function(self)
-                local topDeposit = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.topDeposit
+                local topDeposit = GetSelectedGuild().data.gold.topDeposit
                 self:SetText(topDeposit and format("%s (%s)", topDeposit.name, addon:ColorFontString(GetCoinTextureString(topDeposit.quantity), "GREEN")))
             end,
             true,
@@ -143,7 +156,7 @@ callbacks = {
     goldRepair = {
         OnShow = {
             function(self)
-                local repairs = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.repair
+                local repairs = GetSelectedGuild().data.gold.repair
                 self:SetText(private:GetDoubleLine(L["Repairs"], repairs > 0 and addon:ColorFontString(GetCoinTextureString(repairs), "RED") or GetCoinTextureString(repairs)))
             end,
             true,
@@ -152,7 +165,7 @@ callbacks = {
     goldWithdraw = {
         OnShow = {
             function(self)
-                local withdrawals = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.withdraw
+                local withdrawals = GetSelectedGuild().data.gold.withdraw
                 self:SetText(private:GetDoubleLine(L["Withdrawals"], withdrawals > 0 and addon:ColorFontString(GetCoinTextureString(withdrawals), "RED") or GetCoinTextureString(withdrawals)))
             end,
             true,
@@ -161,7 +174,7 @@ callbacks = {
     goldTopWithdraw = {
         OnShow = {
             function(self)
-                local topWithdraw = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.topWithdraw
+                local topWithdraw = GetSelectedGuild().data.gold.topWithdraw
                 self:SetText(topWithdraw and format("%s (%s)", topWithdraw.name, addon:ColorFontString(GetCoinTextureString(topWithdraw.quantity), "RED")))
             end,
             true,
@@ -170,7 +183,7 @@ callbacks = {
     goldBuyTab = {
         OnShow = {
             function(self)
-                local buyTab = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.buyTab
+                local buyTab = GetSelectedGuild().data.gold.buyTab
                 self:SetText(private:GetDoubleLine(L["Buy Tab"], buyTab > 0 and addon:ColorFontString(buyTab, "GREEN") or GetCoinTextureString(buyTab)))
             end,
             true,
@@ -179,7 +192,7 @@ callbacks = {
     goldWithdrawForTab = {
         OnShow = {
             function(self)
-                local withdrawForTab = AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.withdrawForTab
+                local withdrawForTab = GetSelectedGuild().data.gold.withdrawForTab
                 self:SetText(private:GetDoubleLine(L["Withdraw For Tab"], withdrawForTab > 0 and addon:ColorFontString(withdrawForTab, "RED") or GetCoinTextureString(withdrawForTab)))
             end,
             true,
@@ -189,19 +202,21 @@ callbacks = {
         OnClick = {
             function(self)
                 local tabID = self:GetTabID()
-                AnalyzeTab.guilds[AnalyzeTab.guildKey].selectedTab = tabID
-                tabs[tabID].onClick(self)
+                GetSelectedGuild().selectedTab = tabID
+
+                local tabContent = AnalyzeTab.content
+                tabContent:ReleaseChildren()
+                tabs[tabID].onClick(tabContent)
             end,
         },
     },
     goldDepositPie = {
         OnShow = {
             function(self)
-                local data = AnalyzeTab.guilds[AnalyzeTab.guildKey].data
-                local total = data.gold.buyTab + data.gold.deposit + data.gold.depositSummary
-                local buyTab = (data.gold.buyTab / total) * 100
-                local deposit = (data.gold.deposit / total) * 100
-                local depositSummary = (data.gold.depositSummary / total) * 100
+                local data = GetSelectedGuild().data
+                local buyTab = (data.gold.buyTab / data.gold.totalDeposit) * 100
+                local deposit = (data.gold.deposit / data.gold.totalDeposit) * 100
+                local depositSummary = (data.gold.depositSummary / data.gold.totalDeposit) * 100
 
                 if buyTab == 100 then
                     self:CompletePie(L["Buy Tab"], { 0, 0.5, 0, 1 })
@@ -227,11 +242,10 @@ callbacks = {
     goldWithdrawPie = {
         OnShow = {
             function(self)
-                local data = AnalyzeTab.guilds[AnalyzeTab.guildKey].data
-                local total = data.gold.repair + data.gold.withdraw + data.gold.withdrawForTab
-                local repair = (data.gold.repair / total) * 100
-                local withdraw = (data.gold.withdraw / total) * 100
-                local withdrawForTab = (data.gold.withdrawForTab / total) * 100
+                local data = GetSelectedGuild().data
+                local repair = (data.gold.repair / data.gold.totalWithdraw) * 100
+                local withdraw = (data.gold.withdraw / data.gold.totalWithdraw) * 100
+                local withdrawForTab = (data.gold.withdrawForTab / data.gold.totalWithdraw) * 100
 
                 if repair == 100 then
                     self:CompletePie(L["Repair"], { 0.5, 0, 0, 1 })
@@ -256,26 +270,25 @@ callbacks = {
     },
 }
 
+------------------------
+
 forwardCallbacks = {
     selectScans = {
         OnClear = {
             function(self)
-                private:dprint("Clearing scans")
-                wipe(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans)
-                AnalyzeTab.guilds[AnalyzeTab.guildKey].data = GetGuildDataTable()
+                wipe(GetSelectedGuild().scans)
+                GetSelectedGuild().data = GetGuildDataTable()
                 DrawSidebar()
-                AnalyzeTab.tabContent:ReleaseChildren()
             end,
         },
         OnInfoSet = {
             function(self)
                 if AnalyzeTab.scanID then
-                    AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[AnalyzeTab.scanID] = true
+                    GetSelectedGuild().scans[AnalyzeTab.scanID] = true
                     AnalyzeTab.scanID = nil
-                    private:dprint("ScanID provided; analyze scans")
                     AnalyzeScans()
                 else
-                    for scanID, _ in pairs(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) do
+                    for scanID, _ in pairs(GetSelectedGuild().scans) do
                         self:SelectByID(scanID, true, true)
                     end
                 end
@@ -283,21 +296,21 @@ forwardCallbacks = {
         },
         OnMenuClosed = {
             function(self)
-                private:dprint("Scan menu closed")
                 AnalyzeScans(true)
             end,
         },
         OnSelectAll = {
             function(self)
                 for _, info in pairs(self:GetInfo()) do
-                    AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[info.id] = true
+                    GetSelectedGuild().scans[info.id] = true
                 end
-                private:dprint("All scans selected")
                 AnalyzeScans()
             end,
         },
     },
 }
+
+------------------------
 
 info = {
     selectGuild = function()
@@ -316,7 +329,6 @@ info = {
                         scans = {},
                         data = GetGuildDataTable(),
                     }
-                    private:dprint("Selected analyze guild")
                     DrawSidebar()
                 end,
             })
@@ -332,7 +344,7 @@ info = {
                 id = scanID,
                 text = date(private.db.global.preferences.dateFormat, scanID),
                 func = function(dropdown, info)
-                    AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[info.id] = dropdown:GetSelected(info.id) and true or nil
+                    GetSelectedGuild().scans[info.id] = dropdown:GetSelected(info.id) and true or nil
                 end,
             })
         end
@@ -340,6 +352,8 @@ info = {
         return info
     end,
 }
+
+------------------------
 
 mods = {
     buyTab = 1,
@@ -349,6 +363,8 @@ mods = {
     withdraw = -1,
     withdrawForTab = -1,
 }
+
+------------------------
 
 sidebarSections = {
     {
@@ -367,33 +383,31 @@ sidebarSections = {
     },
 }
 
+------------------------
+
 tabs = {
     {
         header = L["Item"],
-        onClick = function()
-            local tabContent = AnalyzeTab.tabContent
-            tabContent:ReleaseChildren()
+        onClick = function(tabContent)
             DrawItemContent(tabContent)
-            tabContent:DoLayout()
         end,
     },
     {
         header = L["Name"],
-        onClick = function()
-            local tabContent = AnalyzeTab.tabContent
-            tabContent:ReleaseChildren()
+        onClick = function(tabContent)
             DrawNameContent(tabContent)
-            tabContent:DoLayout()
         end,
     },
     {
         header = L["Gold"],
-        onClick = function()
-            print("click")
-            local tabContent = AnalyzeTab.tabContent
-            tabContent:ReleaseChildren()
+        onClick = function(tabContent)
             DrawGoldContent(tabContent)
-            tabContent:DoLayout()
+        end,
+    },
+    {
+        header = L["Graphs"],
+        onClick = function(tabContent)
+            DrawGraphContent(tabContent)
         end,
     },
 }
@@ -404,7 +418,7 @@ AnalyzeScans = function(skipDrawSidebar)
         return
     end
 
-    local analyzeInfo = AnalyzeTab.guilds[AnalyzeTab.guildKey]
+    local analyzeInfo = GetSelectedGuild()
     local guildInfo = private.db.global.guilds[AnalyzeTab.guildKey]
     analyzeInfo.data = GetGuildDataTable()
 
@@ -419,9 +433,6 @@ AnalyzeScans = function(skipDrawSidebar)
                 scanID,
                 totalMoney,
             })
-            analyzeInfo.data.minX = analyzeInfo.data.minX and min(analyzeInfo.data.minX, scanID) or scanID
-            analyzeInfo.data.maxX = analyzeInfo.data.maxX and max(analyzeInfo.data.maxX, scanID) or scanID
-            analyzeInfo.data.maxY = analyzeInfo.data.maxY and max(analyzeInfo.data.maxY, totalMoney) or totalMoney
         end
     end
 
@@ -496,293 +507,289 @@ AnalyzeScans = function(skipDrawSidebar)
         end
     end
 
+    analyzeInfo.data.gold.totalDeposit = analyzeInfo.data.gold.deposit + analyzeInfo.data.gold.depositSummary + analyzeInfo.data.gold.buyTab
+    analyzeInfo.data.gold.totalWithdraw = analyzeInfo.data.gold.repair + analyzeInfo.data.gold.withdraw + analyzeInfo.data.gold.withdrawForTab
+
     if not skipDrawSidebar then
-        private:dprint("Analyze scans")
         DrawSidebar()
     end
 end
 
-DrawGoldContent = function(content)
-    local data = AnalyzeTab.guilds[AnalyzeTab.guildKey].data
-    local height = 0
+------------------------
 
-    if data.gold.deposit + data.gold.depositSummary + data.gold.buyTab > 0 then
-        local goldDepositPie = content:Acquire("GuildBankSnapshotsPieGraph")
-        goldDepositPie:SetLabel(L["Deposits"])
+DrawGoldContent = function(content)
+    content:DoLayout()
+end
+
+------------------------
+
+DrawGraphContent = function(content)
+    local data = GetSelectedGuild().data
+
+    if data.gold.totalDeposit > 0 then
+        local goldDepositPie = content:AcquireElement("GuildBankSnapshotsPieGraph")
+        goldDepositPie:SetLabel(L["Gold Deposits"])
         goldDepositPie:SetLabelFont(nil, private:GetInterfaceFlairColor())
         goldDepositPie:SetCallbacks(callbacks.goldDepositPie)
         content:AddChild(goldDepositPie)
-        height = height + goldDepositPie:GetHeight()
     end
 
-    if data.gold.repair + data.gold.withdraw + data.gold.withdrawForTab > 0 then
-        local goldWithdrawPie = content:Acquire("GuildBankSnapshotsPieGraph")
-        goldWithdrawPie:SetLabel(L["Withdrawals"])
+    if data.gold.totalWithdraw > 0 then
+        local goldWithdrawPie = content:AcquireElement("GuildBankSnapshotsPieGraph")
+        goldWithdrawPie:SetLabel(L["Gold Withdrawals"])
         goldWithdrawPie:SetLabelFont(nil, private:GetInterfaceFlairColor())
         goldWithdrawPie:SetCallbacks(callbacks.goldWithdrawPie)
         content:AddChild(goldWithdrawPie)
     end
+
+    content:DoLayout()
 end
+
+------------------------
 
 DrawItemContent = function(content)
-    local height = 0
+    content:DoLayout()
 end
+
+------------------------
 
 DrawNameContent = function(content)
-    local height = 0
+    content:DoLayout()
 end
 
-DrawSidebar = function()
-    private:dprint("Drawing sidebar")
+------------------------
+
+DrawSidebar = function(skipDrawTabs)
+    private:dprint("AnalyzeTab > DrawSidebar()")
+
     local sidebar = AnalyzeTab.sidebar
-    local content = sidebar.content
-    content:ReleaseAll()
+    sidebar:ReleaseChildren()
 
-    if not AnalyzeTab.guildKey then
-        return
-    end
+    local removeDupes = sidebar:AcquireElement("GuildBankSnapshotsCheckButton")
+    removeDupes:SetFullWidth()
+    removeDupes:SetText(L["Remove duplicates"] .. "*")
+    removeDupes:SetTooltipInitializer(L["Experimental"])
+    removeDupes:SetCallbacks(callbacks.removeDupes)
+    sidebar:AddChild(removeDupes)
 
-    local height = 0
-
-    local analyze = content:Acquire("GuildBankSnapshotsButton")
-    analyze:SetPoint("TOPLEFT", 5, -height)
-    analyze:SetPoint("RIGHT", -5, 0)
-    analyze:SetText(L["Analyze"])
-    analyze:SetTooltipInitializer(L["Changes will not be calculated until analyze is re-run"])
-    analyze:SetCallbacks(callbacks.analyze)
-    AnalyzeTab.analyze = analyze
-    height = height + analyze:GetHeight() + 5
-
-    local selectScans = content:Acquire("GuildBankSnapshotsDropdownFrame")
-    selectScans:SetPoint("TOPLEFT", 5, -height)
-    selectScans:SetPoint("RIGHT", -5, 0)
+    local selectScans = sidebar:AcquireElement("GuildBankSnapshotsDropdownFrame")
+    selectScans:SetWidth(160)
     selectScans:SetLabel(L["Select Scans"])
     selectScans:SetLabelFont(nil, private:GetInterfaceFlairColor())
     selectScans:Justify("LEFT")
     selectScans:SetStyle({ multiSelect = true, hasClear = true, hasSelectAll = true })
-    selectScans:SetCallbacks(callbacks.selectScans)
     selectScans:ForwardCallbacks(forwardCallbacks.selectScans)
     selectScans:SetInfo(info.selectScans)
-    height = height + selectScans:GetHeight() + 5
+    selectScans:SetCallbacks(callbacks.selectScans)
+    sidebar:AddChild(selectScans)
 
-    local removeDupes = content:Acquire("GuildBankSnapshotsCheckButton")
-    removeDupes:SetPoint("TOPLEFT", 5, -height)
-    removeDupes:SetPoint("RIGHT", -5, 0)
-    removeDupes:SetText(L["Remove duplicates"] .. "*")
-    removeDupes:SetTooltipInitializer(L["Experimental"])
-    removeDupes:SetCallbacks(callbacks.removeDupes)
-    height = height + removeDupes:GetHeight() + 10
+    local analyze = sidebar:AcquireElement("GuildBankSnapshotsButton")
+    analyze:SetUserData("yOffset", -(selectScans:GetHeight() / 2))
+    analyze:SetWidth(50)
+    analyze:SetText(L["Analyze"])
+    analyze:SetTooltipInitializer(L["Changes will not be calculated until analyze is re-run"])
+    analyze:SetCallbacks(callbacks.analyze)
+    sidebar:AddChild(analyze)
 
-    if addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
-        content:MarkDirty()
-        sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
-
-        DrawTabs()
+    if addon:tcount(GetSelectedGuild().scans) == 0 then
+        sidebar:DoLayout()
+        AnalyzeTab.tabContainer:ReleaseChildren()
+        AnalyzeTab.content:ReleaseChildren()
         return
     end
 
     for sectionID, info in addon:pairs(sidebarSections) do
-        local header = content:Acquire("GuildBankSnapshotsButton")
-        header:SetHeight(20)
-        header:SetText(info.header)
+        local header = sidebar:AcquireElement("GuildBankSnapshotsButton")
+        header:SetFullWidth()
+        header:SetUserData("sectionID", sectionID)
+        header:SetUserData("info", info)
         header:SetBackdropColor(private.interface.colors[private:UseClassColor() and "lightClass" or "lightFlair"], private.interface.colors.light)
+        header:SetText(info.header)
         header:SetTextColor(private.interface.colors.white:GetRGBA())
-        header:SetPoint("TOPLEFT", 0, -height)
-        header:SetPoint("RIGHT", 0, 0)
-        header:SetCallback("OnClick", function()
-            local isCollapsed = info.collapsed
-            if isCollapsed then
-                sidebarSections[sectionID].collapsed = false
-            else
-                sidebarSections[sectionID].collapsed = true
-            end
-
-            DrawSidebar()
-        end)
-        height = height + header:GetHeight() + 5
+        header:SetCallbacks(callbacks.sectionHeader)
+        sidebar:AddChild(header)
 
         if not info.collapsed then
-            height = info.onLoad(content, height) + 5
+            local section = sidebar:AcquireElement("GuildBankSnapshotsGroup")
+            section:SetFullWidth()
+            section:SetHeight(1)
+            -- section:SetUserData("yOffset", -10) -- TODO: Fix yOffset in Group:DoLayout()
+            section.bg, section.border = private:AddBackdrop(section, { bgColor = "dark" })
+            section:SetPadding(4, 2)
+            section:SetSpacing(2)
+            sidebar:AddChild(section)
+
+            info.onLoad(section)
         end
     end
 
-    content:MarkDirty()
-    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+    sidebar:DoLayout()
 
-    DrawTabs()
+    if not skipDrawTabs then
+        DrawTabs()
+    end
 end
 
-DrawSidebarGold = function(content, height)
-    local goldTotal = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldTotal:SetPoint("TOPLEFT", 5, -height)
-    goldTotal:SetPoint("RIGHT", -5, 0)
+------------------------
+
+DrawSidebarGold = function(section)
+    local goldTotal = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldTotal:SetFullWidth()
     goldTotal:Justify("LEFT")
     goldTotal:SetCallbacks(callbacks.goldTotal)
-    height = height + goldTotal:GetHeight()
+    section:AddChild(goldTotal)
 
-    local goldNet = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldNet:SetPoint("TOPLEFT", 5, -height)
-    goldNet:SetPoint("RIGHT", -5, 0)
+    local goldNet = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldNet:SetFullWidth()
     goldNet:Justify("LEFT")
     goldNet:SetCallbacks(callbacks.goldNet)
-    height = height + goldNet:GetHeight()
+    section:AddChild(goldNet)
 
     --.....................
-    divider = content:Acquire("GuildBankSnapshotsFontFrame")
-    divider:SetPoint("TOPLEFT", 5, -height)
-    divider:SetPoint("RIGHT", -5, 0)
+    divider = section:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetFullWidth()
     divider:SetHeight(5)
-    divider:SetText(dividerString)
-    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:SetText(private.interface.divider)
+    divider:SetFont(nil, private.interface.colors.dimmedWhite)
     divider:DisableTooltip(true)
-    height = height + divider:GetHeight() + 5
+    section:AddChild(divider)
     --.....................
 
-    local goldDeposit = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldDeposit:SetPoint("TOPLEFT", 5, -height)
-    goldDeposit:SetPoint("RIGHT", -5, 0)
+    local goldDeposit = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldDeposit:SetFullWidth()
     goldDeposit:Justify("LEFT")
     goldDeposit:SetCallbacks(callbacks.goldDeposit)
-    height = height + goldDeposit:GetHeight()
+    section:AddChild(goldDeposit)
 
-    local goldDepositSummary = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldDepositSummary:SetPoint("TOPLEFT", 5, -height)
-    goldDepositSummary:SetPoint("RIGHT", -5, 0)
+    local goldDepositSummary = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldDepositSummary:SetFullWidth()
     goldDepositSummary:Justify("LEFT")
     goldDepositSummary:SetCallbacks(callbacks.goldDepositSummary)
-    height = height + goldDepositSummary:GetHeight()
+    section:AddChild(goldDepositSummary)
 
-    if AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.topDeposit then
-        local goldTopDeposit = content:Acquire("GuildBankSnapshotsFontLabelFrame")
-        goldTopDeposit:SetPoint("TOPLEFT", 5, -height)
-        goldTopDeposit:SetPoint("RIGHT", -5, 0)
+    if GetSelectedGuild().data.gold.topDeposit then
+        local goldTopDeposit = section:Acquire("GuildBankSnapshotsFontLabelFrame")
+        goldTopDeposit:SetFullWidth()
         goldTopDeposit:Justify("LEFT")
         goldTopDeposit:SetLabel(L["All-Star"] .. ":")
         goldTopDeposit:SetLabelFont(nil, private:GetInterfaceFlairColor())
         goldTopDeposit:SetCallbacks(callbacks.goldTopDeposit)
-        height = height + goldTopDeposit:GetHeight()
+        section:AddChild(goldTopDeposit)
     end
 
     --.....................
-    divider = content:Acquire("GuildBankSnapshotsFontFrame")
-    divider:SetPoint("TOPLEFT", 5, -height)
-    divider:SetPoint("RIGHT", -5, 0)
+    divider = section:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetFullWidth()
     divider:SetHeight(5)
-    divider:SetText(dividerString)
-    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:SetText(private.interface.divider)
+    divider:SetFont(nil, private.interface.colors.dimmedWhite)
     divider:DisableTooltip(true)
-    height = height + divider:GetHeight() + 5
+    section:AddChild(divider)
     --.....................
 
-    local goldRepair = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldRepair:SetPoint("TOPLEFT", 5, -height)
-    goldRepair:SetPoint("RIGHT", -5, 0)
+    local goldRepair = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldRepair:SetFullWidth()
     goldRepair:Justify("LEFT")
     goldRepair:SetCallbacks(callbacks.goldRepair)
-    height = height + goldRepair:GetHeight()
+    section:AddChild(goldRepair)
 
-    local goldWithdraw = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldWithdraw:SetPoint("TOPLEFT", 5, -height)
-    goldWithdraw:SetPoint("RIGHT", -5, 0)
+    local goldWithdraw = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldWithdraw:SetFullWidth()
     goldWithdraw:Justify("LEFT")
     goldWithdraw:SetCallbacks(callbacks.goldWithdraw)
-    height = height + goldWithdraw:GetHeight()
+    section:AddChild(goldWithdraw)
 
-    if AnalyzeTab.guilds[AnalyzeTab.guildKey].data.gold.topWithdraw then
-        local goldTopWithdraw = content:Acquire("GuildBankSnapshotsFontLabelFrame")
-        goldTopWithdraw:SetPoint("TOPLEFT", 5, -height)
-        goldTopWithdraw:SetPoint("RIGHT", -5, 0)
+    if GetSelectedGuild().data.gold.topWithdraw then
+        local goldTopWithdraw = section:Acquire("GuildBankSnapshotsFontLabelFrame")
+        goldTopWithdraw:SetFullWidth()
         goldTopWithdraw:Justify("LEFT")
         goldTopWithdraw:SetLabel(L["All-Star"] .. ":")
         goldTopWithdraw:SetLabelFont(nil, private:GetInterfaceFlairColor())
         goldTopWithdraw:SetCallbacks(callbacks.goldTopWithdraw)
-        height = height + goldTopWithdraw:GetHeight()
+        section:AddChild(goldTopWithdraw)
     end
 
     --.....................
-    divider = content:Acquire("GuildBankSnapshotsFontFrame")
-    divider:SetPoint("TOPLEFT", 5, -height)
-    divider:SetPoint("RIGHT", -5, 0)
+    divider = section:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetFullWidth()
     divider:SetHeight(5)
-    divider:SetText(dividerString)
-    divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
+    divider:SetText(private.interface.divider)
+    divider:SetFont(nil, private.interface.colors.dimmedWhite)
     divider:DisableTooltip(true)
-    height = height + divider:GetHeight() + 5
+    section:AddChild(divider)
     --.....................
 
-    local goldBuyTab = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldBuyTab:SetPoint("TOPLEFT", 5, -height)
-    goldBuyTab:SetPoint("RIGHT", -5, 0)
+    local goldBuyTab = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldBuyTab:SetFullWidth()
     goldBuyTab:Justify("LEFT")
     goldBuyTab:SetCallbacks(callbacks.goldBuyTab)
-    height = height + goldBuyTab:GetHeight()
+    section:AddChild(goldBuyTab)
 
-    local goldWithdrawForTab = content:Acquire("GuildBankSnapshotsFontFrame")
-    goldWithdrawForTab:SetPoint("TOPLEFT", 5, -height)
-    goldWithdrawForTab:SetPoint("RIGHT", -5, 0)
+    local goldWithdrawForTab = section:Acquire("GuildBankSnapshotsFontFrame")
+    goldWithdrawForTab:SetFullWidth()
     goldWithdrawForTab:Justify("LEFT")
     goldWithdrawForTab:SetCallbacks(callbacks.goldWithdrawForTab)
-    height = height + goldWithdrawForTab:GetHeight()
+    section:AddChild(goldWithdrawForTab)
 
-    return height
+    -- return height
+    section:DoLayout()
 end
 
-DrawSidebarItems = function(content, height)
-    local deposit = content:Acquire("GuildBankSnapshotsFontFrame")
-    deposit:SetPoint("TOPLEFT", 5, -height)
-    deposit:SetPoint("RIGHT", -5, 0)
+------------------------
+
+DrawSidebarItems = function(section)
+    local deposit = section:Acquire("GuildBankSnapshotsFontFrame")
+    deposit:SetFullWidth()
     deposit:Justify("LEFT")
     deposit:SetCallbacks(callbacks.deposit)
-    height = height + deposit:GetHeight()
+    section:AddChild(deposit)
 
-    if AnalyzeTab.guilds[AnalyzeTab.guildKey].data.topDeposit then
-        local topDeposit = content:Acquire("GuildBankSnapshotsFontLabelFrame")
-        topDeposit:SetPoint("TOPLEFT", 5, -height)
-        topDeposit:SetPoint("RIGHT", -5, 0)
+    if GetSelectedGuild().data.topDeposit then
+        local topDeposit = section:Acquire("GuildBankSnapshotsFontLabelFrame")
+        topDeposit:SetFullWidth()
         topDeposit:Justify("LEFT")
         topDeposit:SetLabel(L["All-Star"] .. ":")
         topDeposit:SetLabelFont(nil, private:GetInterfaceFlairColor())
         topDeposit:SetCallbacks(callbacks.topDeposit)
-        height = height + topDeposit:GetHeight()
+        section:AddChild(topDeposit)
     end
 
     --.....................
-    divider = content:Acquire("GuildBankSnapshotsFontFrame")
-    divider:SetPoint("TOPLEFT", 5, -height)
-    divider:SetPoint("RIGHT", -5, 0)
+    divider = section:Acquire("GuildBankSnapshotsFontFrame")
+    divider:SetFullWidth()
     divider:SetHeight(5)
-    divider:SetText(dividerString)
+    divider:SetText(private.interface.divider)
     divider:SetTextColor(private.interface.colors.dimmedWhite:GetRGBA())
     divider:DisableTooltip(true)
-    height = height + divider:GetHeight() + 5
+    section:AddChild(divider)
     --.....................
 
-    local withdraw = content:Acquire("GuildBankSnapshotsFontFrame")
-    withdraw:SetPoint("TOPLEFT", 5, -height)
-    withdraw:SetPoint("RIGHT", -5, 0)
+    local withdraw = section:Acquire("GuildBankSnapshotsFontFrame")
+    withdraw:SetFullWidth()
     withdraw:Justify("LEFT")
     withdraw:SetCallbacks(callbacks.withdraw)
-    height = height + withdraw:GetHeight()
+    section:AddChild(withdraw)
 
-    if AnalyzeTab.guilds[AnalyzeTab.guildKey].data.topWithdraw then
-        local topWithdraw = content:Acquire("GuildBankSnapshotsFontLabelFrame")
-        topWithdraw:SetPoint("TOPLEFT", 5, -height)
-        topWithdraw:SetPoint("RIGHT", -5, 0)
+    if GetSelectedGuild().data.topWithdraw then
+        local topWithdraw = section:Acquire("GuildBankSnapshotsFontLabelFrame")
+        topWithdraw:SetFullWidth()
         topWithdraw:Justify("LEFT")
         topWithdraw:SetLabel(L["All-Star"] .. ":")
         topWithdraw:SetLabelFont(nil, private:GetInterfaceFlairColor())
         topWithdraw:SetCallbacks(callbacks.topWithdraw)
-        height = height + topWithdraw:GetHeight()
+        section:AddChild(topWithdraw)
     end
 
-    return height
+    section:DoLayout()
 end
+
+------------------------
 
 DrawTabs = function()
     local tabContainer = AnalyzeTab.tabContainer
     tabContainer:ReleaseChildren()
 
-    if not AnalyzeTab.guildKey or addon:tcount(AnalyzeTab.guilds[AnalyzeTab.guildKey].scans) == 0 then
+    if not AnalyzeTab.guildKey or addon:tcount(GetSelectedGuild().scans) == 0 then
         return
     end
 
@@ -790,13 +797,15 @@ DrawTabs = function()
         local tab = tabContainer:Acquire("GuildBankSnapshotsTabButton")
         tab:SetTab(tabContainer, tabID, info)
         tab:SetCallbacks(callbacks.tab)
-        if tabID == AnalyzeTab.guilds[AnalyzeTab.guildKey].selectedTab then
+        if tabID == GetSelectedGuild().selectedTab then
             tab:Fire("OnClick")
         end
         tabContainer:AddChild(tab)
     end
     tabContainer:DoLayout()
 end
+
+------------------------
 
 GetGuildDataTable = function()
     return {
@@ -810,6 +819,8 @@ GetGuildDataTable = function()
             topDeposit = false,
             topWithdraw = false,
             total = 0,
+            totalDeposit = 0,
+            totalWithdraw = 0,
 
             buyTab = 0,
             deposit = 0,
@@ -832,6 +843,8 @@ GetGuildDataTable = function()
     }
 end
 
+------------------------
+
 GetItemTable = function()
     return {
         deposit = 0,
@@ -841,6 +854,8 @@ GetItemTable = function()
         withdraws = {},
     }
 end
+
+------------------------
 
 GetNameTable = function()
     return {
@@ -869,6 +884,15 @@ GetNameTable = function()
     }
 end
 
+------------------------
+
+GetSelectedGuild = function()
+    local guild = AnalyzeTab.guild or AnalyzeTab.guildKey
+    return guild and AnalyzeTab.guilds[guild]
+end
+
+------------------------
+
 function private:LoadAnalyzeTab(content, guildKey, scanID)
     AnalyzeTab.guild = guildKey
     AnalyzeTab.scanID = scanID
@@ -876,49 +900,39 @@ function private:LoadAnalyzeTab(content, guildKey, scanID)
     local selectGuild = content:Acquire("GuildBankSnapshotsDropdownButton")
     selectGuild:SetPoint("TOPLEFT", 10, -10)
     selectGuild:SetSize(250, 20)
-    selectGuild:SetDefaultText(L["Select a guild"])
     selectGuild:SetBackdropColor(private.interface.colors.darker)
+    selectGuild:SetDefaultText(L["Select a guild"])
     selectGuild:SetInfo(info.selectGuild)
     AnalyzeTab.selectGuild = selectGuild
 
-    local sidebar = content:Acquire("GuildBankSnapshotsScrollFrame")
-    sidebar.bg, sidebar.border = private:AddBackdrop(sidebar, { bgColor = "darker" })
-    sidebar:SetWidth(selectGuild:GetWidth())
+    local sidebar = content:Acquire("GuildBankSnapshotsScrollingGroup")
     sidebar:SetPoint("TOPLEFT", selectGuild, "BOTTOMLEFT")
     sidebar:SetPoint("BOTTOM", 0, 10)
+    sidebar:SetSize(selectGuild:GetWidth(), sidebar:GetHeight())
+    sidebar:SetBackdropColor(private.interface.colors.darker)
+    sidebar:SetPadding(5, 5)
+    sidebar:SetSpacing(5)
+    private:RegisterResizeCallback(sidebar, "analyzeSidebar")
     AnalyzeTab.sidebar = sidebar
 
     local tabContainer = content:Acquire("GuildBankSnapshotsGroup")
-    tabContainer.bg, tabContainer.border = private:AddBackdrop(tabContainer, { bgColor = "darker" })
-    tabContainer:SetHeight(20)
     tabContainer:SetPoint("TOPLEFT", selectGuild, "TOPRIGHT")
     tabContainer:SetPoint("RIGHT", -10, 0)
+    tabContainer:SetHeight(20)
+    tabContainer.bg, tabContainer.border = private:AddBackdrop(tabContainer, { bgColor = "darker" })
     tabContainer:SetReverse(true)
+    private:RegisterResizeCallback(tabContainer, "analyzeTabContainer")
     AnalyzeTab.tabContainer = tabContainer
 
-    local container = content:Acquire("GuildBankSnapshotsScrollFrame")
-    container.bg, container.border = private:AddBackdrop(container, { bgColor = "dark" })
-    container:SetPoint("TOPLEFT", tabContainer, "BOTTOMLEFT")
-    container:SetPoint("BOTTOMRIGHT", -10, 10)
-    AnalyzeTab.container = container
-
-    local tabContent = container.content:Acquire("GuildBankSnapshotsGroup")
-    tabContent:SetHeight(1)
-    tabContent:SetPoint("TOPLEFT", container.content, "TOPLEFT")
-    tabContent:SetPoint("TOPRIGHT", container.content, "TOPRIGHT")
-    tabContent:SetPadding(5, 5)
-    tabContent:SetSpacing(10)
-    AnalyzeTab.tabContent = tabContent
+    local content = content:Acquire("GuildBankSnapshotsScrollingGroup")
+    content:SetPoint("TOPLEFT", tabContainer, "BOTTOMLEFT")
+    content:SetPoint("BOTTOMRIGHT", -10, 10)
+    content:SetSize(selectGuild:GetWidth(), content:GetHeight())
+    content:SetBackdropColor(private.interface.colors.dark)
+    content:SetPadding(5, 5)
+    content:SetSpacing(5)
+    private:RegisterResizeCallback(content, "analyzeContent")
+    AnalyzeTab.content = content
 
     selectGuild:SetCallbacks(callbacks.selectGuild)
-    -- content:SetCallback("OnSizeChanged", function()
-    --     tabContainer:DoLayout()
-    --     tabContent:DoLayout()
-    --     container:Fire("OnSizeChanged")
-    -- end)
-    -- tinsert(private.frame.OnSizeFinished, function()
-    --     tabContainer:DoLayout()
-    --     tabContent:DoLayout()
-    --     container:Fire("OnSizeChanged")
-    -- end)
 end

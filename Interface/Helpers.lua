@@ -105,6 +105,7 @@ function private:InitializeInterface()
             lightFlair = CreateColor(1, 0.82, 0, 0.5),
             flair = CreateColor(1, 0.82, 0, 1),
         },
+        divider = ".....................................................................................................",
         fonts = {
             symbolFont = symbolFont,
             symbolFontDisabled = symbolFontDisabled,

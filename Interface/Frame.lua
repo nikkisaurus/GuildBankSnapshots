@@ -12,7 +12,7 @@ callbacks = {
         OnSizeChanged = {
             function(self)
                 private:CloseMenus(nil, true)
-                for _, child in pairs(self:GetUserData("resizeChildren")) do
+                for name, child in pairs(self:GetUserData("resizeChildren")) do
                     assert(child.DoLayout, "Resize child does not have a DoLayout function")
                     child:DoLayout()
                 end
@@ -147,7 +147,7 @@ function private:InitializeFrame()
     tabContainer:SetPoint("RIGHT", -10, 0)
     tabContainer:SetHeight(20)
     tabContainer:SetReverse(true)
-    private:RegisterResizeCallback(tabContainer)
+    private:RegisterResizeCallback(tabContainer, "tabContainer")
     frame.tabContainer = tabContainer
 
     for tabID, info in addon:pairs(tabs) do
@@ -189,7 +189,7 @@ end
 
 ------------------------
 
-function private:RegisterResizeCallback(child)
+function private:RegisterResizeCallback(child, name)
     assert(private.frame:GetUserData("resizeChildren"), "GuildBankSnapshotsFrame does not have a resizeChildren table")
-    tinsert(private.frame:GetUserData("resizeChildren"), child)
+    private.frame:GetUserData("resizeChildren")[name] = child
 end

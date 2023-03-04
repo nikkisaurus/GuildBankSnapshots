@@ -101,6 +101,12 @@
         </Scripts>
     </Frame>
 
+    <Frame name="GuildBankSnapshotsScrollingGroup" virtual="true">
+        <Scripts>
+            <OnLoad function="GuildBankSnapshotsScrollingGroup_OnLoad" />
+        </Scripts>
+    </Frame>
+
     <Slider name="GuildBankSnapshotsSlider" virtual="true">
         <Scripts>
             <OnLoad function="GuildBankSnapshotsSlider_OnLoad" />

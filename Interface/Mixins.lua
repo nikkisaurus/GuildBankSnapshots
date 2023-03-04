@@ -269,6 +269,10 @@ function WidgetMixin:SetCallbacks(callbacks)
     end
 end
 
+function WidgetMixin:SetFullWidth()
+    self:SetUserData("width", "full")
+end
+
 function WidgetMixin:SetTooltipInitializer(tooltip, anchor)
     self:SetUserData("tooltip", tooltip)
     self:SetUserData("anchor", anchor)
@@ -333,6 +337,7 @@ function private:MixinCollection(tbl, parent)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsMinMaxFrame", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsPieGraph", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollFrame", Resetter)
+    tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsScrollingGroup", Resetter)
     tbl.pool:CreatePool("Slider", parent or tbl, "GuildBankSnapshotsSlider", Resetter)
     tbl.pool:CreatePool("Frame", parent or tbl, "GuildBankSnapshotsSliderFrame", Resetter)
     tbl.pool:CreatePool("Button", parent or tbl, "GuildBankSnapshotsTabButton", Resetter)
