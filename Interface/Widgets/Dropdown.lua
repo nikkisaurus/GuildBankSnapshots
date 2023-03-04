@@ -108,6 +108,18 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
         end
     end
 
+    function dropdown:SelectAll()
+        assert(self:GetUserData("info"), "GuildBankSnapshotsDropdownButton: info is not initialized")
+
+        for _, info in pairs(self:GetInfo()) do
+            self:SelectByID(info.id, true, true)
+        end
+
+        if self.handlers.OnSelectAll then
+            self.handlers.OnSelectAll(self)
+        end
+    end
+
     function dropdown:SelectByID(value, skipCallback, forceSelect)
         assert(self:GetUserData("info"), "GuildBankSnapshotsDropdownButton: info is not initialized")
 
@@ -171,10 +183,6 @@ function GuildBankSnapshotsDropdownButton_OnLoad(dropdown)
 
         if self.menu:IsVisible() then
             self.menu:Close()
-
-            if self.handlers.OnMenuClosed then
-                self.handlers.OnMenuClosed(self)
-            end
         else
             self.menu:Open()
         end
@@ -444,6 +452,9 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
     function menu:Close()
         self:ClearAllPoints()
         self:Hide()
+        if self.dropdown.handlers.OnMenuClosed then
+            self.dropdown.handlers.OnMenuClosed(self.dropdown)
+        end
     end
 
     function menu:InitializeListFrame()
@@ -486,11 +497,44 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             end)
         end)
 
+        local selectAllButton = self:Acquire("GuildBankSnapshotsButton")
+        selectAllButton:SetText(L["Select All"])
+        selectAllButton:SetHeight(20)
+        selectAllButton:Hide()
+
+        selectAllButton:SetCallback("OnClick", function()
+            self.dropdown:SelectAll()
+            self:Close()
+        end)
+
         local clearButton = self:Acquire("GuildBankSnapshotsButton")
         clearButton:SetText(L["Clear"])
         clearButton:SetHeight(20)
         clearButton:Hide()
-        if self.style.hasClear then
+
+        clearButton:SetCallback("OnClick", function()
+            self:Close()
+            self.dropdown:Clear()
+        end)
+
+        if self.style.hasSelectAll and self.style.multiSelect then
+            selectAllButton:Show()
+
+            if self.style.hasSearch then
+                selectAllButton:SetPoint("TOPLEFT", searchBox, "BOTTOMLEFT", 0, -5)
+            else
+                selectAllButton:SetPoint("TOPLEFT", self, "TOPLEFT", 5, -5)
+            end
+
+            if self.style.hasClear then
+                clearButton:Show()
+                selectAllButton:SetWidth((self:GetWidth() - 10) / 2)
+                clearButton:SetPoint("LEFT", selectAllButton, "RIGHT")
+                clearButton:SetPoint("RIGHT", self, "RIGHT", -5, 0)
+            else
+                selectAllButton:SetPoint("RIGHT", self, "RIGHT", -5, 0)
+            end
+        elseif self.style.hasClear then
             clearButton:Show()
             if self.style.hasSearch then
                 clearButton:SetPoint("TOPLEFT", searchBox, "BOTTOMLEFT", 0, -5)
@@ -502,14 +546,10 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             self:SetHeight(self:GetHeight() + 30)
         end
 
-        clearButton:SetCallback("OnClick", function()
-            self:Close()
-            self.dropdown:Clear()
-        end)
-
-        if self.style.hasClear or self.style.hasSearch then
-            listFrame:SetPoint("TOP", self.style.hasClear and clearButton or self.style.hasSearch and searchBox, "BOTTOM", 0, -5)
+        if (self.style.hasSelectAll and self.style.multiSelect) or self.style.hasClear or self.style.hasSearch then
+            listFrame:SetPoint("TOP", (self.style.hasSelectAll and self.style.multiSelect) and selectAllButton or self.style.hasClear and clearButton or self.style.hasSearch and searchBox, "BOTTOM", 0, -5)
             listFrame:SetPoint("LEFT", self.bg, "LEFT")
+            listFrame:SetPoint("RIGHT", self.bg, "RIGHT")
             listFrame:SetPoint("BOTTOM", self.bg, "BOTTOM")
         else
             listFrame:SetPoint("TOPLEFT", self.bg, "TOPLEFT")

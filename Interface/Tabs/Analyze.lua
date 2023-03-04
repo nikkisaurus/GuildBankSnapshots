@@ -2,6 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+--*----------[[ Initialize tab ]]----------*--
 local AnalyzeTab
 local callbacks, forwardCallbacks, info, mods, sidebarSections, tabs
 local AnalyzeScans, DrawGoldContent, DrawItemContent, DrawNameContent, DrawSidebar, DrawSidebarGold, DrawSidebarItems, DrawTabs, GetGuildDataTable, GetItemTable, GetNameTable
@@ -15,6 +16,7 @@ function private:InitializeAnalyzeTab()
     }
 end
 
+--*----------[[ Data ]]----------*--
 callbacks = {
     selectGuild = {
         OnShow = {
@@ -222,6 +224,19 @@ forwardCallbacks = {
                 end
             end,
         },
+        OnMenuClosed = {
+            function(self)
+                AnalyzeScans()
+            end,
+        },
+        OnSelectAll = {
+            function(self)
+                for _, info in pairs(self:GetInfo()) do
+                    AnalyzeTab.guilds[AnalyzeTab.guildKey].scans[info.id] = true
+                end
+                AnalyzeScans()
+            end,
+        },
     },
 }
 
@@ -328,6 +343,7 @@ tabs = {
     },
 }
 
+--*----------[[ Methods ]]----------*--
 AnalyzeScans = function(skipDrawSidebar)
     if not AnalyzeTab.guildKey then
         return
@@ -468,7 +484,7 @@ DrawSidebar = function()
     selectScans:SetLabel(L["Select Scans"])
     selectScans:SetLabelFont(nil, private:GetInterfaceFlairColor())
     selectScans:Justify("LEFT")
-    selectScans:SetStyle({ multiSelect = true, hasClear = true, hasSelectAll = true }) -- TODO select all
+    selectScans:SetStyle({ multiSelect = true, hasClear = true, hasSelectAll = true })
     selectScans:SetCallbacks(callbacks.selectScans)
     selectScans:ForwardCallbacks(forwardCallbacks.selectScans)
     selectScans:SetInfo(info.selectScans)

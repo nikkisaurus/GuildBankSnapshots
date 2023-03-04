@@ -176,6 +176,7 @@ L["Move"] = true
 L["Name"] = true
 L["Net"] = true
 L["Net Gold"] = true
+L["Select All"] = true
 L["Total Gold"] = true
 L["Deposit Summary"] = true
 L["Changes will not be calculated until analyze is re-run"] = true

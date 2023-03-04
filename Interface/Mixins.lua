@@ -154,6 +154,7 @@ local WidgetMixin = {}
 local validScripts = {
     OnClear = true,
     OnInfoSet = true,
+    OnSelectAll = true,
     OnMenuClosed = true,
     OnRelease = true,
     OnSliderValueChanged = true,
