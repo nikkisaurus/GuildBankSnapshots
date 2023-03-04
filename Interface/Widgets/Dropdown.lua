@@ -485,7 +485,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
                             provider:Insert(info)
                         end
                     end
-                    self:SetHeight(min(((provider:GetSize() + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + (self.style.hasClear and 30 or 0) + 2, self.style.maxHeight))
+                    self:SetHeight(min(((provider:GetSize() + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + ((self.style.hasSelectAll and self.style.multiSelect) or self.style.hasClear and 30 or 0) + 2, self.style.maxHeight))
                 end)
             end
         end)
@@ -493,7 +493,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
         searchBox:SetCallback("OnClear", function(...)
             listFrame:SetDataProvider(function(provider)
                 provider:InsertTable(self.dropdown:GetInfo())
-                self:SetHeight(min(((provider:GetSize() + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + (self.style.hasClear and 30 or 0) + 2, self.style.maxHeight))
+                self:SetHeight(min(((provider:GetSize() + 1) * self.style.buttonHeight) + (self.style.hasSearch and 30 or 0) + ((self.style.hasSelectAll and self.style.multiSelect) or self.style.hasClear and 30 or 0) + 2, self.style.maxHeight))
             end)
         end)
 
@@ -534,6 +534,7 @@ function GuildBankSnapshotsDropdownMenu_OnLoad(menu)
             else
                 selectAllButton:SetPoint("RIGHT", self, "RIGHT", -5, 0)
             end
+            self:SetHeight(self:GetHeight() + 30)
         elseif self.style.hasClear then
             clearButton:Show()
             if self.style.hasSearch then
