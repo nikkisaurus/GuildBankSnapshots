@@ -13,6 +13,6 @@
     <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml" />
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml" />
     <Include file="Libs\LibUIDropDownMenu\LibUIDropDownMenu.xml" />
-    <Include file="Libs\LibDropDown\embed.xml" />
+    <!-- <Include file="Libs\LibDropDown\embed.xml" /> -->
     <Include file="Libs\LibGraph-2.0\LibGraph-2.0.lua" />
 </Ui>

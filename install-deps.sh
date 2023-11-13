@@ -17,5 +17,5 @@ svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceSerializer-3
 # svn checkout --force https://repos.curseforge.com/wow/ace3/trunk/AceTimer-3.0 ./Libs/AceTimer-3.0
 
 git clone https://github.com/nikkisaurus/LibAddonUtils-2.0 ./Libs/LibAddonUtils-2.0
-git clone https://github.com/p3lim-wow/LibDropDown ./Libs/LibDropDown
+# git clone https://github.com/p3lim-wow/LibDropDown ./Libs/LibDropDown
 svn checkout https://repos.curseforge.com/wow/libgraph-2-0/trunk/LibGraph-2.0 ./Libs/LibGraph-2.0

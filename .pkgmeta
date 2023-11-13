@@ -18,7 +18,7 @@ externals:
     # Libs/AceTimer-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceTimer-3.0
 
     Libs/LibAddonUtils-2.0: https://github.com/nikkisaurus/LibAddonUtils-2.0
-    Libs/LibDropDown: https://github.com/p3lim-wow/LibDropDown
+    # Libs/LibDropDown: https://github.com/p3lim-wow/LibDropDown
     Libs/LibGraph-2.0: https://repos.curseforge.com/wow/libgraph-2-0/trunk/LibGraph-2.0
 
 embedded-libraries:
