@@ -132,6 +132,11 @@ function private:InitializeDatabase()
                     func = "SlashCommandFunc",
                 },
 
+                gbsnaps = {
+                    enabled = true,
+                    func = "SlashCommandFunc",
+                },
+
                 scan = {
                     enabled = true,
                     func = "ScanGuildBank",
