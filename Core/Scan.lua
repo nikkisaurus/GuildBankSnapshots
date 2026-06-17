@@ -4,6 +4,8 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local ACD = LibStub("AceConfigDialog-3.0")
 local AceSerializer = LibStub("AceSerializer-3.0")
 
+private.loaded = {}
+
 local function ValidateScan(db, override)
     if not private.bankIsOpen then
         addon:Print(L["Please open your guild bank frame and try again."])
@@ -64,7 +66,7 @@ local function ValidateScan(db, override)
         else
             private:AddScanToMaster(guildKey, scanTime)
             -- Open the review frame
-            if not corrupt and ((private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review)) then
+            if (private.isScanning ~= "auto" and scanSettings.review) or (private.isScanning == "auto" and scanSettings.autoScan.review) then
                 private:LoadFrame(addon:StringToTitle(scanSettings.reviewPath), (private:GetGuildKey()), scanTime)
             end
         end
@@ -125,8 +127,72 @@ function addon:GUILDBANKFRAME_OPENED()
     end
 end
 
+function addon:GUILDBANKLOG_UPDATE()
+    local guildKey = private:GetGuildKey()
+    local numTabs = private.db.global.guilds[guildKey].numTabs
+    for tab = 1, numTabs do
+        if private:CanViewTab(guildKey, tab) then
+            local loaded = GetNumGuildBankTransactions(tab)
+            private.loaded[tab] = loaded > 0
+        end
+    end
+
+    local loaded = 0
+    for _, isLoaded in pairs(private.loaded) do
+        if isLoaded then
+            loaded = loaded + 1
+        end
+    end
+
+    -- Validation
+    if loaded == #private.loaded then
+        print("Validating scan")
+        -- Scan bank
+        C_Timer.After(private.db.global.preferences.delay, function()
+            local db = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
+
+            -- Item transactions
+            for tab = 1, numTabs do
+                db.tabs[tab] = { items = {}, transactions = {} }
+                local tabDB = db.tabs[tab]
+                if private:CanViewTab(guildKey, tab) and private.loaded[tab] == true then
+                    for index = 1, GetNumGuildBankTransactions(tab) do
+                        local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = GetGuildBankTransaction(tab, index)
+                        name = name or UNKNOWN
+
+                        tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemLink, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
+                    end
+
+                    for slot = 1, (MAX_GUILDBANK_SLOTS_PER_TAB or 98) do
+                        local slotItemID = GetItemInfoInstant(GetGuildBankItemLink(tab, slot) or 0)
+                        if slotItemID then
+                            local _, slotItemCount = GetGuildBankItemInfo(tab, slot)
+                            tabDB.items[slotItemID] = tabDB.items[slotItemID] and tabDB.items[slotItemID] + slotItemCount or slotItemCount
+                        end
+                    end
+                else
+                    private:dprint(L["Invalid permissions to scan tab "], tab, ".")
+                end
+            end
+
+            -- Money transactions
+            db.totalMoney = GetGuildBankMoney()
+            for i = 1, GetNumGuildBankMoneyTransactions() do
+                local transactionType, name, amount, years, months, days, hours = GetGuildBankMoneyTransaction(i)
+                name = name or UNKNOWN
+
+                tinsert(db.moneyTransactions, AceSerializer:Serialize(transactionType, name, amount, years, months, days, hours))
+            end
+
+            -- Validation
+            ValidateScan(db)
+        end)
+    end
+end
+
 function addon:ScanGuildBank(isAutoScan, override)
     local guildKey = private:GetGuildKey()
+    wipe(private.loaded)
 
     -- Alert user of progress
     if not private.bankIsOpen then
@@ -142,11 +208,14 @@ function addon:ScanGuildBank(isAutoScan, override)
     -- Query guild bank tabs
     local numTabs = private.db.global.guilds[guildKey].numTabs
     for tab = 1, numTabs do
-        QueryGuildBankTab(tab)
-        QueryGuildBankLog(tab)
-        -- Query transactions
-        for index = 1, GetNumGuildBankTransactions(tab) do
-            GetGuildBankTransaction(tab, index)
+        if private:CanViewTab(guildKey, tab) then
+            QueryGuildBankTab(tab)
+            QueryGuildBankLog(tab)
+            private.loaded[tab] = false
+            -- Query transactions
+            for index = 1, GetNumGuildBankTransactions(tab) do
+                GetGuildBankTransaction(tab, index)
+            end
         end
     end
 
@@ -154,50 +223,13 @@ function addon:ScanGuildBank(isAutoScan, override)
     for i = 1, GetNumGuildBankMoneyTransactions() do
         GetGuildBankMoneyTransaction(i)
     end
-
-    -- Scan bank
-    C_Timer.After(private.db.global.preferences.delay, function()
-        local db = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
-
-        -- Item transactions
-        for tab = 1, numTabs do
-            db.tabs[tab] = { items = {}, transactions = {} }
-            local tabDB = db.tabs[tab]
-
-            for index = 1, GetNumGuildBankTransactions(tab) do
-                local transactionType, name, itemLink, count, moveOrigin, moveDestination, year, month, day, hour = GetGuildBankTransaction(tab, index)
-                name = name or UNKNOWN
-
-                tinsert(tabDB.transactions, AceSerializer:Serialize(transactionType, name, itemLink, count, moveOrigin or 0, moveDestination or 0, year, month, day, hour))
-            end
-
-            for slot = 1, (MAX_GUILDBANK_SLOTS_PER_TAB or 98) do
-                local slotItemID = GetItemInfoInstant(GetGuildBankItemLink(tab, slot) or 0)
-                if slotItemID then
-                    local _, slotItemCount = GetGuildBankItemInfo(tab, slot)
-                    tabDB.items[slotItemID] = tabDB.items[slotItemID] and tabDB.items[slotItemID] + slotItemCount or slotItemCount
-                end
-            end
-        end
-
-        -- Money transactions
-        db.totalMoney = GetGuildBankMoney()
-        for i = 1, GetNumGuildBankMoneyTransactions() do
-            local transactionType, name, amount, years, months, days, hours = GetGuildBankMoneyTransaction(i)
-            name = name or UNKNOWN
-
-            tinsert(db.moneyTransactions, AceSerializer:Serialize(transactionType, name, amount, years, months, days, hours))
-        end
-
-        -- Validation
-        ValidateScan(db, override)
-    end)
 end
 
 function private:InitializeScanner()
     EventUtil.ContinueOnAddOnLoaded("Blizzard_GuildBankUI", function()
         addon:HookScript(_G["GuildBankFrame"], "OnShow", addon.GUILDBANKFRAME_OPENED)
         addon:HookScript(_G["GuildBankFrame"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
+        addon:RegisterEvent("GUILDBANKLOG_UPDATE")
 
         if C_AddOns.IsAddOnLoaded("ArkInventory") and _G["ARKINV_Frame4"] then
             addon:HookScript(_G["ARKINV_Frame4"], "OnShow", addon.GUILDBANKFRAME_OPENED)

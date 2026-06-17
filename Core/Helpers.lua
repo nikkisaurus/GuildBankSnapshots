@@ -17,6 +17,19 @@ private.timeInSeconds = {
     years = 31540000,
 }
 
+function private:CanViewTab(guildKey, tabID)
+    if not guildKey then
+        private:dprint("Invalid guildKey:", guildKey)
+        return
+    elseif not tabID then
+        private:dprint("Invalid tabID:", tabID)
+        return
+    end
+
+    local _, _, isViewable = GetGuildBankTabInfo(tabID)
+    return isViewable
+end
+
 function private:dprint(...)
     if private.db.global.debug then
         print(...)
