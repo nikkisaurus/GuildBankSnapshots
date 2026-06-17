@@ -146,7 +146,6 @@ function addon:GUILDBANKLOG_UPDATE()
 
     -- Validation
     if loaded == #private.loaded then
-        print("Validating scan")
         -- Scan bank
         C_Timer.After(private.db.global.preferences.delay, function()
             local db = { totalMoney = 0, moneyTransactions = {}, tabs = {} }
