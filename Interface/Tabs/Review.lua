@@ -743,8 +743,9 @@ DrawSidebar = function()
         end
     end
 
+    content:SetHeight(height)
     content:MarkDirty()
-    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateQueued)
+    sidebar.scrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately)
 end
 
 DrawSidebarFilters = function(content, height)
@@ -987,7 +988,7 @@ DrawSidebarInfo = function(content, height)
         largeTableWarning:SetPoint("TOPLEFT", 5, -height)
         largeTableWarning:SetPoint("RIGHT", -5, 0)
         largeTableWarning:SetAutoHeight(true)
-        largetTableWarning:SetText("*" .. L["Due to the large quantity of results in this query, performance issues may occur. You can reduce the size of your resluts by limiting the query through filters or reducing the size of the master table using the cleanup feature (optionally, you may first export the table for use in Excel)."])
+        largeTableWarning:SetText("*" .. L["Due to the large quantity of results in this query, performance issues may occur. You can reduce the size of your resluts by limiting the query through filters or reducing the size of the master table using the cleanup feature (optionally, you may first export the table for use in Excel)."])
         largeTableWarning:SetTextColor(1, 0, 0, 1)
         largeTableWarning:Justify("LEFT")
         height = height + largeTableWarning:GetHeight()

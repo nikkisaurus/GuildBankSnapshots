@@ -66,8 +66,13 @@ function GuildBankSnapshotsTableCell_OnLoad(cell)
     cell.bg:SetAllPoints(cell)
 
     cell.icon = cell:CreateTexture(nil, "BACKGROUND")
-    cell.icon:SetScript("OnEnter", GenerateClosure(cell.GetScript, cell, "OnEnter"))
-    cell.icon:SetScript("OnLeave", GenerateClosure(cell.GetScript, cell, "OnLeave"))
+    cell.icon:EnableMouse(true)
+    cell.icon:SetScript("OnEnter", function()
+        cell:GetScript("OnEnter")(cell)
+    end)
+    cell.icon:SetScript("OnLeave", function()
+        cell:GetScript("OnLeave")(cell)
+    end)
 
     -- Text
     cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")

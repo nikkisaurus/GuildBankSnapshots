@@ -1,5 +1,4 @@
-## Interface: 100002
-## Interface-Wrath: 30400
+## Interface: 120007
 
 ## Title: Guild Bank Snapshots
 ## Notes: Tool for analyzing and reviewing guild bank logs.

@@ -350,6 +350,9 @@ info = {
                 func = function(dropdown, info)
                     SettingsTab.guildKey = info.id
                     DrawGroup("guild", SettingsTab.guildGroup)
+                    RunNextFrame(function()
+                        DrawGroup("preferences", SettingsTab.preferencesGroup)
+                    end)
                 end,
             })
         end)

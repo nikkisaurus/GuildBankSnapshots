@@ -199,10 +199,10 @@ function private:InitializeScanner()
         addon:HookScript(_G["GuildBankFrame"], "OnShow", addon.GUILDBANKFRAME_OPENED)
         addon:HookScript(_G["GuildBankFrame"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
 
-        if IsAddOnLoaded("ArkInventory") and _G["ARKINV_Frame4"] then
+        if C_AddOns.IsAddOnLoaded("ArkInventory") and _G["ARKINV_Frame4"] then
             addon:HookScript(_G["ARKINV_Frame4"], "OnShow", addon.GUILDBANKFRAME_OPENED)
             addon:HookScript(_G["ARKINV_Frame4"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
-        elseif IsAddOnLoaded("Bagnon") and _G["BagnonBankFrame1"] then
+        elseif C_AddOns.IsAddOnLoaded("Bagnon") and _G["BagnonBankFrame1"] then
             addon:HookScript(_G["BagnonBankFrame1"], "OnShow", addon.GUILDBANKFRAME_OPENED)
             addon:HookScript(_G["BagnonBankFrame1"], "OnHide", addon.GUILDBANKFRAME_CLOSED)
         end
