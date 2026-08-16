@@ -988,7 +988,7 @@ DrawSidebarInfo = function(content, height)
         largeTableWarning:SetPoint("TOPLEFT", 5, -height)
         largeTableWarning:SetPoint("RIGHT", -5, 0)
         largeTableWarning:SetAutoHeight(true)
-        largeTableWarning:SetText("*" .. L["Due to the large quantity of results in this query, performance issues may occur. You can reduce the size of your resluts by limiting the query through filters or reducing the size of the master table using the cleanup feature (optionally, you may first export the table for use in Excel)."])
+        largeTableWarning:SetText("*" .. L["Due to the large quantity of results in this query, performance issues may occur. You can reduce the size of your results by limiting the query through filters or reducing the size of the master table using the cleanup feature (optionally, you may first export the table for use in Excel)."])
         largeTableWarning:SetTextColor(1, 0, 0, 1)
         largeTableWarning:Justify("LEFT")
         height = height + largeTableWarning:GetHeight()
@@ -1290,6 +1290,17 @@ LoadTable = function(skipDrawSidebar)
             if IsQueryMatch(elementData) and not IsFiltered(elementData) then
                 validEntries = validEntries + 1
                 elementData.entryID = validEntries
+                elementData.sortKeys = {
+                    [1] = elementData.transactionDate, -- Date
+                    [2] = private:GetTabName(ReviewTab.guildKey, elementData.tabID), -- Tab
+                    [3] = elementData.transactionType, -- Type
+                    [4] = elementData.name, -- Name
+                    [5] = elementData.itemLink and private:GetItemName(elementData.itemLink) or elementData.amount or 0, -- Item/Amount
+                    [6] = elementData.count or 0, -- Quantity
+                    [7] = elementData.moveOrigin or 0, -- Move Origin
+                    [8] = elementData.moveDestination or 0, -- Move Destination
+                    [9] = elementData.scanID, -- Scan Date
+                }
                 provider:Insert(elementData)
 
                 if validEntries >= ReviewTab.maxEntries then
@@ -1299,37 +1310,33 @@ LoadTable = function(skipDrawSidebar)
             end
         end
 
+        local sortHeaders = private.db.global.preferences.sortHeaders
+        local descendingHeaders = private.db.global.preferences.descendingHeaders
+        local multiSort = ReviewTab.guilds[ReviewTab.guildKey].multiSort
+
         provider:SetSortComparator(function(a, b)
-            for sortID, id in ipairs(private.db.global.preferences.sortHeaders) do
-                if not ReviewTab.guilds[ReviewTab.guildKey].multiSort and sortID > 1 then
-                    break
-                end
+            local maxSorts = multiSort and #sortHeaders or 1
 
-                local sortValue = tableCols[id].sortValue
-                local des = private.db.global.preferences.descendingHeaders[id]
-
-                local sortA = sortValue(a)
-                local sortB = sortValue(b)
+            for i = 1, maxSorts do
+                local colID = sortHeaders[i]
+                local sortA = a.sortKeys[colID]
+                local sortB = b.sortKeys[colID]
 
                 if type(sortA) ~= type(sortB) then
                     sortA = tostring(sortA)
                     sortB = tostring(sortB)
                 end
 
-                if sortA > sortB then
-                    if des then
-                        return true
+                if sortA ~= sortB then
+                    if descendingHeaders[colID] then
+                        return sortA > sortB
                     else
-                        return false
-                    end
-                elseif sortA < sortB then
-                    if des then
-                        return false
-                    else
-                        return true
+                        return sortA < sortB
                     end
                 end
             end
+
+            return a.transactionID < b.transactionID
         end)
     end)
 
